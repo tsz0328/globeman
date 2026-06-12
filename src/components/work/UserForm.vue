@@ -1,30 +1,37 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-      <el-form-item label="账号" prop="account">
+      <el-form-item prop="account">
+        <template #label>账号</template>
         <el-input v-model="form.account" placeholder="请输入账号" />
       </el-form-item>
-      <el-form-item label="密码" prop="password">
+      <el-form-item prop="password">
+        <template #label>密码</template>
         <el-input v-model="form.password" type="password" placeholder="请输入密码" />
       </el-form-item>
-      <el-form-item label="姓名" prop="name">
+      <el-form-item prop="name">
+        <template #label>姓名</template>
         <el-input v-model="form.name" placeholder="请输入姓名" />
       </el-form-item>
-      <el-form-item label="公司" prop="company">
+      <el-form-item prop="company">
+        <template #label>公司</template>
         <el-select v-model="form.company" placeholder="请选择公司">
-          <el-option label="建设集团有限公司" value="建设集团有限公司" />
-          <el-option label="科技有限公司" value="科技有限公司" />
-          <el-option label="信息技术公司" value="信息技术公司" />
-          <el-option label="数据库公司" value="数据库公司" />
+          <el-option
+            v-for="company in companyList"
+            :key="company.name"
+            :label="company.name"
+            :value="company.name"
+          />
         </el-select>
       </el-form-item>
-      <el-form-item label="角色" prop="role">
+      <el-form-item prop="role">
+        <template #label>角色</template>
         <el-select v-model="form.role" placeholder="请选择角色">
           <el-option
             v-for="role in roleList"
-            :key="role.roleName"
-            :label="role.roleName"
-            :value="role.roleName"
+            :key="role.role"
+            :label="role.name"
+            :value="role.role"
           />
         </el-select>
       </el-form-item>
@@ -40,8 +47,8 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import type { FormRules } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-import { getRolesApi, type RoleData } from '@/api/UserApi'
-import { ElMessage } from 'element-plus'
+import { useRole } from '@/composables/useRole'
+import { useCompany } from '@/composables/useCompany'
 
 export interface UserFormData {
   account: string
@@ -49,13 +56,6 @@ export interface UserFormData {
   name: string
   company: string
   role: string
-}
-
-interface RoleOption {
-  roleName: string
-  description?: string
-  id?: number
-  permissions?: string[]
 }
 
 const props = defineProps<{
@@ -69,35 +69,8 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
-const roleList = ref<RoleOption[]>([])
-
-const fetchRoles = async () => {
-  try {
-    const res = await getRolesApi()
-    if (res.code === 200 && res.data && typeof res.data === 'object') {
-      const roles = Array.isArray(res.data) ? res.data : Object.values(res.data)
-      roleList.value = roles.map((item: RoleData): RoleOption => {
-        const roleName =
-          item.roleName ??
-          (item as unknown as { role?: string }).role ??
-          (item as unknown as { name?: string }).name ??
-          ''
-        const description = item.description ?? (item as unknown as { desc?: string }).desc ?? ''
-        const permissions =
-          item.permissions ?? (item as unknown as { perms?: string[] }).perms ?? []
-        return {
-          roleName,
-          description,
-          id: item.id,
-          permissions,
-        }
-      })
-    }
-  } catch (error) {
-    console.error('获取角色列表失败:', error)
-    ElMessage.error('获取角色列表失败')
-  }
-}
+const { roleList, fetchRoles } = useRole()
+const { companyList, fetchCompanies } = useCompany()
 
 const rules: FormRules = {
   account: [{ required: true, message: '请输入账号', trigger: 'blur' }],
@@ -124,6 +97,7 @@ const visibleValue = computed({
 
 onMounted(() => {
   fetchRoles()
+  fetchCompanies()
 })
 
 const resetForm = () => {

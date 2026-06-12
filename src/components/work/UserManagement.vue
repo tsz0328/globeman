@@ -7,7 +7,9 @@
         <el-button type="primary" @click="addUser">+新建用户</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
-        <el-button type="danger">批量删除</el-button>
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
+          >批量删除</el-button
+        >
       </div>
     </div>
     <!-- 筛选区域 -->
@@ -17,20 +19,24 @@
           <label>公司：</label>
           <el-select v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
             <el-option label="全部公司" value="" />
-            <el-option label="建设集团有限公司" value="建设集团有限公司" />
-            <el-option label="科技有限公司" value="科技有限公司" />
-            <el-option label="信息技术公司" value="信息技术公司" />
-            <el-option label="数据库公司" value="数据库公司" />
+            <el-option
+              v-for="company in companyList"
+              :key="company.id"
+              :label="company.name"
+              :value="company.name"
+            />
           </el-select>
         </div>
         <div class="filter-item">
           <label>角色：</label>
           <el-select v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
             <el-option label="全部角色" value="" />
-            <el-option label="管理员" value="管理员" />
-            <el-option label="项目经理" value="项目经理" />
-            <el-option label="普通用户" value="普通用户" />
-            <el-option label="访客" value="访客" />
+            <el-option
+              v-for="role in roleList"
+              :key="role.id"
+              :label="role.name"
+              :value="role.role"
+            />
           </el-select>
         </div>
         <div class="filter-item">
@@ -49,19 +55,27 @@
 
     <!-- 表格区域 -->
     <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%">
+      <el-table
+        :data="paginatedData"
+        border
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        :row-key="getRowKey"
+      >
         <el-table-column type="selection" width="50" />
-        <el-table-column prop="account" label="账号" />
+        <el-table-column prop="account" label="账号" width="120" />
         <el-table-column prop="name" label="姓名" width="100" />
         <el-table-column prop="company" label="公司" />
         <el-table-column prop="role" label="角色" width="100" />
-        <el-table-column prop="createTime" label="创建时间" width="150" />
+        <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="193">
-          <template #default="{ row }">
+          <template #default="scope">
             <div class="action-buttons">
               <el-button type="primary" size="small">查看</el-button>
               <el-button type="warning" size="small">编辑</el-button>
-              <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+                >删除</el-button
+              >
             </div>
           </template>
         </el-table-column>
@@ -85,20 +99,27 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import UserForm from './UserForm.vue'
 import type { UserFormData } from './UserForm.vue'
 import { useUser, type User } from '@/composables/useUser'
+import { useRole } from '@/composables/useRole'
+import { useCompany } from '@/composables/useCompany'
 
-const { userList, createUser, fetchUsers, deleteUser } = useUser()
+const { userList, createUser, fetchUsers, deleteUser, batchDeleteUsers } = useUser()
+const { roleList, fetchRoles } = useRole()
+const { companyList, fetchCompanies } = useCompany()
 
 const currentPage = ref(1)
-const pageSize = ref(8)
+const pageSize = ref(10)
 const userFormVisible = ref(false)
+const selectedRows = ref<User[]>([])
 
 // 组件挂载时获取用户列表
 onMounted(() => {
   fetchUsers()
+  fetchRoles()
+  fetchCompanies()
 })
 
 // 新增用户
@@ -121,6 +142,12 @@ const handleUserSubmit = async (data: UserFormData) => {
 // 删除用户
 const handleDelete = async (row: User) => {
   try {
+    await ElMessageBox.confirm(`确定要删除用户"${row.name}"吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
     const success = await deleteUser(row.id, row.account)
     if (success) {
       ElMessage.success('删除成功')
@@ -128,8 +155,58 @@ const handleDelete = async (row: User) => {
       ElMessage.error('删除失败')
     }
   } catch (error) {
-    console.error('删除用户失败:', error)
-    ElMessage.error('删除失败')
+    if (error !== 'cancel') {
+      console.error('删除用户失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 获取行key（用于模板调用，避免类型错误）
+const getRowKey = (row: User) => row.id
+
+// 删除按钮点击（用于模板调用，避免类型错误）
+const handleDeleteBtn = (row: unknown) => {
+  handleDelete(row as User)
+}
+
+// 多选事件
+const handleSelectionChange = (val: User[]) => {
+  selectedRows.value = val
+}
+
+// 批量删除
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的用户')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRows.value.length} 个用户吗？`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+
+    const ids = selectedRows.value.map((row) => row.id)
+    const success = await batchDeleteUsers(ids)
+
+    if (success) {
+      ElMessage.success(`成功删除 ${selectedRows.value.length} 个用户`)
+      selectedRows.value = []
+    } else {
+      ElMessage.error('批量删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
   }
 }
 
@@ -229,10 +306,19 @@ const handleReset = () => {
 }
 
 .filter-item {
-  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.filter-item:first-child,
+.filter-item:nth-child(2) {
+  flex: 1;
+}
+
+.filter-item:last-child {
+  flex: 2;
+  justify-content: flex-end;
 }
 
 /* 表格区域 */

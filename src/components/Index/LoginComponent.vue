@@ -18,6 +18,13 @@ interface UserDetailData {
   email?: string
   phone?: string
   department?: string
+  role?: string
+  company?: string
+  time?: string
+  createTime?: string
+  createdAt?: string
+  created_at?: string
+  admin?: UserDetailData
 }
 
 //初始化表单
@@ -79,7 +86,8 @@ async function loginRequest() {
       try {
         const userInfoRes = await getUserInfoApi(loginForm.account)
         if (userInfoRes.code === 200) {
-          const userInfo = (userInfoRes.data as any)?.admin ?? (userInfoRes.data as any)
+          const userInfo =
+            (userInfoRes.data as UserDetailData)?.admin ?? (userInfoRes.data as UserDetailData)
           setUserDetailInfo(userInfo as UserDetailData)
           const detailRole = userInfo.role
           if ((!res.data || !res.data.role) && detailRole) {

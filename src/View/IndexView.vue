@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import 'vue3-carousel/carousel.css'
-import PlatformNoticeComponent from '@/components/Index/PlatformNoticeComponent.vue'
+import PlatformNoticeComponent from '@/components/Index/PlatformNotice.vue'
 import IntroductionComponent from '@/components/Index/IntroductionComponent.vue'
 import MessageComponent from '@/components/Index/MessageComponent.vue'
 import FootComponent from '@/components/Index/FootComponent.vue'

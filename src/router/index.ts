@@ -2,11 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import IndexView from '@/View/IndexView.vue'
 import WorkView from '@/View/WorkView.vue'
 import LoginComponent from '@/components/Index/LoginComponent.vue'
-import LoginSuccessComponent from '@/components/Index/LoginSuccessComponent.vue'
-import UserManagementComponent from '@/components/work/UserManagementComponent.vue'
+import LoginSuccessComponent from '@/components/Index/LoginSuccess.vue'
+import UserManagementComponent from '@/components/work/UserManagement.vue'
 import HomeComponent from '@/components/work/HomeComponent.vue'
-import EmployeeManagementComponent from '@/components/work/EmployeeManagementComponent.vue'
-import ProjectManagementComponent from '@/components/work/ProjectManagementComponent.vue'
+import ProjectManagementComponent from '@/components/work/ProjectManagement.vue'
+import CustomerManagementComponent from '@/components/work/CustomerManagement.vue'
+import CompanyManagementComponent from '@/components/work/CompanyManagement.vue'
+import ProjectDetailComponent from '@/components/work/ProjectDetail.vue'
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
 const router = createRouter({
@@ -45,11 +47,6 @@ const router = createRouter({
           component: HomeComponent,
         },
         {
-          path: 'employee',
-          name: 'Employee',
-          component: EmployeeManagementComponent,
-        },
-        {
           path: 'project',
           name: 'Project',
           component: ProjectManagementComponent,
@@ -59,7 +56,23 @@ const router = createRouter({
           name: 'User',
           component: UserManagementComponent,
         },
+        {
+          path: 'customer',
+          name: 'Customer',
+          component: CustomerManagementComponent,
+        },
+        {
+          path: 'company',
+          name: 'Company',
+          component: CompanyManagementComponent,
+        },
       ],
+    },
+    // 独立的项目详情路由（不在work布局中）
+    {
+      path: '/project-detail/:id',
+      name: 'ProjectDetail',
+      component: ProjectDetailComponent,
     },
   ],
 })

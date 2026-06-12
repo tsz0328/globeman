@@ -22,19 +22,18 @@ export function useUser() {
   const userList = ref<User[]>([])
   const loading = ref(false)
 
+  // 从服务器获取用户列表
   const fetchUsers = async () => {
     loading.value = true
     try {
       const res = await getUsersApi()
       if (res.code === 200) {
         const isUserRecord = (value: unknown): value is Record<string, unknown> => {
-          return (
-            typeof value === 'object' &&
-            value !== null &&
-            ('account' in value || 'name' in value || 'id' in value)
-          )
+          return typeof value === 'object' && value !== null && 'id' in value && 'name' in value
         }
 
+        // 归一化数据，处理嵌套对象和数组
+        // 支持直接返回数组、对象、单个对象或 null
         const normalizeRecords = (data: unknown): Record<string, unknown>[] => {
           if (Array.isArray(data)) {
             return data as Record<string, unknown>[]
@@ -43,18 +42,22 @@ export function useUser() {
             return []
           }
           const record = data as Record<string, unknown>
-          if (record.admin && typeof record.admin === 'object') {
-            return [record.admin as Record<string, unknown>]
-          }
           const objectValues = Object.values(record).filter(isUserRecord)
           if (objectValues.length > 0) {
             return objectValues
           }
-          return [record]
+          if (isUserRecord(record)) {
+            return [record]
+          }
+          return []
         }
 
+        // 归一化用户记录数组
         const userArray = normalizeRecords(res.data)
 
+        // 映射用户记录为 User 类型
+        // 处理 id、userId、account、name、company、role、createTime 等字段
+        // 支持嵌套对象和数组
         userList.value = userArray.map((item, index) => {
           const record = item as Record<string, unknown>
           const getString = (keys: string[]) => {
@@ -79,7 +82,7 @@ export function useUser() {
                   : index + 1,
             account: getString(['account', 'username', 'loginName']),
             name: getString(['name', 'fullName']),
-            company: getString(['company', 'companyName', 'organisation', 'org']),
+            company: getString(['company', 'companyName', 'organization', 'org']),
             role: getString(['role', 'userRole']),
             createTime: getString(['createTime', 'create_time', 'createdAt', 'created_at', 'time']),
           }
@@ -95,12 +98,14 @@ export function useUser() {
     }
   }
 
+  // 创建用户
+  // 支持创建新用户并更新用户列表
   const createUser = async (data: UserFormData): Promise<boolean> => {
     loading.value = true
     try {
       const res = await createUserApi(data)
-      if (res.code === 200 && res.data) {
-        const dataRecord = res.data as unknown as Record<string, unknown>
+      if (res.code === 200) {
+        const dataRecord = (res.data as unknown as Record<string, unknown>) || {}
         const getString = (keys: string[]) => {
           for (const key of keys) {
             const value = dataRecord[key]
@@ -114,19 +119,20 @@ export function useUser() {
           return ''
         }
 
+        // 映射新用户记录为 User 类型
+        // 处理 id、userId、account、name、company、role、createTime 等字段
+        // 支持嵌套对象和数组
         const newUser: User = {
-          id: res.data.id ?? Date.now(),
-          account: res.data.account ?? data.account,
-          name: res.data.name ?? data.name,
-          company: res.data.company ?? data.company,
-          role: res.data.role ?? data.role,
-          createTime: getString(['createTime', 'create_time', 'createdAt', 'created_at']),
+          id: typeof dataRecord.id === 'number' ? dataRecord.id : Date.now(),
+          account: getString(['account', 'username']) || data.account,
+          name: getString(['name', 'fullName']) || data.name,
+          company: getString(['company', 'companyName']) || data.company,
+          role: getString(['role', 'userRole']) || data.role,
+          createTime:
+            getString(['createTime', 'create_time', 'createdAt', 'created_at']) ||
+            new Date().toLocaleString('zh-CN'),
         }
-        if (newUser.createTime) {
-          userList.value.unshift(newUser)
-        } else {
-          await fetchUsers()
-        }
+        userList.value.unshift(newUser)
         return true
       }
       return false
@@ -138,6 +144,8 @@ export function useUser() {
     }
   }
 
+  // 更新用户
+  // 支持更新用户信息并更新用户列表
   const updateUser = async (id: number, data: Partial<Omit<User, 'id'>>): Promise<boolean> => {
     loading.value = true
     try {
@@ -154,6 +162,8 @@ export function useUser() {
     }
   }
 
+  // 删除用户
+  // 支持删除用户并更新用户列表
   const deleteUser = async (id: number, account: string): Promise<boolean> => {
     loading.value = true
     try {
@@ -171,6 +181,8 @@ export function useUser() {
     }
   }
 
+  // 批量删除用户
+  // 支持批量删除用户并更新用户列表
   const batchDeleteUsers = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {

@@ -18,6 +18,8 @@ request.interceptors.request.use(
       const token = Cookies.get('token')
       if (token) {
         config.headers.token = token
+      } else {
+        console.warn('No token found in Cookies!')
       }
       const account = Cookies.get('account')
       if (account) {
@@ -35,10 +37,32 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     const res = response.data
+
+    // 如果响应本身就是数组（例如某些接口直接返回数据列表）
+    if (Array.isArray(res)) {
+      return {
+        code: 200,
+        data: res,
+        msg: 'success',
+      }
+    }
+
+    // 处理空字符串、null、undefined响应
+    if (res === '' || res === null || res === undefined) {
+      return {
+        code: 200,
+        data: {},
+        msg: 'success',
+      }
+    }
+
     //确保从后端返回的数据不为空
-    if (!res || typeof res !== 'object') {
+    if (!res) {
       return Promise.reject(new Error('无效的响应'))
-    } else {
+    }
+
+    // 如果已经是标准格式
+    if (typeof res === 'object' && 'code' in res) {
       if (Number(res.code) === 200) {
         return res
       }
@@ -49,8 +73,16 @@ request.interceptors.response.use(
         return res
       }
     }
+
+    // 如果没有code字段，直接返回数据
+    return {
+      code: 200,
+      data: res,
+      msg: 'success',
+    }
   },
   (error) => {
+    console.error('Request Error:', error)
     ElMessage.error('请求超时')
     return Promise.reject(error)
   },

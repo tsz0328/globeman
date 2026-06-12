@@ -4,26 +4,37 @@
     <div class="page-header">
       <h2 class="title">项目管理</h2>
       <div class="action-buttons">
-        <el-button type="primary">+新建项目</el-button>
+        <el-button type="primary" @click="addProject">+新建项目</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
-        <el-button type="danger">批量删除</el-button>
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
+          >批量删除</el-button
+        >
       </div>
     </div>
     <!-- 筛选区域 -->
     <div class="filter-section">
       <div class="filter-row">
         <div class="filter-item">
-          <label>项目类型：</label>
+          <label>项目类型:</label>
           <el-select v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
             <el-option label="全部类型" value="" />
             <el-option label="维修项目" value="维修" />
-            <el-option label="开发项目" value="开发" />
-            <el-option label="测试项目" value="测试" />
+            <el-option label="销售项目" value="销售" />
+            <el-option label="采购项目" value="采购" />
           </el-select>
         </div>
         <div class="filter-item">
-          <label>合作单位：</label>
+          <label>项目状态:</label>
+          <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+            <el-option label="全部状态" value="" />
+            <el-option label="进行中" value="进行中" />
+            <el-option label="已完成" value="已完成" />
+            <el-option label="已取消" value="已取消" />
+          </el-select>
+        </div>
+        <div class="filter-item">
+          <label>合作单位:</label>
           <el-select
             v-model="filterForm.cooperativeUnit"
             placeholder="全部单位"
@@ -35,8 +46,11 @@
             <el-option label="信息技术公司" value="信息" />
           </el-select>
         </div>
+      </div>
+
+      <div class="filter-row">
         <div class="filter-item">
-          <label>项目负责人：</label>
+          <label>项目负责人:</label>
           <el-select
             v-model="filterForm.projectManager"
             placeholder="全部负责人"
@@ -49,18 +63,7 @@
           </el-select>
         </div>
         <div class="filter-item">
-          <label>项目状态：</label>
-          <el-select v-model="filterForm.status" placeholder="全部" style="width: 150px">
-            <el-option label="全部" value="" />
-            <el-option label="进行中" value="进行中" />
-            <el-option label="待启动" value="待启动" />
-            <el-option label="已完成" value="已完成" />
-          </el-select>
-        </div>
-      </div>
-      <div class="filter-row">
-        <div class="filter-item">
-          <label>创建时间：</label>
+          <label>创建时间:</label>
           <el-date-picker
             v-model="filterForm.createTime"
             type="date"
@@ -75,26 +78,36 @@
 
     <!-- 表格区域 -->
     <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%">
+      <el-table
+        :data="paginatedData"
+        border
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        :row-key="getRowKey"
+      >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="projectName" label="项目名称" />
         <el-table-column prop="cooperativeUnit" label="合作单位" />
         <el-table-column prop="projectManager" label="项目负责人" width="100" />
         <el-table-column prop="projectType" label="项目类型" width="100" />
-        <el-table-column prop="contactPerson" label="合作联系人" width="100" />
-        <el-table-column prop="projectCode" label="项目编号" width="120" />
-        <el-table-column prop="status" label="项目状态" width="90">
+        <el-table-column prop="status" label="项目状态" width="100">
           <template #default="scope">
-            <el-tag :type="getTagType(scope.row.status)">{{ scope.row.status }}</el-tag>
+            <el-tag :type="getStatusType(scope.row.status)">
+              {{ scope.row.status }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="140" />
-        <el-table-column label="操作" width="193">
-          <template #default>
+        <el-table-column prop="contactPerson" label="项目联系人" width="100" />
+        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column label="操作" width="140">
+          <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small">查看</el-button>
-              <el-button type="warning" size="small">编辑</el-button>
-              <el-button type="danger" size="small">删除</el-button>
+              <el-button type="primary" size="small" @click="viewProject(scope.row)"
+                >编辑</el-button
+              >
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+                >删除</el-button
+              >
             </div>
           </template>
         </el-table-column>
@@ -110,32 +123,147 @@
         />
       </div>
     </div>
+
+    <!-- 新建项目弹窗 -->
+    <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import ProjectForm from './ProjectForm.vue'
+import type { ProjectFormData } from './ProjectForm.vue'
+import { useProject, type Project } from '@/composables/useProject'
 
-interface Project {
-  id: number
-  projectName: string
-  cooperativeUnit: string
-  projectManager: string
-  projectType: string
-  contactPerson: string
-  projectCode: string
-  status: string
-  statusClass: string
-  createTime: string
-}
+const { projectList, fetchProjects, createProject, deleteProject, batchDeleteProjects } =
+  useProject()
 
 const currentPage = ref(1)
 const pageSize = ref(8)
+const projectFormVisible = ref(false)
+const selectedRows = ref<Project[]>([])
+
+// 组件挂载时获取项目列表
+onMounted(() => {
+  fetchProjects()
+})
+
+// 新增项目
+const addProject = () => {
+  projectFormVisible.value = true
+}
+
+// 查看项目详情
+const viewProject = (row: Project) => {
+  window.open(`/project-detail/${row.id}`, '_blank')
+}
+
+// 项目表单提交
+const handleProjectSubmit = async (data: ProjectFormData) => {
+  try {
+    const success = await createProject(data)
+    if (success) {
+      projectFormVisible.value = false
+      ElMessage.success('创建成功')
+    }
+  } catch (error) {
+    console.error('提交项目失败:', error)
+  }
+}
+
+// 删除项目
+const handleDelete = async (row: Project) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除项目"${row.projectName}"吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
+    const success = await deleteProject(row.id)
+    if (success) {
+      ElMessage.success('删除成功')
+    } else {
+      ElMessage.error('删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除项目失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 获取行key（用于模板调用，避免类型错误）
+const getRowKey = (row: Project) => row.id
+
+// 获取状态标签类型
+const getStatusType = (status: string) => {
+  switch (status) {
+    case '进行中':
+      return 'primary'
+    case '已完成':
+      return 'success'
+    case '已取消':
+      return 'danger'
+    default:
+      return 'info'
+  }
+}
+
+// 删除按钮点击（用于模板调用，避免类型错误）
+const handleDeleteBtn = (row: unknown) => {
+  handleDelete(row as Project)
+}
+
+// 多选事件
+const handleSelectionChange = (val: Project[]) => {
+  selectedRows.value = val
+}
+
+// 批量删除
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的项目')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRows.value.length} 个项目吗？`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+
+    const ids = selectedRows.value.map((row) => row.id)
+    const success = await batchDeleteProjects(ids)
+
+    if (success) {
+      ElMessage.success(`成功删除 ${selectedRows.value.length} 个项目`)
+      selectedRows.value = []
+    } else {
+      ElMessage.error('批量删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
+  }
+}
 
 // 筛选后的数据
 const filteredData = computed(() => {
   return projectList.value.filter((item) => {
     if (filterForm.value.projectType && !item.projectType.includes(filterForm.value.projectType)) {
+      return false
+    }
+    if (filterForm.value.status && item.status !== filterForm.value.status) {
       return false
     }
     if (
@@ -148,9 +276,6 @@ const filteredData = computed(() => {
       filterForm.value.projectManager &&
       item.projectManager !== filterForm.value.projectManager
     ) {
-      return false
-    }
-    if (filterForm.value.status && item.status !== filterForm.value.status) {
       return false
     }
     if (filterForm.value.createTime) {
@@ -174,9 +299,9 @@ const paginatedData = computed(() => {
 // 筛选表单数据
 const filterForm = ref({
   projectType: '',
+  status: '',
   cooperativeUnit: '',
   projectManager: '',
-  status: '',
   createTime: null,
 })
 
@@ -189,150 +314,13 @@ const handleSearch = () => {
 const handleReset = () => {
   filterForm.value = {
     projectType: '',
+    status: '',
     cooperativeUnit: '',
     projectManager: '',
-    status: '',
     createTime: null,
   }
   currentPage.value = 1
 }
-
-// 获取状态标签类型
-const getTagType = (status: string): string => {
-  switch (status) {
-    case '进行中':
-      return 'success'
-    case '待启动':
-      return 'warning'
-    case '已完成':
-      return 'info'
-    default:
-      return 'default'
-  }
-}
-
-const projectList = ref<Project[]>([
-  {
-    id: 1,
-    projectName: '办公楼设备维修',
-    cooperativeUnit: '建设集团有限公司',
-    projectManager: '张三',
-    projectType: '维修项目',
-    contactPerson: '赵六',
-    projectCode: 'XM2025001',
-    status: '进行中',
-    statusClass: 'status-in-progress',
-    createTime: '2025-12-01 09:30',
-  },
-  {
-    id: 2,
-    projectName: '管理系统开发',
-    cooperativeUnit: '科技有限公司',
-    projectManager: '李四',
-    projectType: '开发项目',
-    contactPerson: '孙七',
-    projectCode: 'XM2025002',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-02 01:15',
-  },
-  {
-    id: 3,
-    projectName: '软件功能测试',
-    cooperativeUnit: '信息技术公司',
-    projectManager: '王五',
-    projectType: '测试项目',
-    contactPerson: '周八',
-    projectCode: 'XM2025003',
-    status: '已完成',
-    statusClass: 'status-completed',
-    createTime: '2025-11-25 14:20',
-  },
-  {
-    id: 4,
-    projectName: '数据库优化',
-    cooperativeUnit: '数据库公司',
-    projectManager: '赵六',
-    projectType: '维修项目',
-    contactPerson: '王二',
-    projectCode: 'XM2025004',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-03 10:45',
-  },
-  {
-    id: 5,
-    projectName: '项目A',
-    cooperativeUnit: 'A公司',
-    projectManager: 'A负责人',
-    projectType: '开发项目',
-    contactPerson: 'A联系人',
-    projectCode: 'XM2025005',
-    status: '进行中',
-    statusClass: 'status-in-progress',
-    createTime: '2025-12-04 12:00',
-  },
-  {
-    id: 6,
-    projectName: '项目B',
-    cooperativeUnit: 'B公司',
-    projectManager: 'B负责人',
-    projectType: '开发项目',
-    contactPerson: 'B联系人',
-    projectCode: 'XM2025006',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-05 14:30',
-  },
-  {
-    id: 7,
-    projectName: '项目C',
-    cooperativeUnit: 'C公司',
-    projectManager: 'C负责人',
-    projectType: '开发项目',
-    contactPerson: 'C联系人',
-    projectCode: 'XM2025007',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-06 16:00',
-  },
-  {
-    id: 8,
-    projectName: '项目D',
-    cooperativeUnit: 'D公司',
-    projectManager: 'D负责人',
-    projectType: '测试项目',
-    contactPerson: 'D联系人',
-    projectCode: 'XM2025008',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-07 18:30',
-  },
-  {
-    id: 9,
-    projectName: '项目E',
-    cooperativeUnit: 'E公司',
-    projectManager: 'E负责人',
-    projectType: '测试项目',
-    contactPerson: 'E联系人',
-    projectCode: 'XM2025009',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-08 20:00',
-  },
-  {
-    id: 10,
-    projectName: '项目F',
-    cooperativeUnit: 'F公司',
-    projectManager: 'F负责人',
-    projectType: '维修项目',
-    contactPerson: 'F联系人',
-    projectCode: 'XM2025010',
-    status: '待启动',
-    statusClass: 'status-pending',
-    createTime: '2025-12-09 22:30',
-  },
-])
 </script>
 
 <style scoped>
@@ -367,21 +355,18 @@ const projectList = ref<Project[]>([
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .filter-row {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.filter-row:last-child {
-  margin-bottom: 0;
+  justify-content: space-between;
+  padding: 0 10px;
 }
 
 .filter-item {
-  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;

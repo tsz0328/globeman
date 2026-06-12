@@ -19,9 +19,9 @@ export interface UserData {
 
 export interface RoleData {
   id?: number
-  roleName: string
-  description?: string
-  permissions?: string[]
+  role: string // 角色
+  name: string // 角色名称
+  time?: string // 创建时间
 }
 
 export interface ApiResponse<T = unknown> {
