@@ -6,6 +6,10 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig({
+  build: {
+    outDir: 'static',
+  },
+
   server: {
     allowedHosts: true,
     host: '0.0.0.0',
