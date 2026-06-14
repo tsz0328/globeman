@@ -114,7 +114,7 @@
           <template #default="scope">
             <div class="action-buttons">
               <el-button type="primary" size="small" @click="viewProject(scope.row)"
-                >编辑</el-button
+                >查看</el-button
               >
               <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
                 >删除</el-button
@@ -176,9 +176,9 @@ const addProject = () => {
   projectFormVisible.value = true
 }
 
-// 查看项目详情
+// 查看项目详情（先跳转到订单管理）
 const viewProject = (row: Project) => {
-  window.open(`/project-detail/${row.id}`, '_blank')
+  window.open(`/order/${row.id}`, '_blank')
 }
 
 // 项目表单提交

@@ -123,6 +123,15 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 const isAdding = ref(false)
 const editRows = ref<EditableDetailData[]>([])
+const isProjectIdValid = ref(true)
+
+const parseProjectId = (id: unknown): number => {
+  if (typeof id === 'string') {
+    const parsed = parseInt(id, 10)
+    return !isNaN(parsed) && parsed > 0 ? parsed : 0
+  }
+  return 0
+}
 
 interface EditableDetailData {
   id: number
@@ -164,7 +173,7 @@ const toggleAddMode = () => {
 const addEditRow = () => {
   const newRow: EditableDetailData = {
     id: 0,
-    projectId: Number(route.params.id) || 0,
+    projectId: parseProjectId(route.params.id),
     belongProject: projectName.value,
     equipmentName: '',
     equipmentModel: '',
@@ -254,6 +263,13 @@ const handleConfirm = async () => {
 }
 
 const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
+  const projectId = parseProjectId(route.params.id)
+
+  if (projectId === 0) {
+    ElMessage.error('无效的项目ID')
+    return
+  }
+
   const submitData = {
     projectName: projectName.value,
     name: row.equipmentName,
@@ -261,12 +277,12 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
     manufacturer: row.manufacturer,
     number: String(row.quantity),
     price: String(row.unitPrice),
-    id: String(route.params.id),
+    id: String(projectId),
   }
 
   const success = await createDetail(submitData)
   if (success) {
-    await fetchDetails(Number(route.params.id))
+    await fetchDetails(projectId)
     if (editIndex >= 0) {
       editRows.value.splice(editIndex, 1)
     }
@@ -281,18 +297,23 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
 }
 
 onMounted(() => {
-  const projectId = Number(route.params.id)
-  if (projectId) {
-    Promise.all([fetchProjects(), fetchDetails(projectId)]).then(() => {
-      const project = projectList.value.find((p) => p.id === projectId)
-      if (project) {
-        projectName.value = project.projectName
-        detailList.value.forEach((item) => {
-          item.belongProject = project.projectName
-        })
-      }
-    })
+  const projectId = parseProjectId(route.params.id)
+
+  if (projectId === 0) {
+    isProjectIdValid.value = false
+    ElMessage.error('无效的项目ID')
+    return
   }
+
+  Promise.all([fetchProjects(), fetchDetails(projectId)]).then(() => {
+    const project = projectList.value.find((p) => p.id === projectId)
+    if (project) {
+      projectName.value = project.projectName
+      detailList.value.forEach((item) => {
+        item.belongProject = project.projectName
+      })
+    }
+  })
 })
 </script>
 

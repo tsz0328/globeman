@@ -9,6 +9,7 @@ import ProjectManagementComponent from '@/components/work/ProjectManagement.vue'
 import CustomerManagementComponent from '@/components/work/CustomerManagement.vue'
 import CompanyManagementComponent from '@/components/work/CompanyManagement.vue'
 import ProjectDetailComponent from '@/components/work/ProjectDetail.vue'
+import OrderManagementComponent from '@/components/work/OrderManagement.vue'
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
 const router = createRouter({
@@ -68,7 +69,11 @@ const router = createRouter({
         },
       ],
     },
-    // 独立的项目详情路由（不在work布局中）
+    {
+      path: '/order/:id',
+      name: 'OrderManagement',
+      component: OrderManagementComponent,
+    },
     {
       path: '/project-detail/:id',
       name: 'ProjectDetail',
