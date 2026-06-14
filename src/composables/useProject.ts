@@ -16,16 +16,18 @@ export interface Project {
   cooperativeUnit: string
   contactPerson: string
   status: string
+  creator: string
+  customer: string
 }
 
+// 项目表单数据接口
 export interface ProjectFormData {
   id?: number
   name: string
   type: string
-  creator: string
+  leaderAccount: string
   customer: string
   contact: string
-  status?: string
   time?: string
 }
 
@@ -92,11 +94,13 @@ export function useProject() {
                   : index + 1,
             projectName: getString(['name', 'projectName']),
             projectType: getString(['type', 'projectType']),
-            projectManager: getString(['creator', 'projectManager']),
+            projectManager: getString(['leader', 'leaderAccount', 'projectManager']),
             createTime: getString(['time', 'createTime']),
-            cooperativeUnit: getString(['customer', 'cooperativeUnit', 'company']),
+            cooperativeUnit: getString(['company', 'cooperativeUnit']),
             contactPerson: getString(['contact', 'contactPerson', 'contactName', 'Contact']),
-            status: getString(['status', 'state']) || '进行中',
+            status: getString(['state', 'status']) || '编辑中',
+            creator: getString(['creator', 'creatorName']),
+            customer: getString(['customer', 'customerName']),
           }
           return project
         })
@@ -117,37 +121,13 @@ export function useProject() {
       const res = await createProjectApi({
         name: data.name,
         type: data.type,
-        creator: data.creator,
+        leaderAccount: data.leaderAccount,
         customer: data.customer,
         contact: data.contact,
-        status: data.status || '进行中',
       })
       if (res.code === 200) {
-        const dataRecord = (res.data as unknown as Record<string, unknown>) || {}
-        const getString = (keys: string[]) => {
-          for (const key of keys) {
-            const value = dataRecord[key]
-            if (typeof value === 'string') {
-              return value
-            }
-            if (typeof value === 'number') {
-              return String(value)
-            }
-          }
-          return ''
-        }
-
-        const newProject: Project = {
-          id: typeof dataRecord.id === 'number' ? dataRecord.id : Date.now(),
-          projectName: getString(['name']) || data.name,
-          projectType: getString(['type']) || data.type,
-          projectManager: getString(['creator']) || data.creator,
-          createTime: getString(['time']) || new Date().toLocaleString('zh-CN'),
-          cooperativeUnit: getString(['customer']) || data.customer,
-          contactPerson: getString(['contact', 'Contact']) || data.contact,
-          status: getString(['status']) || data.status || '进行中',
-        }
-        projectList.value.unshift(newProject)
+        // 创建成功后重新获取项目列表，确保获取到后端返回的真实 id
+        await fetchProjects()
         return true
       }
       return false
@@ -173,10 +153,9 @@ export function useProject() {
               ...oldProject,
               projectName: data.name,
               projectType: data.type,
-              projectManager: data.creator,
+              projectManager: data.leaderAccount,
               cooperativeUnit: data.customer,
               contactPerson: data.contact,
-              status: data.status || oldProject.status,
             }
           }
         }

@@ -14,21 +14,17 @@
     </div>
     <!-- 筛选区域 -->
     <div class="filter-section">
-      <div class="filter-row">
-        <div class="filter-item">
-          <label>客户名称：</label>
-          <el-input v-model="filterForm.name" placeholder="请输入客户名称" style="width: 150px" />
-        </div>
-        <div class="filter-item">
-          <label>公司名称：</label>
-          <el-input v-model="filterForm.company" placeholder="请输入公司名称" style="width: 150px" />
-        </div>
-        <div class="filter-item">
-          <label>联系人：</label>
-          <el-input v-model="filterForm.contact" placeholder="请输入联系人" style="width: 150px" />
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </div>
+      <div class="filter-item">
+        <label>客户名称：</label>
+        <el-input v-model="filterForm.name" placeholder="请输入客户名称" style="width: 150px" />
+      </div>
+      <div class="filter-item">
+        <label>联系人：</label>
+        <el-input v-model="filterForm.contact" placeholder="请输入联系人" style="width: 150px" />
+      </div>
+      <div class="filter-item">
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
       </div>
     </div>
 
@@ -43,10 +39,9 @@
       >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="name" label="客户名称" />
-        <el-table-column prop="company" label="公司名称" />
-        <el-table-column prop="contact" label="联系人" width="100" />
-        <el-table-column prop="phone" label="联系电话" width="130" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="contact" label="联系人" />
+        <el-table-column prop="phone" label="联系电话" />
+        <el-table-column prop="createTime" label="创建时间" />
         <el-table-column label="操作" width="193">
           <template #default="scope">
             <div class="action-buttons">
@@ -89,13 +84,8 @@ import CustomerForm from './CustomerForm.vue'
 import type { CustomerFormData } from './CustomerForm.vue'
 import { useCustomer, type Customer } from '@/composables/useCustomer'
 
-const {
-  customerList,
-  fetchCustomers,
-  createCustomer,
-  deleteCustomer,
-  batchDeleteCustomers,
-} = useCustomer()
+const { customerList, fetchCustomers, createCustomer, deleteCustomer, batchDeleteCustomers } =
+  useCustomer()
 
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -222,9 +212,6 @@ const filteredData = computed(() => {
     if (filterForm.value.name && !item.name.includes(filterForm.value.name)) {
       return false
     }
-    if (filterForm.value.company && !item.company.includes(filterForm.value.company)) {
-      return false
-    }
     if (filterForm.value.contact && !item.contact.includes(filterForm.value.contact)) {
       return false
     }
@@ -242,7 +229,6 @@ const paginatedData = computed(() => {
 // 筛选表单数据
 const filterForm = ref({
   name: '',
-  company: '',
   contact: '',
 })
 
@@ -255,7 +241,6 @@ const handleSearch = () => {
 const handleReset = () => {
   filterForm.value = {
     name: '',
-    company: '',
     contact: '',
   }
   currentPage.value = 1
@@ -288,15 +273,10 @@ const handleReset = () => {
 }
 
 .filter-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.filter-row {
   display: flex;
-  align-items: center;
   gap: 20px;
 }
 
@@ -306,13 +286,8 @@ const handleReset = () => {
   gap: 10px;
 }
 
-.filter-item:first-child,
-.filter-item:nth-child(2) {
-  flex: 1;
-}
-
 .filter-item:last-child {
-  flex: 2;
+  flex: 1;
   justify-content: flex-end;
 }
 

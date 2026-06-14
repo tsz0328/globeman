@@ -16,7 +16,6 @@
 
     <!-- 筛选栏 -->
     <div class="filter-section">
-      <div class="filter-row">
         <div class="filter-item">
           <label>公司名称:</label>
           <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" />
@@ -29,10 +28,11 @@
             placeholder="选择日期"
             style="width: 150px"
           />
+          </div>
+          <div class="filter-item">
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </div>
-      </div>
     </div>
 
     <!-- 表格 -->
@@ -242,25 +242,22 @@ const paginatedData = computed(() => {
 }
 
 .filter-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
-  flex-direction: column;
   gap: 20px;
-}
-
-.filter-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 10px;
 }
 
 .filter-item {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.filter-item:last-child {
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .table-section {

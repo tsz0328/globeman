@@ -44,11 +44,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { FormRules } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-import { useRole } from '@/composables/useRole'
-import { useCompany } from '@/composables/useCompany'
 
 export interface UserFormData {
   account: string
@@ -58,9 +56,22 @@ export interface UserFormData {
   role: string
 }
 
+export interface Role {
+  id?: number
+  name: string
+  role: string
+}
+
+export interface Company {
+  id?: number
+  name: string
+}
+
 const props = defineProps<{
   visible: boolean
   editData?: UserFormData | null
+  roleList: Role[]
+  companyList: Company[]
 }>()
 
 const emit = defineEmits<{
@@ -69,8 +80,6 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
-const { roleList, fetchRoles } = useRole()
-const { companyList, fetchCompanies } = useCompany()
 
 const rules: FormRules = {
   account: [{ required: true, message: '请输入账号', trigger: 'blur' }],
@@ -93,11 +102,6 @@ const form = ref<UserFormData>({
 const visibleValue = computed({
   get: () => props.visible,
   set: (val) => emit('update:visible', val),
-})
-
-onMounted(() => {
-  fetchRoles()
-  fetchCompanies()
 })
 
 const resetForm = () => {

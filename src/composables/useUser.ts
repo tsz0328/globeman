@@ -22,8 +22,11 @@ export function useUser() {
   const userList = ref<User[]>([])
   const loading = ref(false)
 
-  // 从服务器获取用户列表
-  const fetchUsers = async () => {
+  // 从服务器获取用户列表（带缓存，只在数据为空时请求）
+  const fetchUsers = async (force = false) => {
+    if (!force && userList.value.length > 0) {
+      return
+    }
     loading.value = true
     try {
       const res = await getUsersApi()

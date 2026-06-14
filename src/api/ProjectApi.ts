@@ -6,7 +6,7 @@ export interface ProjectData {
   name: string // 项目名称
   type: string // 项目类型
   status: string // 项目状态
-  creator: string // 项目负责人
+  leaderAccount: string // 负责人账号
   time: string // 项目创建时间
   customer: string // 项目合作单位
   contact: string // 项目联系人姓名
@@ -28,10 +28,15 @@ export async function getProjectsApi(): Promise<ApiResponse<Record<string, Proje
   })
 }
 
-// 创建项目
-export async function createProjectApi(
-  data: Omit<ProjectData, 'id' | 'time'>,
-): Promise<ApiResponse<ProjectData>> {
+export interface CreateProjectData {
+  name: string
+  type: string
+  leaderAccount: string
+  customer: string
+  contact: string
+}
+
+export async function createProjectApi(data: CreateProjectData): Promise<ApiResponse<ProjectData>> {
   return request({
     url: '/project/create',
     method: 'post',

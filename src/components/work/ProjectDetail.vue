@@ -4,7 +4,7 @@
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">项目详情</h2>
       <el-button type="primary" @click="toggleAddMode">
-        {{ isAdding ? '确定' : '+添加项目详情' }}
+        {{ isAdding ? '确定' : '添加设备' }}
       </el-button>
     </div>
 

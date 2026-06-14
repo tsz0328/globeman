@@ -14,42 +14,42 @@
     </div>
     <!-- 筛选区域 -->
     <div class="filter-section">
-      <div class="filter-row">
-        <div class="filter-item">
-          <label>公司：</label>
-          <el-select v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
-            <el-option label="全部公司" value="" />
-            <el-option
-              v-for="company in companyList"
-              :key="company.id"
-              :label="company.name"
-              :value="company.name"
-            />
-          </el-select>
-        </div>
-        <div class="filter-item">
-          <label>角色：</label>
-          <el-select v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
-            <el-option label="全部角色" value="" />
-            <el-option
-              v-for="role in roleList"
-              :key="role.id"
-              :label="role.name"
-              :value="role.role"
-            />
-          </el-select>
-        </div>
-        <div class="filter-item">
-          <label>创建时间：</label>
-          <el-date-picker
-            v-model="filterForm.createTime"
-            type="date"
-            placeholder="选择日期"
-            style="width: 150px"
+      <div class="filter-item">
+        <label>公司：</label>
+        <el-select v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
+          <el-option label="全部公司" value="" />
+          <el-option
+            v-for="company in companyList"
+            :key="company.id"
+            :label="company.name"
+            :value="company.name"
           />
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </div>
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label>角色：</label>
+        <el-select v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
+          <el-option label="全部角色" value="" />
+          <el-option
+            v-for="role in roleList"
+            :key="role.id"
+            :label="role.name"
+            :value="role.role"
+          />
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label>创建时间：</label>
+        <el-date-picker
+          v-model="filterForm.createTime"
+          type="date"
+          placeholder="选择日期"
+          style="width: 150px"
+        />
+      </div>
+      <div class="filter-item">
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
       </div>
     </div>
 
@@ -73,7 +73,11 @@
             <div class="action-buttons">
               <el-button type="primary" size="small">查看</el-button>
               <el-button type="warning" size="small">编辑</el-button>
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+              <el-button
+                type="danger"
+                size="small"
+                @click="handleDeleteBtn(scope.row)"
+                :disabled="scope.row.role === 'admin'"
                 >删除</el-button
               >
             </div>
@@ -93,7 +97,12 @@
     </div>
 
     <!-- 新增用户弹窗 -->
-    <UserForm v-model:visible="userFormVisible" @submit="handleUserSubmit" />
+    <UserForm
+      v-model:visible="userFormVisible"
+      :role-list="roleList"
+      :company-list="companyList"
+      @submit="handleUserSubmit"
+    />
   </div>
 </template>
 
@@ -288,21 +297,11 @@ const handleReset = () => {
 
 /* 筛选区域 */
 .filter-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.filter-row {
   display: flex;
-  align-items: center;
   gap: 20px;
-  margin-bottom: 15px;
-}
-
-.filter-row:last-child {
-  margin-bottom: 0;
 }
 
 .filter-item {
@@ -311,13 +310,8 @@ const handleReset = () => {
   gap: 10px;
 }
 
-.filter-item:first-child,
-.filter-item:nth-child(2) {
-  flex: 1;
-}
-
 .filter-item:last-child {
-  flex: 2;
+  flex: 1;
   justify-content: flex-end;
 }
 

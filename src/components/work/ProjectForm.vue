@@ -13,25 +13,36 @@
           <el-option label="采购项目" value="采购" />
         </el-select>
       </el-form-item>
-      <el-form-item prop="status">
-        <template #label>项目状态</template>
-        <el-select v-model="form.status" placeholder="请选择项目状态">
-          <el-option label="进行中" value="进行中" />
-          <el-option label="已完成" value="已完成" />
-          <el-option label="已取消" value="已取消" />
+      <el-form-item prop="leaderAccount">
+        <template #label>负责人</template>
+        <el-select v-model="leaderName" placeholder="请选择负责人" @change="handleLeaderChange">
+          <el-option
+            v-for="user in props.userList"
+            :key="user.account"
+            :label="user.name"
+            :value="user.name"
+          />
         </el-select>
-      </el-form-item>
-      <el-form-item prop="creator">
-        <template #label>项目负责人</template>
-        <el-input v-model="form.creator" placeholder="请输入项目负责人" />
       </el-form-item>
       <el-form-item prop="customer">
         <template #label>客户</template>
-        <el-input v-model="form.customer" placeholder="请输入客户" />
+        <el-autocomplete
+          v-model="customerName"
+          :fetch-suggestions="queryCustomerSearch"
+          placeholder="请输入客户名称"
+          :trigger-on-focus="false"
+          @select="handleCustomerSelect"
+        />
       </el-form-item>
       <el-form-item prop="contact">
-        <template #label>联系人</template>
-        <el-input v-model="form.contact" placeholder="请输入联系人" />
+        <template #label>客户联系人</template>
+        <el-autocomplete
+          v-model="contactName"
+          :fetch-suggestions="queryContactSearch"
+          placeholder="请输入联系人"
+          :trigger-on-focus="false"
+          @select="handleContactSelect"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -45,23 +56,15 @@
 import { ref, computed, watch } from 'vue'
 import type { FormRules } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-
-// 项目表单数据接口
-export interface ProjectFormData {
-  id?: number
-  name: string
-  type: string
-  status?: string
-  creator: string
-  customer: string
-  contact: string
-  time?: string
-}
+import type { User } from '@/composables/useUser'
+import type { Customer } from '@/composables/useCustomer'
 
 // 项目表单属性接口
 const props = defineProps<{
   visible: boolean
   editData?: ProjectFormData | null
+  userList: User[]
+  customerList: Customer[]
 }>()
 
 // 项目表单提交事件
@@ -76,8 +79,7 @@ const formRef = ref<FormInstance>()
 const rules: FormRules = {
   name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
   type: [{ required: true, message: '请选择项目类型', trigger: 'change' }],
-  status: [{ required: true, message: '请选择项目状态', trigger: 'change' }],
-  creator: [{ required: true, message: '请输入项目负责人', trigger: 'blur' }],
+  leaderAccount: [{ required: true, message: '请选择负责人', trigger: 'blur' }],
   customer: [{ required: true, message: '请输入客户', trigger: 'blur' }],
   contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
 }
@@ -89,11 +91,14 @@ const title = computed(() => (isEdit.value ? '编辑项目' : '新建项目'))
 const form = ref<ProjectFormData>({
   name: '',
   type: '',
-  status: '',
-  creator: '',
+  leaderAccount: '',
   customer: '',
   contact: '',
 })
+
+const leaderName = ref('')
+const customerName = ref('')
+const contactName = ref('')
 
 // 关键：使用 computed 创建双向绑定
 const visibleValue = computed({
@@ -103,7 +108,10 @@ const visibleValue = computed({
 
 // 重置表单数据
 const resetForm = () => {
-  form.value = { name: '', type: '', status: '进行中', creator: '', customer: '', contact: '' }
+  form.value = { name: '', type: '', leaderAccount: '', customer: '', contact: '' }
+  leaderName.value = ''
+  customerName.value = ''
+  contactName.value = ''
   formRef.value?.clearValidate()
 }
 
@@ -112,6 +120,11 @@ watch(
   (newData) => {
     if (newData) {
       form.value = { ...newData }
+      const user = props.userList.find((u) => u.account === newData.leaderAccount)
+      leaderName.value = user?.name || ''
+      const customer = props.customerList.find((c) => c.name === newData.customer)
+      customerName.value = customer?.name || ''
+      contactName.value = customer?.contact || ''
     } else {
       resetForm()
     }
@@ -132,6 +145,71 @@ const handleClose = () => {
   emit('update:visible', false)
 }
 
+const handleLeaderChange = (name: string) => {
+  const user = props.userList.find((u) => u.name === name)
+  form.value.leaderAccount = user?.account || ''
+}
+
+const queryCustomerSearch = (
+  queryString: string,
+  cb: (suggestions: { value: string; label: string; contact: string }[]) => void,
+) => {
+  const customers = props.customerList
+  const results = queryString
+    ? customers
+        .filter((customer: Customer) =>
+          customer.name.toLowerCase().includes(queryString.toLowerCase()),
+        )
+        .map((customer: Customer) => ({
+          value: customer.name,
+          label: customer.name,
+          contact: customer.contact,
+        }))
+    : customers.map((customer: Customer) => ({
+        value: customer.name,
+        label: customer.name,
+        contact: customer.contact,
+      }))
+  cb(results)
+}
+
+const handleCustomerSelect = (item: { value: string; label: string; contact: string }) => {
+  customerName.value = item.value
+  form.value.customer = item.value
+  contactName.value = item.contact
+  form.value.contact = item.contact
+}
+
+const queryContactSearch = (
+  queryString: string,
+  cb: (suggestions: { value: string; label: string; customer: string }[]) => void,
+) => {
+  const customers = props.customerList
+  const results = queryString
+    ? customers
+        .filter((customer: Customer) =>
+          customer.contact.toLowerCase().includes(queryString.toLowerCase()),
+        )
+        .map((customer: Customer) => ({
+          value: customer.contact,
+          label: `${customer.contact} (${customer.name})`,
+          customer: customer.name,
+        }))
+    : customers.map((customer: Customer) => ({
+        value: customer.contact,
+        label: `${customer.contact} (${customer.name})`,
+        customer: customer.name,
+      }))
+  cb(results)
+}
+
+const handleContactSelect = (item: { value: string; label: string; customer: string }) => {
+  contactName.value = item.value
+  form.value.contact = item.value
+  customerName.value = item.customer
+  form.value.customer = item.customer
+}
+
 const handleSubmit = async () => {
   if (!formRef.value) return
   const valid = await formRef.value.validate()
@@ -142,5 +220,15 @@ const handleSubmit = async () => {
 }
 </script>
 <script lang="ts">
+export interface ProjectFormData {
+  id?: number
+  name: string
+  type: string
+  leaderAccount: string
+  customer: string
+  contact: string
+  time?: string
+}
+
 export default {}
 </script>

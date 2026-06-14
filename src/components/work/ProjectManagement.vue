@@ -14,65 +14,74 @@
     </div>
     <!-- 筛选区域 -->
     <div class="filter-section">
-      <div class="filter-row">
-        <div class="filter-item">
-          <label>项目类型:</label>
-          <el-select v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
-            <el-option label="全部类型" value="" />
-            <el-option label="维修项目" value="维修" />
-            <el-option label="销售项目" value="销售" />
-            <el-option label="采购项目" value="采购" />
-          </el-select>
-        </div>
-        <div class="filter-item">
-          <label>项目状态:</label>
-          <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
-            <el-option label="全部状态" value="" />
-            <el-option label="进行中" value="进行中" />
-            <el-option label="已完成" value="已完成" />
-            <el-option label="已取消" value="已取消" />
-          </el-select>
-        </div>
-        <div class="filter-item">
-          <label>合作单位:</label>
-          <el-select
-            v-model="filterForm.cooperativeUnit"
-            placeholder="全部单位"
-            style="width: 150px"
-          >
-            <el-option label="全部单位" value="" />
-            <el-option label="建设集团有限公司" value="建设集团" />
-            <el-option label="科技有限公司" value="科技" />
-            <el-option label="信息技术公司" value="信息" />
-          </el-select>
-        </div>
+      <div class="filter-item">
+        <label>项目类型：</label>
+        <el-select v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
+          <el-option label="全部类型" value="" />
+          <el-option label="维修项目" value="维修" />
+          <el-option label="销售项目" value="销售" />
+          <el-option label="采购项目" value="采购" />
+        </el-select>
       </div>
-
-      <div class="filter-row">
-        <div class="filter-item">
-          <label>项目负责人:</label>
-          <el-select
-            v-model="filterForm.projectManager"
-            placeholder="全部负责人"
-            style="width: 150px"
-          >
-            <el-option label="全部负责人" value="" />
-            <el-option label="张三" value="张三" />
-            <el-option label="李四" value="李四" />
-            <el-option label="王五" value="王五" />
-          </el-select>
-        </div>
-        <div class="filter-item">
-          <label>创建时间:</label>
-          <el-date-picker
-            v-model="filterForm.createTime"
-            type="date"
-            placeholder="选择日期"
-            style="width: 150px"
+      <div class="filter-item">
+        <label>项目状态：</label>
+        <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+          <el-option label="全部状态" value="" />
+          <el-option label="编辑" value="编辑" />
+          <el-option label="已完成" value="已完成" />
+          <el-option label="已取消" value="已取消" />
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label>客户：</label>
+        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+          <el-option label="全部客户" value="" />
+          <el-option
+            v-for="customer in customerList"
+            :key="customer.name"
+            :label="customer.name"
+            :value="customer.name"
           />
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </div>
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label>客户联系人：</label>
+        <el-select v-model="filterForm.contactPerson" placeholder="全部联系人" style="width: 150px">
+          <el-option label="全部联系人" value="" />
+          <el-option
+            v-for="customer in customerList"
+            :key="customer.contact"
+            :label="customer.contact"
+            :value="customer.contact"
+          />
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label>项目负责人：</label>
+        <el-select
+          v-model="filterForm.projectManager"
+          placeholder="全部负责人"
+          style="width: 150px"
+        >
+          <el-option label="全部负责人" value="" />
+          <el-option
+            v-for="user in userList"
+            :key="user.account"
+            :label="user.name"
+            :value="user.name"
+          />
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label>创建时间:</label>
+        <el-date-picker
+          v-model="filterForm.createTime"
+          type="date"
+          placeholder="选择日期"
+          style="width: 150px"
+        />
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
       </div>
     </div>
 
@@ -87,18 +96,20 @@
       >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="projectName" label="项目名称" />
-        <el-table-column prop="cooperativeUnit" label="合作单位" />
-        <el-table-column prop="projectManager" label="项目负责人" width="100" />
+        <el-table-column prop="customer" label="客户" width="120" />
+        <el-table-column prop="contactPerson" label="客户联系人" width="100" />
+        <el-table-column prop="projectManager" label="负责人" width="100" />
+        <el-table-column prop="creator" label="创建人" width="100" />
         <el-table-column prop="projectType" label="项目类型" width="100" />
-        <el-table-column prop="status" label="项目状态" width="100">
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
               {{ scope.row.status }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="contactPerson" label="项目联系人" width="100" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="cooperativeUnit" label="归属公司" />
         <el-table-column label="操作" width="140">
           <template #default="scope">
             <div class="action-buttons">
@@ -125,7 +136,12 @@
     </div>
 
     <!-- 新建项目弹窗 -->
-    <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" />
+    <ProjectForm
+      v-model:visible="projectFormVisible"
+      @submit="handleProjectSubmit"
+      :user-list="userList"
+      :customer-list="customerList"
+    />
   </div>
 </template>
 
@@ -135,9 +151,13 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import ProjectForm from './ProjectForm.vue'
 import type { ProjectFormData } from './ProjectForm.vue'
 import { useProject, type Project } from '@/composables/useProject'
+import { useUser } from '@/composables/useUser'
+import { useCustomer } from '@/composables/useCustomer'
 
 const { projectList, fetchProjects, createProject, deleteProject, batchDeleteProjects } =
   useProject()
+const { userList, fetchUsers } = useUser()
+const { customerList, fetchCustomers } = useCustomer()
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -147,6 +167,8 @@ const selectedRows = ref<Project[]>([])
 // 组件挂载时获取项目列表
 onMounted(() => {
   fetchProjects()
+  fetchUsers()
+  fetchCustomers()
 })
 
 // 新增项目
@@ -201,7 +223,7 @@ const getRowKey = (row: Project) => row.id
 // 获取状态标签类型
 const getStatusType = (status: string) => {
   switch (status) {
-    case '进行中':
+    case '编辑中':
       return 'primary'
     case '已完成':
       return 'success'
@@ -266,10 +288,10 @@ const filteredData = computed(() => {
     if (filterForm.value.status && item.status !== filterForm.value.status) {
       return false
     }
-    if (
-      filterForm.value.cooperativeUnit &&
-      !item.cooperativeUnit.includes(filterForm.value.cooperativeUnit)
-    ) {
+    if (filterForm.value.customer && item.customer !== filterForm.value.customer) {
+      return false
+    }
+    if (filterForm.value.contactPerson && item.contactPerson !== filterForm.value.contactPerson) {
       return false
     }
     if (
@@ -300,7 +322,8 @@ const paginatedData = computed(() => {
 const filterForm = ref({
   projectType: '',
   status: '',
-  cooperativeUnit: '',
+  customer: '',
+  contactPerson: '',
   projectManager: '',
   createTime: null,
 })
@@ -315,7 +338,8 @@ const handleReset = () => {
   filterForm.value = {
     projectType: '',
     status: '',
-    cooperativeUnit: '',
+    customer: '',
+    contactPerson: '',
     projectManager: '',
     createTime: null,
   }
@@ -355,15 +379,9 @@ const handleReset = () => {
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
   gap: 20px;
-}
-
-.filter-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 10px;
 }
 
 .filter-item {

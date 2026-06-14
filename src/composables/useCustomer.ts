@@ -7,19 +7,28 @@ import {
   type CustomerData,
 } from '@/api/CustomerApi'
 
+// 客户接口
 export interface Customer {
   id: number
   name: string
   company: string
   contact: string
   phone: string
+  createTime: string
 }
 
+// 客户列表
 const customerList = ref<Customer[]>([])
+// 加载状态
 const loading = ref(false)
 
+// 获取客户列表
 export function useCustomer() {
-  const fetchCustomers = async () => {
+  // 获取客户列表（带缓存，只在数据为空时请求）
+  const fetchCustomers = async (force = false) => {
+    if (!force && customerList.value.length > 0) {
+      return
+    }
     loading.value = true
     try {
       const res = await getCustomersApi()
@@ -47,8 +56,10 @@ export function useCustomer() {
           return []
         }
 
+        // 归一化客户记录
         const customerArray = normalizeRecords(res.data)
 
+        // 映射客户记录为客户接口
         customerList.value = customerArray.map((item, index) => {
           const record = item as Record<string, unknown>
           const getString = (keys: string[]) => {
@@ -64,12 +75,14 @@ export function useCustomer() {
             return ''
           }
 
+          // 映射客户记录为客户接口
           const customer: Customer = {
             id: typeof record.id === 'number' ? record.id : index + 1,
             name: getString(['name']),
             company: getString(['company']),
             contact: getString(['contact']),
             phone: getString(['phone']),
+            createTime: getString(['time']),
           }
           return customer
         })
@@ -108,6 +121,8 @@ export function useCustomer() {
           company: getString(['company']) || data.company,
           contact: getString(['contact']) || data.contact,
           phone: getString(['phone']) || data.phone,
+          createTime:
+            getString(['time']) || new Date().toISOString().slice(0, 19).replace('T', ' '),
         }
         customerList.value.unshift(newCustomer)
         return true
