@@ -77,7 +77,7 @@ export function useDetail() {
     try {
       const res = await deleteDetailApi(id)
       if (res.code === 200) {
-        const index = detailList.value.findIndex(item => item.id === id)
+        const index = detailList.value.findIndex((item) => item.id === id)
         if (index !== -1) {
           detailList.value.splice(index, 1)
         }

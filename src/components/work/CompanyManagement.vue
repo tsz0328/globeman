@@ -81,7 +81,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCompany } from '@/composables/useCompany'
 import type { CompanyData } from '@/api/CompanyApi'
 import type { CompanyFormData } from '@/api/CompanyApi'
-import CompanyForm from './CompanyForm.vue'
+import CompanyForm from './AddCompanyForm.vue'
 
 const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } = useCompany()
 

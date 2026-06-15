@@ -1,15 +1,15 @@
 <template>
-  <div class="project-detail">
+  <div class="order-detail">
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
-      <h2 class="title">项目详情</h2>
+      <h2 class="title">订单详情</h2>
       <el-button type="primary" @click="toggleAddMode">
         {{ isAdding ? '确定' : '添加设备' }}
       </el-button>
     </div>
 
     <div class="equipment-section">
-      <h3 class="section-title">项目归属：{{ projectName }}</h3>
+      <h3 class="section-title">订单名称：{{ orderName }}</h3>
       <el-table :data="paginatedData" border style="width: 100%">
         <el-table-column prop="equipmentName" label="设备名称" width="150">
           <template #default="scope">
@@ -111,14 +111,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useProject } from '@/composables/useProject'
 import { useDetail } from '@/composables/useDetail'
 
 const route = useRoute()
-const { projectList, fetchProjects } = useProject()
 const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()
 
-const projectName = ref('')
+const orderId = ref(0)
+const orderName = ref('')
 const currentPage = ref(1)
 const pageSize = ref(8)
 const isAdding = ref(false)
@@ -174,7 +173,7 @@ const addEditRow = () => {
   const newRow: EditableDetailData = {
     id: 0,
     projectId: parseProjectId(route.params.id),
-    belongProject: projectName.value,
+    belongProject: `订单${orderId.value}`,
     equipmentName: '',
     equipmentModel: '',
     manufacturer: '',
@@ -271,7 +270,7 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
   }
 
   const submitData = {
-    projectName: projectName.value,
+    projectName: `订单${orderId.value}`,
     name: row.equipmentName,
     model: row.equipmentModel,
     manufacturer: row.manufacturer,
@@ -297,28 +296,27 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
 }
 
 onMounted(() => {
-  const projectId = parseProjectId(route.params.id)
+  const id = parseProjectId(route.params.id)
 
-  if (projectId === 0) {
+  if (id === 0) {
     isProjectIdValid.value = false
-    ElMessage.error('无效的项目ID')
+    ElMessage.error('无效的订单ID')
     return
   }
 
-  Promise.all([fetchProjects(), fetchDetails(projectId)]).then(() => {
-    const project = projectList.value.find((p) => p.id === projectId)
-    if (project) {
-      projectName.value = project.projectName
-      detailList.value.forEach((item) => {
-        item.belongProject = project.projectName
-      })
-    }
-  })
+  orderId.value = id
+
+  const nameParam = route.query.name as string
+  if (nameParam) {
+    orderName.value = decodeURIComponent(nameParam)
+  }
+
+  fetchDetails(id)
 })
 </script>
 
 <style scoped>
-.project-detail {
+.order-detail {
   padding: 20px;
   display: flex;
   flex-direction: column;

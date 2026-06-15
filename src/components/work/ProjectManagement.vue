@@ -148,8 +148,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ProjectForm from './ProjectForm.vue'
-import type { ProjectFormData } from './ProjectForm.vue'
+import ProjectForm from './AddProjectForm.vue'
+import type { ProjectFormData } from './AddProjectForm.vue'
 import { useProject, type Project } from '@/composables/useProject'
 import { useUser } from '@/composables/useUser'
 import { useCustomer } from '@/composables/useCustomer'

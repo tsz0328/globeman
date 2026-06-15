@@ -80,8 +80,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import CustomerForm from './CustomerForm.vue'
-import type { CustomerFormData } from './CustomerForm.vue'
+import CustomerForm from './AddCustomerForm.vue'
+import type { CustomerFormData } from './AddCustomerForm.vue'
 import { useCustomer, type Customer } from '@/composables/useCustomer'
 
 const { customerList, fetchCustomers, createCustomer, deleteCustomer, batchDeleteCustomers } =

@@ -10,10 +10,11 @@
         <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
           >批量删除</el-button
         >
+        <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
       </div>
     </div>
 
-    <div class="filter-section">
+    <div class="filter-section" v-if="isFilterVisible">
       <div class="filter-item">
         <label>订单状态：</label>
         <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
@@ -33,16 +34,12 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>项目名称：</label>
-        <el-select v-model="filterForm.projectName" placeholder="全部项目" style="width: 150px">
-          <el-option label="全部项目" value="" />
-          <el-option
-            v-for="project in projectList"
-            :key="project.id"
-            :label="project.projectName"
-            :value="project.projectName"
-          />
-        </el-select>
+        <label>订单名称：</label>
+        <el-input
+          v-model="filterForm.orderName"
+          placeholder="请输入订单名称"
+          style="width: 150px"
+        />
       </div>
       <div class="filter-item">
         <label>负责人：</label>
@@ -96,11 +93,11 @@
         <el-table-column prop="contact" label="客户联系人" />
         <el-table-column prop="contactPhone" label="联系人电话" />
         <el-table-column prop="leader" label="负责人" />
-        <el-table-column prop="creator" label="创建人" />
+
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
-        <el-table-column prop="company" label="归属公司" />
+
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
@@ -112,7 +109,12 @@
         <el-table-column label="操作" width="140">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewOrder(scope.row)">查看</el-button>
+              <el-button
+                type="primary"
+                size="small"
+                @click="goToDetail(scope.row.id, scope.row.name)"
+                >查看</el-button
+              >
               <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
                 >删除</el-button
               >
@@ -129,10 +131,6 @@
           :total="filteredData.length"
         />
       </div>
-    </div>
-
-    <div class="footer-actions">
-      <el-button type="primary" @click="goToDetail">下一步 →</el-button>
     </div>
 
     <OrderForm
@@ -153,11 +151,11 @@ import { useProject } from '@/composables/useProject'
 import { useUser } from '@/composables/useUser'
 import { useCustomer } from '@/composables/useCustomer'
 import { useOrder, type Order } from '@/composables/useOrder'
-import OrderForm from './OrderForm.vue'
-import type { OrderFormData } from './OrderForm.vue'
+import OrderForm from './AddOrderForm.vue'
+import type { OrderFormData } from './AddOrderForm.vue'
 
 const route = useRoute()
-const { projectList, fetchProjects } = useProject()
+const { fetchProjects } = useProject()
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
 const { orderList, createOrder, fetchOrders, deleteOrder } = useOrder()
@@ -168,6 +166,7 @@ const projectId = ref(0)
 const orderFormVisible = ref(false)
 const selectedRows = ref<Order[]>([])
 const isProjectIdValid = ref(true)
+const isFilterVisible = ref(true)
 
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -180,7 +179,7 @@ const parseProjectId = (id: unknown): number => {
 const filterForm = ref({
   status: '',
   type: '',
-  projectName: '',
+  orderName: '',
   leaderAccount: '',
   customer: '',
   createTime: null,
@@ -194,11 +193,8 @@ const filteredData = computed(() => {
     if (filterForm.value.type && item.type !== filterForm.value.type) {
       return false
     }
-    if (filterForm.value.projectName) {
-      const project = projectList.value.find((p) => p.id === Number(item.projectId))
-      if (project?.projectName !== filterForm.value.projectName) {
-        return false
-      }
+    if (filterForm.value.orderName && !item.name.includes(filterForm.value.orderName)) {
+      return false
     }
     if (filterForm.value.leaderAccount && item.leaderAccount !== filterForm.value.leaderAccount) {
       return false
@@ -246,20 +242,21 @@ const goBack = () => {
   window.close()
 }
 
-const goToDetail = () => {
-  if (!projectId.value || projectId.value === 0) {
-    ElMessage.warning('无效的项目ID，无法跳转到项目详情')
+const toggleFilter = () => {
+  isFilterVisible.value = !isFilterVisible.value
+}
+
+const goToDetail = (orderId: number, orderName: string) => {
+  if (!orderId || orderId === 0) {
+    ElMessage.warning('无效的订单ID，无法跳转到订单详情')
     return
   }
-  window.open(`/project-detail/${projectId.value}`, '_blank')
+  const encodedName = encodeURIComponent(orderName)
+  window.open(`/order-detail/${orderId}?name=${encodedName}`, '_blank')
 }
 
 const addOrder = () => {
   orderFormVisible.value = true
-}
-
-const viewOrder = (row: Order) => {
-  ElMessage.info(`查看订单: ${row.name}`)
 }
 
 const handleDelete = async (row: Order) => {
@@ -331,7 +328,7 @@ const handleReset = () => {
   filterForm.value = {
     status: '',
     type: '',
-    projectName: '',
+    orderName: '',
     leaderAccount: '',
     customer: '',
     createTime: null,
@@ -345,6 +342,10 @@ const handleOrderSubmit = async (data: OrderFormData) => {
     if (success) {
       orderFormVisible.value = false
       ElMessage.success('创建订单成功')
+      // 创建成功后重新获取订单列表
+      await fetchOrders(projectId.value)
+      // 跳转到第一页显示最新订单
+      currentPage.value = 1
     } else {
       ElMessage.error('创建订单失败')
     }
@@ -380,12 +381,14 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid black;
+  gap: 20px;
 }
 
 .title {
   font-size: 20px;
   font-weight: bold;
   color: #333;
+  margin-right: auto;
 }
 
 .action-buttons {

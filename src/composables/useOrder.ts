@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { createOrderApi, getOrdersApi, deleteOrderApi, type OrderData } from '@/api/OrderApi'
-import type { OrderFormData } from '@/components/work/OrderForm.vue'
+import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
 
 export interface Order {
   id: number
@@ -28,32 +28,16 @@ export function useOrder() {
   const createOrder = async (data: OrderFormData): Promise<boolean> => {
     try {
       const response = await createOrderApi(data)
+      console.log('创建订单响应:', response)
 
       if (response.code === 200) {
-        orderList.value.unshift({
-          id: response.data.id,
-          projectId: Number(data.projectId),
-          name: data.name,
-          type: data.type,
-          leaderAccount: data.leaderAccount,
-          leader: '',
-          creator: '',
-          creatorAccount: '',
-          customer: data.customer,
-          contact: data.contact,
-          contactPhone: data.contactPhone,
-          province: data.province,
-          city: data.city,
-          district: data.district,
-          company: '',
-          status: '待确认',
-          createTime: new Date().toLocaleString('zh-CN'),
-        })
         return true
+      } else {
+        console.error('创建订单失败，后端返回:', response)
+        return false
       }
-      return false
     } catch (error) {
-      console.error('创建订单失败:', error)
+      console.error('创建订单异常:', error)
       return false
     }
   }
@@ -112,10 +96,53 @@ export function useOrder() {
     }
   }
 
+  const fetchOrderById = async (orderId: number): Promise<Order | null> => {
+    try {
+      const response = await getOrdersApi(orderId)
+
+      if (response.code === 200) {
+        const data = response.data
+        if (typeof data === 'object' && data !== null) {
+          const orders: Order[] = Object.values(data).map((item: OrderData) => ({
+            id: item.id,
+            projectId: item.project_id,
+            name: item.name,
+            type: item.type,
+            leaderAccount: item.leader_account,
+            leader: item.leader,
+            creator: item.creator,
+            creatorAccount: item.creator_account,
+            customer: item.customer,
+            contact: item.contact,
+            contactPhone: item.contact_phone,
+            province: item.province,
+            city: item.city,
+            district: item.district,
+            company: item.company,
+            status: item.state,
+            createTime: item.time,
+          }))
+          return orders.find((order) => order.id === orderId) || null
+        }
+      }
+      return null
+    } catch (error) {
+      console.error('获取订单信息失败:', error)
+      return null
+    }
+  }
+
+  const getOrderName = (orderId: number): string | undefined => {
+    const order = orderList.value.find((o) => o.id === orderId)
+    return order?.name
+  }
+
   return {
     orderList,
     createOrder,
     fetchOrders,
     deleteOrder,
+    fetchOrderById,
+    getOrderName,
   }
 }

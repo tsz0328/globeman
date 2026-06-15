@@ -15,7 +15,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { FormRules } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import type { CompanyFormData } from '@/api/CompanyApi'
 
@@ -30,9 +29,7 @@ const emit = defineEmits<{
 
 const formRef = ref<FormInstance>()
 
-const rules: FormRules = {
-  name: [{ required: true, message: '请输入公司名称', trigger: 'blur' }],
-}
+const rules = {}
 
 const form = ref<CompanyFormData>({
   name: '',
@@ -65,10 +62,7 @@ const handleClose = () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  const valid = await formRef.value.validate()
-  if (valid) {
-    emit('submit', { ...form.value })
-    emit('update:visible', false)
-  }
+  emit('submit', { ...form.value })
+  emit('update:visible', false)
 }
 </script>

@@ -27,7 +27,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { FormRules } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 
 export interface CustomerFormData {
@@ -50,12 +49,7 @@ const emit = defineEmits<{
 
 const formRef = ref<FormInstance>()
 
-const rules: FormRules = {
-  name: [{ required: true, message: '请输入客户名称', trigger: 'blur' }],
-  company: [{ required: true, message: '请输入公司名称', trigger: 'blur' }],
-  contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
-}
+const rules = {}
 
 const isEdit = computed(() => !!props.editData)
 const title = computed(() => (isEdit.value ? '编辑客户' : '新建客户'))
@@ -104,10 +98,7 @@ const handleClose = () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  const valid = await formRef.value.validate()
-  if (valid) {
-    emit('submit', { ...form.value })
-    emit('update:visible', false)
-  }
+  emit('submit', { ...form.value })
+  emit('update:visible', false)
 }
 </script>

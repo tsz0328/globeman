@@ -109,8 +109,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import UserForm from './UserForm.vue'
-import type { UserFormData } from './UserForm.vue'
+import UserForm from './AddUserForm.vue'
+import type { UserFormData } from './AddUserForm.vue'
 import { useUser, type User } from '@/composables/useUser'
 import { useRole } from '@/composables/useRole'
 import { useCompany } from '@/composables/useCompany'
