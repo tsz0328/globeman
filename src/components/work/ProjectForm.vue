@@ -32,6 +32,7 @@
           placeholder="请输入客户名称"
           :trigger-on-focus="false"
           @select="handleCustomerSelect"
+          @blur="handleCustomerBlur"
         />
       </el-form-item>
       <el-form-item prop="contact">
@@ -42,6 +43,7 @@
           placeholder="请输入联系人"
           :trigger-on-focus="false"
           @select="handleContactSelect"
+          @blur="handleContactBlur"
         />
       </el-form-item>
     </el-form>
@@ -208,6 +210,18 @@ const handleContactSelect = (item: { value: string; label: string; customer: str
   form.value.contact = item.value
   customerName.value = item.customer
   form.value.customer = item.customer
+}
+
+const handleCustomerBlur = () => {
+  if (customerName.value && !form.value.customer) {
+    form.value.customer = customerName.value
+  }
+}
+
+const handleContactBlur = () => {
+  if (contactName.value && !form.value.contact) {
+    form.value.contact = contactName.value
+  }
 }
 
 const handleSubmit = async () => {

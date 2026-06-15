@@ -32,6 +32,7 @@
           placeholder="请输入客户名称"
           :trigger-on-focus="false"
           @select="handleCustomerSelect"
+          @blur="handleCustomerBlur"
         />
       </el-form-item>
       <el-form-item prop="contact">
@@ -42,6 +43,7 @@
           placeholder="请输入联系人"
           :trigger-on-focus="false"
           @select="handleContactSelect"
+          @blur="handleContactBlur"
         />
       </el-form-item>
       <el-form-item prop="contactPhone">
@@ -193,7 +195,12 @@ const queryCustomerSearch = (
   cb(results)
 }
 
-const handleCustomerSelect = (item: { value: string; label: string; contact: string; phone?: string }) => {
+const handleCustomerSelect = (item: {
+  value: string
+  label: string
+  contact: string
+  phone?: string
+}) => {
   customerName.value = item.value
   form.value.customer = item.value
   contactName.value = item.contact
@@ -226,12 +233,29 @@ const queryContactSearch = (
   cb(results)
 }
 
-const handleContactSelect = (item: { value: string; label: string; customer: string; phone?: string }) => {
+const handleContactSelect = (item: {
+  value: string
+  label: string
+  customer: string
+  phone?: string
+}) => {
   contactName.value = item.value
   form.value.contact = item.value
   customerName.value = item.customer
   form.value.customer = item.customer
   form.value.contactPhone = item.phone || ''
+}
+
+const handleCustomerBlur = () => {
+  if (customerName.value && !form.value.customer) {
+    form.value.customer = customerName.value
+  }
+}
+
+const handleContactBlur = () => {
+  if (contactName.value && !form.value.contact) {
+    form.value.contact = contactName.value
+  }
 }
 
 const handleSubmit = async () => {
