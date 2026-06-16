@@ -62,6 +62,10 @@
         <template #label>执行区</template>
         <el-input v-model="form.district" placeholder="请输入执行区" />
       </el-form-item>
+      <el-form-item prop="repairAddress">
+        <template #label>送修地址</template>
+        <el-input v-model="form.repairAddress" placeholder="请输入送修地址" />
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
@@ -105,6 +109,7 @@ const form = ref<OrderFormData>({
   province: '',
   city: '',
   district: '',
+  repairAddress: '',
 })
 
 const leaderName = ref('')
@@ -128,6 +133,7 @@ const resetForm = () => {
     province: '',
     city: '',
     district: '',
+    repairAddress: '',
   }
   leaderName.value = ''
   customerName.value = ''
@@ -266,6 +272,7 @@ export interface OrderFormData {
   province: string
   city: string
   district: string
+  repairAddress: string
 }
 
 export default {}

@@ -17,6 +17,7 @@ export interface Order {
   province: string
   city: string
   district: string
+  repairAddress: string
   company: string
   status: string
   createTime: string
@@ -64,6 +65,7 @@ export function useOrder() {
             province: item.province,
             city: item.city,
             district: item.district,
+            repairAddress: item.repair_address || '',
             company: item.company,
             status: item.state,
             createTime: item.time,
@@ -118,6 +120,7 @@ export function useOrder() {
             province: item.province,
             city: item.city,
             district: item.district,
+            repairAddress: item.repair_address || '',
             company: item.company,
             status: item.state,
             createTime: item.time,

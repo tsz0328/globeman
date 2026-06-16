@@ -97,6 +97,7 @@
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
+        <el-table-column prop="repairAddress" label="送修地址" />
 
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
