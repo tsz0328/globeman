@@ -58,7 +58,8 @@ export async function getOrdersApi(id?: number): Promise<ApiResponse<Record<stri
 
 export async function deleteOrderApi(id: number): Promise<ApiResponse<void>> {
   return request({
-    url: `/order/delete/${id}`,
+    url: '/order/delete',
     method: 'delete',
+    params: { id },
   })
 }

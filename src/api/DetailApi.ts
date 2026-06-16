@@ -1,7 +1,7 @@
 import request from '@/utile/request'
 
 export interface DetailFormData {
-  id: string
+  orderId: number
   name: string
   model: string
   manufacturer: string

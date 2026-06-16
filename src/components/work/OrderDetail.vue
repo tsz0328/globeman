@@ -262,26 +262,25 @@ const handleConfirm = async () => {
 }
 
 const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
-  const projectId = parseProjectId(route.params.id)
+  const orderIdValue = parseProjectId(route.params.id)
 
-  if (projectId === 0) {
-    ElMessage.error('无效的项目ID')
+  if (orderIdValue === 0) {
+    ElMessage.error('无效的订单ID')
     return
   }
 
   const submitData = {
-    projectName: `订单${orderId.value}`,
     name: row.equipmentName,
     model: row.equipmentModel,
     manufacturer: row.manufacturer,
+    orderId: orderIdValue,
     number: String(row.quantity),
     price: String(row.unitPrice),
-    id: String(projectId),
   }
 
   const success = await createDetail(submitData)
   if (success) {
-    await fetchDetails(projectId)
+    await fetchDetails(orderIdValue)
     if (editIndex >= 0) {
       editRows.value.splice(editIndex, 1)
     }
