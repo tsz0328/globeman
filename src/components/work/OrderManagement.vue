@@ -88,26 +88,24 @@
       >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="name" label="订单名称" />
-        <el-table-column prop="type" label="订单类型" />
+        <el-table-column prop="type" label="订单类型" width="81" />
         <el-table-column prop="customer" label="客户" />
         <el-table-column prop="contact" label="客户联系人" />
         <el-table-column prop="contactPhone" label="联系人电话" />
         <el-table-column prop="leader" label="负责人" />
-
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
         <el-table-column prop="repairAddress" label="送修地址" />
-
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态" width="165">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
               {{ scope.row.status }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="140">
+        <el-table-column prop="createTime" label="创建时间" width="160" />
+        <el-table-column label="操作" width="193">
           <template #default="scope">
             <div class="action-buttons">
               <el-button
@@ -115,6 +113,9 @@
                 size="small"
                 @click="goToDetail(scope.row.id, scope.row.name)"
                 >查看</el-button
+              >
+              <el-button type="success" size="small" @click="handleSubmitBtn(scope.row)"
+                >提交</el-button
               >
               <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
                 >删除</el-button
@@ -159,7 +160,7 @@ const route = useRoute()
 const { fetchProjects } = useProject()
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
-const { orderList, createOrder, fetchOrders, deleteOrder } = useOrder()
+const { orderList, createOrder, fetchOrders, deleteOrder, submitOrder } = useOrder()
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -247,6 +248,7 @@ const toggleFilter = () => {
   isFilterVisible.value = !isFilterVisible.value
 }
 
+// 跳转订单详情页
 const goToDetail = (orderId: number, orderName: string) => {
   if (!orderId || orderId === 0) {
     ElMessage.warning('无效的订单ID，无法跳转到订单详情')
@@ -283,6 +285,27 @@ const handleDelete = async (row: Order) => {
 
 const handleDeleteBtn = (row: unknown) => {
   handleDelete(row as Order)
+}
+
+const handleSubmitBtn = async (row: Order) => {
+  try {
+    await ElMessageBox.confirm(`确定要提交订单"${row.name}"吗？`, '提交确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info',
+    })
+
+    const success = await submitOrder(row.id)
+    if (success) {
+      ElMessage.success('提交成功')
+    } else {
+      ElMessage.error('提交失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('提交失败')
+    }
+  }
 }
 
 const handleSelectionChange = (val: Order[]) => {

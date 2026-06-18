@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { createOrderApi, getOrdersApi, deleteOrderApi, type OrderData } from '@/api/OrderApi'
+import { createOrderApi, getOrdersApi, deleteOrderApi, submitOrderApi, type OrderData } from '@/api/OrderApi'
 import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
 
 export interface Order {
@@ -98,6 +98,24 @@ export function useOrder() {
     }
   }
 
+  const submitOrder = async (id: number): Promise<boolean> => {
+    try {
+      const response = await submitOrderApi(id)
+
+      if (response.code === 200) {
+        const order = orderList.value.find((o) => o.id === id)
+        if (order) {
+          order.status = '已提交'
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('提交订单失败:', error)
+      return false
+    }
+  }
+
   const fetchOrderById = async (orderId: number): Promise<Order | null> => {
     try {
       const response = await getOrdersApi(orderId)
@@ -145,6 +163,7 @@ export function useOrder() {
     createOrder,
     fetchOrders,
     deleteOrder,
+    submitOrder,
     fetchOrderById,
     getOrderName,
   }

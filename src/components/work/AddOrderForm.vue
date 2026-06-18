@@ -8,9 +8,9 @@
       <el-form-item prop="type">
         <template #label>订单类型</template>
         <el-select v-model="form.type" placeholder="请选择订单类型">
-          <el-option label="销售订单" value="销售" />
-          <el-option label="采购订单" value="采购" />
-          <el-option label="维修订单" value="维修" />
+          <el-option label="销售订单" value="销售订单" />
+          <el-option label="采购订单" value="采购订单" />
+          <el-option label="维修订单" value="维修订单" />
         </el-select>
       </el-form-item>
       <el-form-item prop="leaderAccount">
