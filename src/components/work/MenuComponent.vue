@@ -18,6 +18,10 @@
         <span class="menu-icon">🏢</span>
         <span class="menu-text">公司管理</span>
       </router-link>
+      <router-link to="/work/repair" class="menu-item" active-class="active">
+        <span class="menu-icon">🔧</span>
+        <span class="menu-text">维修管理</span>
+      </router-link>
     </div>
   </div>
 </template>

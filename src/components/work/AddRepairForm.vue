@@ -1,16 +1,17 @@
-<template>
+﻿<template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
       <el-form-item prop="name">
-        <template #label>订单名称</template>
-        <el-input v-model="form.name" placeholder="请输入订单名称" />
+        <template #label>维修名称</template>
+        <el-input v-model="form.name" placeholder="请输入维修名称" />
       </el-form-item>
       <el-form-item prop="type">
-        <template #label>订单类型</template>
-        <el-select v-model="form.type" placeholder="请选择订单类型">
-          <el-option label="销售订单" value="销售订单" />
-          <el-option label="采购订单" value="采购订单" />
-          <el-option label="维修订单" value="维修订单" />
+        <template #label>维修类型</template>
+        <el-select v-model="form.type" placeholder="请选择维修类型">
+          <el-option label="设备维修" value="设备维修" />
+          <el-option label="电路维修" value="电路维修" />
+          <el-option label="管道维修" value="管道维修" />
+          <el-option label="其他维修" value="其他" />
         </el-select>
       </el-form-item>
       <el-form-item prop="leaderAccount">
@@ -46,26 +47,6 @@
           @blur="handleContactBlur"
         />
       </el-form-item>
-      <el-form-item prop="contactPhone">
-        <template #label>联系人电话</template>
-        <el-input v-model="form.contactPhone" placeholder="请输入联系人电话（选填）" />
-      </el-form-item>
-      <el-form-item prop="province">
-        <template #label>执行省份</template>
-        <el-input v-model="form.province" placeholder="请输入执行省份" />
-      </el-form-item>
-      <el-form-item prop="city">
-        <template #label>执行市</template>
-        <el-input v-model="form.city" placeholder="请输入执行市" />
-      </el-form-item>
-      <el-form-item prop="district">
-        <template #label>执行区</template>
-        <el-input v-model="form.district" placeholder="请输入执行区" />
-      </el-form-item>
-      <el-form-item prop="repairAddress">
-        <template #label>送修地址</template>
-        <el-input v-model="form.repairAddress" placeholder="请输入送修地址" />
-      </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
@@ -82,35 +63,29 @@ import type { Customer } from '@/composables/useCustomer'
 
 const props = defineProps<{
   visible: boolean
-  projectId?: number
+  editData?: RepairFormData | null
   userList: User[]
   customerList: Customer[]
-  defaultType?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'submit', data: OrderFormData): void
+  (e: 'submit', data: RepairFormData): void
 }>()
 
 const formRef = ref<FormInstance>()
 
 const rules = {}
 
-const title = computed(() => '创建订单')
+const isEdit = computed(() => !!props.editData)
+const title = computed(() => (isEdit.value ? '编辑维修' : '新建维修'))
 
-const form = ref<OrderFormData>({
-  projectId: props.projectId?.toString() || '',
+const form = ref<RepairFormData>({
   name: '',
-  type: props.defaultType || '',
+  type: '',
   leaderAccount: '',
   customer: '',
   contact: '',
-  contactPhone: '',
-  province: '',
-  city: '',
-  district: '',
-  repairAddress: '',
 })
 
 const leaderName = ref('')
@@ -123,19 +98,7 @@ const visibleValue = computed({
 })
 
 const resetForm = () => {
-  form.value = {
-    projectId: props.projectId?.toString() || '',
-    name: '',
-    type: '',
-    leaderAccount: '',
-    customer: '',
-    contact: '',
-    contactPhone: '',
-    province: '',
-    city: '',
-    district: '',
-    repairAddress: '',
-  }
+  form.value = { name: '', type: '', leaderAccount: '', customer: '', contact: '' }
   leaderName.value = ''
   customerName.value = ''
   contactName.value = ''
@@ -143,16 +106,26 @@ const resetForm = () => {
 }
 
 watch(
-  () => props.projectId,
-  (newId) => {
-    form.value.projectId = newId?.toString() || ''
+  () => props.editData,
+  (newData) => {
+    if (newData) {
+      form.value = { ...newData }
+      const user = props.userList.find((u) => u.account === newData.leaderAccount)
+      leaderName.value = user?.name || ''
+      const customer = props.customerList.find((c) => c.name === newData.customer)
+      customerName.value = customer?.name || ''
+      contactName.value = customer?.contact || ''
+    } else {
+      resetForm()
+    }
   },
+  { immediate: true },
 )
 
 watch(
   () => props.visible,
   (newVal) => {
-    if (!newVal) {
+    if (!newVal && !props.editData) {
       resetForm()
     }
   },
@@ -169,7 +142,7 @@ const handleLeaderChange = (name: string) => {
 
 const queryCustomerSearch = (
   queryString: string,
-  cb: (suggestions: { value: string; label: string; contact: string; phone?: string }[]) => void,
+  cb: (suggestions: { value: string; label: string; contact: string }[]) => void,
 ) => {
   const customers = props.customerList
   const results = queryString
@@ -181,33 +154,25 @@ const queryCustomerSearch = (
           value: customer.name,
           label: customer.name,
           contact: customer.contact,
-          phone: customer.phone,
         }))
     : customers.map((customer: Customer) => ({
         value: customer.name,
         label: customer.name,
         contact: customer.contact,
-        phone: customer.phone,
       }))
   cb(results)
 }
 
-const handleCustomerSelect = (item: {
-  value: string
-  label: string
-  contact: string
-  phone?: string
-}) => {
+const handleCustomerSelect = (item: { value: string; label: string; contact: string }) => {
   customerName.value = item.value
   form.value.customer = item.value
   contactName.value = item.contact
   form.value.contact = item.contact
-  form.value.contactPhone = item.phone || ''
 }
 
 const queryContactSearch = (
   queryString: string,
-  cb: (suggestions: { value: string; label: string; customer: string; phone?: string }[]) => void,
+  cb: (suggestions: { value: string; label: string; customer: string }[]) => void,
 ) => {
   const customers = props.customerList
   const results = queryString
@@ -219,28 +184,20 @@ const queryContactSearch = (
           value: customer.contact,
           label: `${customer.contact} (${customer.name})`,
           customer: customer.name,
-          phone: customer.phone,
         }))
     : customers.map((customer: Customer) => ({
         value: customer.contact,
         label: `${customer.contact} (${customer.name})`,
         customer: customer.name,
-        phone: customer.phone,
       }))
   cb(results)
 }
 
-const handleContactSelect = (item: {
-  value: string
-  label: string
-  customer: string
-  phone?: string
-}) => {
+const handleContactSelect = (item: { value: string; label: string; customer: string }) => {
   contactName.value = item.value
   form.value.contact = item.value
   customerName.value = item.customer
   form.value.customer = item.customer
-  form.value.contactPhone = item.phone || ''
 }
 
 const handleCustomerBlur = () => {
@@ -262,18 +219,14 @@ const handleSubmit = async () => {
 }
 </script>
 <script lang="ts">
-export interface OrderFormData {
-  projectId: string
+export interface RepairFormData {
+  id?: number
   name: string
   type: string
   leaderAccount: string
   customer: string
   contact: string
-  contactPhone: string
-  province: string
-  city: string
-  district: string
-  repairAddress: string
+  time?: string
 }
 
 export default {}

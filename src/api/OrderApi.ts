@@ -69,7 +69,7 @@ export async function deleteOrderApi(id: number): Promise<ApiResponse<void>> {
 export async function submitOrderApi(id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/order/done',
-    method: 'post',
+    method: 'put',
     params: { id },
   })
 }
