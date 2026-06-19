@@ -3,9 +3,12 @@
     <div class="page-header">
       <h2 class="title">维修管理</h2>
       <div class="action-buttons">
-        <el-button type="primary" @click="addRepair">+新建维修</el-button>
+        <el-button type="primary" @click="addRepair">新建维修</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
+          >批量删除</el-button
+        >
       </div>
     </div>
     <div class="filter-section">
@@ -54,7 +57,11 @@
       </div>
       <div class="filter-item">
         <label>维修负责人：</label>
-        <el-select v-model="filterForm.repairManager" placeholder="全部负责人" style="width: 150px">
+        <el-select
+          v-model="filterForm.repairManager"
+          placeholder="全部负责人"
+          style="width: 150px"
+        >
           <el-option label="全部负责人" value="" />
           <el-option
             v-for="user in userList"
@@ -78,7 +85,14 @@
     </div>
 
     <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%">
+      <el-table
+        :data="paginatedData"
+        border
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        :row-key="getRowKey"
+      >
+        <el-table-column type="selection" width="50" />
         <el-table-column prop="repairName" label="维修名称" />
         <el-table-column prop="customer" label="客户" width="120" />
         <el-table-column prop="contactPerson" label="客户联系人" width="100" />
@@ -94,10 +108,15 @@
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column prop="cooperativeUnit" label="归属公司" />
-        <el-table-column label="操作" width="100">
+        <el-table-column label="操作" width="140">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewRepair(scope.row)">查看</el-button>
+              <el-button type="primary" size="small" @click="viewRepair(scope.row)"
+                >查看</el-button
+              >
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+                >删除</el-button
+              >
             </div>
           </template>
         </el-table-column>
@@ -124,20 +143,22 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import RepairForm from './AddRepairForm.vue'
 import type { RepairFormData } from './AddRepairForm.vue'
 import { useRepair, type Repair } from '@/composables/useRepair'
 import { useUser } from '@/composables/useUser'
 import { useCustomer } from '@/composables/useCustomer'
 
-const { repairList, fetchRepairs, createRepair } = useRepair()
+const { repairList, fetchRepairs, createRepair, deleteRepair, batchDeleteRepairs } =
+  useRepair()
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
 
 const currentPage = ref(1)
 const pageSize = ref(8)
 const repairFormVisible = ref(false)
+const selectedRows = ref<Repair[]>([])
 
 onMounted(() => {
   fetchRepairs()
@@ -150,8 +171,7 @@ const addRepair = () => {
 }
 
 const viewRepair = (row: Repair) => {
-  // 跳转到订单管理页面，根据 sourceType 自动隐藏提交和删除按钮
-  window.open(`/order/${row.id}?sourceType=repair`, '_blank')
+  window.open(`/repair-order/${row.id}`, '_blank')
 }
 
 const handleRepairSubmit = async (data: RepairFormData) => {
@@ -166,6 +186,30 @@ const handleRepairSubmit = async (data: RepairFormData) => {
   }
 }
 
+const handleDelete = async (row: Repair) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除维修"${row.repairName}"吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
+    const success = await deleteRepair(row.id)
+    if (success) {
+      ElMessage.success('删除成功')
+    } else {
+      ElMessage.error('删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除维修失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+const getRowKey = (row: Repair) => row.id
+
 const getStatusType = (status: string) => {
   switch (status) {
     case '编辑中':
@@ -176,6 +220,48 @@ const getStatusType = (status: string) => {
       return 'danger'
     default:
       return 'info'
+  }
+}
+
+const handleDeleteBtn = (row: unknown) => {
+  handleDelete(row as Repair)
+}
+
+const handleSelectionChange = (val: Repair[]) => {
+  selectedRows.value = val
+}
+
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先选择要删除的维修')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRows.value.length} 个维修吗？`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+
+    const ids = selectedRows.value.map((row) => row.id)
+    const success = await batchDeleteRepairs(ids)
+
+    if (success) {
+      ElMessage.success(`成功删除 ${selectedRows.value.length} 个维修`)
+      selectedRows.value = []
+    } else {
+      ElMessage.error('批量删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
   }
 }
 
@@ -193,7 +279,10 @@ const filteredData = computed(() => {
     if (filterForm.value.contactPerson && item.contactPerson !== filterForm.value.contactPerson) {
       return false
     }
-    if (filterForm.value.repairManager && item.repairManager !== filterForm.value.repairManager) {
+    if (
+      filterForm.value.repairManager &&
+      item.repairManager !== filterForm.value.repairManager
+    ) {
       return false
     }
     if (filterForm.value.createTime) {

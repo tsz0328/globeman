@@ -3,7 +3,11 @@
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
       <el-form-item prop="name">
         <template #label>订单名称</template>
-        <el-input v-model="form.name" placeholder="请输入订单名称" />
+        <el-input
+          v-model="form.name"
+          placeholder="请输入订单名称"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="type">
         <template #label>订单类型</template>
@@ -33,6 +37,7 @@
           :trigger-on-focus="false"
           @select="handleCustomerSelect"
           @blur="handleCustomerBlur"
+          @keyup.enter.prevent="handleEnter($event)"
         />
       </el-form-item>
       <el-form-item prop="contact">
@@ -44,27 +49,48 @@
           :trigger-on-focus="false"
           @select="handleContactSelect"
           @blur="handleContactBlur"
+          @keyup.enter.prevent="handleEnter($event)"
         />
       </el-form-item>
       <el-form-item prop="contactPhone">
         <template #label>联系人电话</template>
-        <el-input v-model="form.contactPhone" placeholder="请输入联系人电话（选填）" />
+        <el-input
+          v-model="form.contactPhone"
+          placeholder="请输入联系人电话（选填）"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="province">
         <template #label>执行省份</template>
-        <el-input v-model="form.province" placeholder="请输入执行省份" />
+        <el-input
+          v-model="form.province"
+          placeholder="请输入执行省份"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="city">
         <template #label>执行市</template>
-        <el-input v-model="form.city" placeholder="请输入执行市" />
+        <el-input
+          v-model="form.city"
+          placeholder="请输入执行市"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="district">
         <template #label>执行区</template>
-        <el-input v-model="form.district" placeholder="请输入执行区" />
+        <el-input
+          v-model="form.district"
+          placeholder="请输入执行区"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="repairAddress">
         <template #label>送修地址</template>
-        <el-input v-model="form.repairAddress" placeholder="请输入送修地址" />
+        <el-input
+          v-model="form.repairAddress"
+          placeholder="请输入送修地址"
+          @keyup.enter.prevent="handleSubmit"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -85,7 +111,6 @@ const props = defineProps<{
   projectId?: number
   userList: User[]
   customerList: Customer[]
-  defaultType?: string
 }>()
 
 const emit = defineEmits<{
@@ -102,7 +127,7 @@ const title = computed(() => '创建订单')
 const form = ref<OrderFormData>({
   projectId: props.projectId?.toString() || '',
   name: '',
-  type: props.defaultType || '',
+  type: '',
   leaderAccount: '',
   customer: '',
   contact: '',
@@ -252,6 +277,19 @@ const handleCustomerBlur = () => {
 const handleContactBlur = () => {
   if (contactName.value && !form.value.contact) {
     form.value.contact = contactName.value
+  }
+}
+
+const handleEnter = (event: KeyboardEvent) => {
+  const currentInput = event.target as HTMLInputElement
+  const formItems = currentInput.closest('.el-form')?.querySelectorAll('.el-input__inner')
+  if (!formItems) return
+
+  const currentIndex = Array.from(formItems).indexOf(currentInput)
+  if (currentIndex < formItems.length - 1) {
+    ;(formItems[currentIndex + 1] as HTMLInputElement).focus()
+  } else {
+    handleSubmit()
   }
 }
 

@@ -4,7 +4,7 @@
     <div class="page-header">
       <h2 class="title">用户管理</h2>
       <div class="action-buttons">
-        <el-button type="primary" @click="addUser">+新建用户</el-button>
+        <el-button type="primary" @click="addUser">新建用户</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"

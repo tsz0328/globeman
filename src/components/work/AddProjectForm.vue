@@ -3,7 +3,11 @@
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
       <el-form-item prop="name">
         <template #label>项目名称</template>
-        <el-input v-model="form.name" placeholder="请输入项目名称" />
+        <el-input
+          v-model="form.name"
+          placeholder="请输入项目名称"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="type">
         <template #label>项目类型</template>
@@ -33,6 +37,7 @@
           :trigger-on-focus="false"
           @select="handleCustomerSelect"
           @blur="handleCustomerBlur"
+          @keyup.enter.prevent="handleEnter($event)"
         />
       </el-form-item>
       <el-form-item prop="contact">
@@ -44,6 +49,7 @@
           :trigger-on-focus="false"
           @select="handleContactSelect"
           @blur="handleContactBlur"
+          @keyup.enter.prevent="handleSubmit"
         />
       </el-form-item>
     </el-form>
@@ -213,6 +219,19 @@ const handleCustomerBlur = () => {
 const handleContactBlur = () => {
   if (contactName.value && !form.value.contact) {
     form.value.contact = contactName.value
+  }
+}
+
+const handleEnter = (event: KeyboardEvent) => {
+  const currentInput = event.target as HTMLInputElement
+  const formItems = currentInput.closest('.el-form')?.querySelectorAll('.el-input__inner')
+  if (!formItems) return
+
+  const currentIndex = Array.from(formItems).indexOf(currentInput)
+  if (currentIndex < formItems.length - 1) {
+    ;(formItems[currentIndex + 1] as HTMLInputElement).focus()
+  } else {
+    handleSubmit()
   }
 }
 

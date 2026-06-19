@@ -8,9 +8,10 @@ import HomeComponent from '@/components/work/HomeComponent.vue'
 import ProjectManagementComponent from '@/components/work/ProjectManagement.vue'
 import CustomerManagementComponent from '@/components/work/CustomerManagement.vue'
 import CompanyManagementComponent from '@/components/work/CompanyManagement.vue'
-import OrderDetailComponent from '@/components/work/OrderDetail.vue'
-import OrderManagementComponent from '@/components/work/OrderManagement.vue'
+import OrderDetailComponent from '@/components/work/ProjectOrderDetail.vue'
+import OrderManagementComponent from '@/components/work/ProjectOrderManagement.vue'
 import RepairManagementComponent from '@/components/work/RepairManagement.vue'
+import RepairOrderManagementComponent from '@/components/work/RepairOrderManagement.vue'
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
 const router = createRouter({
@@ -79,6 +80,11 @@ const router = createRouter({
       path: '/order/:id',
       name: 'OrderManagement',
       component: OrderManagementComponent,
+    },
+    {
+      path: '/repair-order/:id',
+      name: 'RepairOrderManagement',
+      component: RepairOrderManagementComponent,
     },
     {
       path: '/order-detail/:id',

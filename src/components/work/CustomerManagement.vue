@@ -4,7 +4,7 @@
     <div class="page-header">
       <h2 class="title">客户管理</h2>
       <div class="action-buttons">
-        <el-button type="primary" @click="addCustomer">+新建客户</el-button>
+        <el-button type="primary" @click="addCustomer">新建客户</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
@@ -16,11 +16,21 @@
     <div class="filter-section">
       <div class="filter-item">
         <label>客户名称：</label>
-        <el-input v-model="filterForm.name" placeholder="请输入客户名称" style="width: 150px" />
+        <el-input
+          v-model="filterForm.name"
+          placeholder="请输入客户名称"
+          style="width: 150px"
+          @keyup.enter.prevent="handleSearch"
+        />
       </div>
       <div class="filter-item">
         <label>联系人：</label>
-        <el-input v-model="filterForm.contact" placeholder="请输入联系人" style="width: 150px" />
+        <el-input
+          v-model="filterForm.contact"
+          placeholder="请输入联系人"
+          style="width: 150px"
+          @keyup.enter.prevent="handleSearch"
+        />
       </div>
       <div class="filter-item">
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -72,6 +82,7 @@
     <CustomerForm
       v-model:visible="customerFormVisible"
       :editData="editData"
+      :companyList="companyList"
       @submit="handleCustomerSubmit"
     />
   </div>
@@ -83,9 +94,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import CustomerForm from './AddCustomerForm.vue'
 import type { CustomerFormData } from './AddCustomerForm.vue'
 import { useCustomer, type Customer } from '@/composables/useCustomer'
+import { useCompany } from '@/composables/useCompany'
 
 const { customerList, fetchCustomers, createCustomer, deleteCustomer, batchDeleteCustomers } =
   useCustomer()
+const { companyList, fetchCompanies } = useCompany()
 
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -93,9 +106,10 @@ const customerFormVisible = ref(false)
 const editData = ref<CustomerFormData | null>(null)
 const selectedRows = ref<Customer[]>([])
 
-// 组件挂载时获取客户列表
+// 组件挂载时获取客户列表和公司列表
 onMounted(() => {
   fetchCustomers()
+  fetchCompanies()
 })
 
 // 新增客户

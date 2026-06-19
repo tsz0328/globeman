@@ -1,14 +1,18 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" @submit.prevent>
       <el-form-item prop="name">
         <template #label>公司名称</template>
-        <el-input v-model="form.name" placeholder="请输入公司名称" />
+        <el-input
+          v-model="form.name"
+          placeholder="请输入公司名称"
+          @keyup.enter.prevent="handleSubmit"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSubmit">确定</el-button>
+      <el-button native-type="button" @click="handleClose">取消</el-button>
+      <el-button type="primary" native-type="button" @click="handleSubmit">确定</el-button>
     </template>
   </el-dialog>
 </template>

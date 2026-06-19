@@ -1,21 +1,46 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+    <el-form ref="formRef" :model="form" label-width="100px">
       <el-form-item prop="account">
         <template #label>账号</template>
-        <el-input v-model="form.account" placeholder="请输入账号" />
+        <el-input
+          v-model="form.account"
+          placeholder="请输入账号"
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        />
       </el-form-item>
       <el-form-item prop="password">
         <template #label>密码</template>
-        <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+        <el-input
+          v-model="form.password"
+          type="password"
+          placeholder="请输入密码"
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        />
       </el-form-item>
       <el-form-item prop="name">
         <template #label>姓名</template>
-        <el-input v-model="form.name" placeholder="请输入姓名" />
+        <el-input
+          v-model="form.name"
+          placeholder="请输入姓名"
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        />
       </el-form-item>
       <el-form-item prop="company">
         <template #label>公司</template>
-        <el-select v-model="form.company" placeholder="请选择公司">
+        <el-select
+          v-model="form.company"
+          placeholder="请选择公司"
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        >
           <el-option
             v-for="company in companyList"
             :key="company.name"
@@ -26,7 +51,13 @@
       </el-form-item>
       <el-form-item prop="role">
         <template #label>角色</template>
-        <el-select v-model="form.role" placeholder="请选择角色">
+        <el-select
+          v-model="form.role"
+          placeholder="请选择角色"
+          @keyup.enter.prevent="handleSubmit"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        >
           <el-option
             v-for="role in roleList"
             :key="role.role"
@@ -46,6 +77,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 
 export interface UserFormData {
   account: string
@@ -79,8 +111,6 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
-
-const rules = {}
 
 const isEdit = computed(() => !!props.editData)
 const title = computed(() => (isEdit.value ? '编辑用户' : '创建用户'))
@@ -129,8 +159,75 @@ const handleClose = () => {
   emit('update:visible', false)
 }
 
+const focusNextField = (currentInput: HTMLInputElement, direction: 'next' | 'prev') => {
+  const formElement = currentInput.closest('.el-form')
+  if (!formElement) return
+
+  const formItems = formElement.querySelectorAll('.el-input__inner, .el-select__input')
+  const currentIndex = Array.from(formItems).indexOf(currentInput)
+  let targetIndex: number
+
+  if (direction === 'next') {
+    targetIndex = Math.min(currentIndex + 1, formItems.length - 1)
+  } else {
+    targetIndex = Math.max(currentIndex - 1, 0)
+  }
+
+  const targetItem = formItems[targetIndex] as HTMLInputElement
+  targetItem.focus()
+}
+
+const handleEnter = (event: KeyboardEvent) => {
+  const currentInput = event.target as HTMLInputElement
+  const formElement = currentInput.closest('.el-form')
+  if (!formElement) return
+
+  const formItems = formElement.querySelectorAll('.el-input__inner, .el-select__input')
+  const currentIndex = Array.from(formItems).indexOf(currentInput)
+
+  if (currentIndex < formItems.length - 1) {
+    focusNextField(currentInput, 'next')
+  } else {
+    handleSubmit()
+  }
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  const currentInput = event.target as HTMLInputElement
+
+  if (event.key === 'ArrowUp') {
+    focusNextField(currentInput, 'prev')
+  } else if (event.key === 'ArrowDown') {
+    focusNextField(currentInput, 'next')
+  }
+}
+
 const handleSubmit = async () => {
-  if (!formRef.value) return
+  const errors: string[] = []
+
+  if (!form.value.account.trim()) {
+    errors.push('账号')
+  }
+  if (!form.value.password.trim()) {
+    errors.push('密码')
+  }
+  if (!form.value.name.trim()) {
+    errors.push('姓名')
+  }
+  if (!form.value.company.trim()) {
+    errors.push('公司')
+  }
+  if (!form.value.role.trim()) {
+    errors.push('角色')
+  }
+
+  if (errors.length > 0) {
+    await ElMessageBox.alert(`请填写以下必填项：\n${errors.join('、')}`, '提示', {
+      confirmButtonText: '确定',
+    })
+    return
+  }
+
   emit('submit', { ...form.value })
   emit('update:visible', false)
 }

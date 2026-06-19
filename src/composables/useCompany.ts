@@ -67,8 +67,8 @@ export function useCompany() {
     loading.value = true
     try {
       const res = await createCompanyApi(data)
-      if (res.code === 200 && res.data) {
-        companyList.value.unshift(res.data)
+      if (res.code === 200) {
+        await fetchCompanies()
         return true
       }
       return false

@@ -1,21 +1,45 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" @submit.prevent>
       <el-form-item prop="name">
         <template #label>客户名称</template>
-        <el-input v-model="form.name" placeholder="请输入客户名称" />
+        <el-input
+          v-model="form.name"
+          placeholder="请输入客户名称"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="company">
         <template #label>公司名称</template>
-        <el-input v-model="form.company" placeholder="请输入公司名称" />
+        <el-select
+          v-model="form.company"
+          placeholder="请选择公司"
+          style="width: 100%"
+          @keyup.enter.prevent="handleEnter($event)"
+        >
+          <el-option
+            v-for="company in companyList"
+            :key="company.id"
+            :label="company.name"
+            :value="company.name"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item prop="contact">
         <template #label>联系人</template>
-        <el-input v-model="form.contact" placeholder="请输入联系人" />
+        <el-input
+          v-model="form.contact"
+          placeholder="请输入联系人"
+          @keyup.enter.prevent="handleEnter($event)"
+        />
       </el-form-item>
       <el-form-item prop="phone">
         <template #label>联系电话</template>
-        <el-input v-model="form.phone" placeholder="请输入联系电话" />
+        <el-input
+          v-model="form.phone"
+          placeholder="请输入联系电话"
+          @keyup.enter.prevent="handleSubmit"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -37,9 +61,15 @@ export interface CustomerFormData {
   phone: string
 }
 
+export interface Company {
+  id?: number
+  name: string
+}
+
 const props = defineProps<{
   visible: boolean
   editData?: CustomerFormData | null
+  companyList: Company[]
 }>()
 
 const emit = defineEmits<{
@@ -94,6 +124,21 @@ watch(
 
 const handleClose = () => {
   emit('update:visible', false)
+}
+
+const handleEnter = (event: KeyboardEvent) => {
+  const currentInput = event.target as HTMLInputElement
+  const formElement = currentInput.closest('.el-form')
+  if (!formElement) return
+
+  const formItems = formElement.querySelectorAll('.el-input__inner, .el-select__input')
+  const currentIndex = Array.from(formItems).indexOf(currentInput)
+
+  if (currentIndex < formItems.length - 1) {
+    ;(formItems[currentIndex + 1] as HTMLInputElement).focus()
+  } else {
+    handleSubmit()
+  }
 }
 
 const handleSubmit = async () => {

@@ -18,7 +18,7 @@
     <div class="filter-section">
         <div class="filter-item">
           <label>公司名称:</label>
-          <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" />
+          <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" @keyup.enter.prevent="handleSearch" />
         </div>
         <div class="filter-item">
           <label>创建时间:</label>

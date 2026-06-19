@@ -4,7 +4,7 @@
     <div class="page-header">
       <h2 class="title">项目管理</h2>
       <div class="action-buttons">
-        <el-button type="primary" @click="addProject">+新建项目</el-button>
+        <el-button type="primary" @click="addProject">新建项目</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
@@ -178,7 +178,7 @@ const addProject = () => {
 
 // 查看项目详情（先跳转到订单管理）
 const viewProject = (row: Project) => {
-  window.open(`/order/${row.id}?sourceType=project`, '_blank')
+  window.open(`/order/${row.id}`, '_blank')
 }
 
 // 项目表单提交

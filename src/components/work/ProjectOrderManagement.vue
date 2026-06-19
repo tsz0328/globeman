@@ -2,9 +2,9 @@
   <div class="order-management">
     <div class="page-header">
       <el-button @click="goBack">← 返回</el-button>
-      <h2 class="title">{{ pageTitle }}</h2>
+      <h2 class="title">订单管理</h2>
       <div class="action-buttons">
-        <el-button type="primary" @click="addOrder">+新建订单</el-button>
+        <el-button type="primary" @click="addOrder">新建订单</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
@@ -105,7 +105,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" :width="showActionWidth">
+        <el-table-column label="操作" width="193">
           <template #default="scope">
             <div class="action-buttons">
               <el-button
@@ -114,18 +114,10 @@
                 @click="goToDetail(scope.row.id, scope.row.name)"
                 >查看</el-button
               >
-              <el-button
-                v-if="showSubmit"
-                type="success"
-                size="small"
-                @click="handleSubmitBtn(scope.row)"
+              <el-button type="success" size="small" @click="handleSubmitBtn(scope.row)"
                 >提交</el-button
               >
-              <el-button
-                v-if="showDelete"
-                type="danger"
-                size="small"
-                @click="handleDeleteBtn(scope.row)"
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
                 >删除</el-button
               >
             </div>
@@ -148,7 +140,6 @@
       :project-id="projectId"
       :user-list="userList"
       :customer-list="customerList"
-      :default-type="defaultOrderType"
       @submit="handleOrderSubmit"
     />
   </div>
@@ -166,21 +157,6 @@ import OrderForm from './AddOrderForm.vue'
 import type { OrderFormData } from './AddOrderForm.vue'
 
 const route = useRoute()
-
-// 来源类型：repair（维修）、project（项目）
-const sourceType = ref<string>('')
-// 标题名称（根据来源类型显示）
-const pageTitle = ref('订单管理')
-
-// 根据来源类型判断是否显示提交按钮
-const showSubmit = computed(() => {
-  return sourceType.value !== 'repair'
-})
-
-// 根据来源类型判断是否显示删除按钮
-const showDelete = computed(() => {
-  return sourceType.value !== 'repair'
-})
 const { fetchProjects } = useProject()
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
@@ -213,12 +189,6 @@ const filterForm = ref({
 
 const filteredData = computed(() => {
   return orderList.value.filter((item) => {
-    if (sourceType.value === 'repair' && item.type !== '维修') {
-      return false
-    }
-    if (sourceType.value === 'project' && item.type !== '销售' && item.type !== '采购') {
-      return false
-    }
     if (filterForm.value.status && item.status !== filterForm.value.status) {
       return false
     }
@@ -249,25 +219,6 @@ const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return filteredData.value.slice(start, end)
-})
-
-// 根据按钮显示情况计算操作列宽度
-const showActionWidth = computed(() => {
-  let width = 93 // 查看按钮宽度
-  if (showSubmit.value) width += 63 // 提交按钮宽度
-  if (showDelete.value) width += 63 // 删除按钮宽度
-  return width
-})
-
-// 根据来源类型返回默认订单类型
-const defaultOrderType = computed(() => {
-  if (sourceType.value === 'repair') {
-    return '维修订单'
-  }
-  if (sourceType.value === 'project') {
-    return '销售订单'
-  }
-  return ''
 })
 
 const getRowKey = (row: Order) => row.id
@@ -429,19 +380,6 @@ const handleOrderSubmit = async (data: OrderFormData) => {
 }
 
 onMounted(() => {
-  // 从 URL query 参数中读取配置（用于从维修管理/项目管理跳转的情况）
-  const query = route.query
-  // 读取来源类型
-  if (query.sourceType !== undefined && typeof query.sourceType === 'string') {
-    sourceType.value = query.sourceType
-    // 根据来源类型设置页面标题
-    if (sourceType.value === 'repair') {
-      pageTitle.value = '维修订单管理'
-    } else if (sourceType.value === 'project') {
-      pageTitle.value = '项目订单管理'
-    }
-  }
-
   projectId.value = parseProjectId(route.params.id)
 
   if (projectId.value === 0) {
