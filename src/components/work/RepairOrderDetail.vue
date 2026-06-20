@@ -3,9 +3,6 @@
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">订单详情</h2>
-      <el-button type="primary" @click="toggleAddMode">
-        {{ isAdding ? '确定' : '添加设备' }}
-      </el-button>
     </div>
 
     <div class="equipment-section">
@@ -86,10 +83,13 @@
             {{ scope.row.total || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="73">
+        <el-table-column label="操作" width="133">
           <template #default="scope">
-            <el-button type="danger" size="small" @click="handleDelete(scope.row)">
-              删除
+            <el-button type="info" size="small" @click="handleDetail(scope.row)">
+              查看
+            </el-button>
+            <el-button type="primary" size="small" @click="handleAdd(scope.row)">
+              提交
             </el-button>
           </template>
         </el-table-column>
@@ -110,11 +110,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useDetail } from '@/composables/useDetail'
 
 const route = useRoute()
-const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()
+const { createDetail, fetchDetails, detailList } = useDetail()
 
 const orderId = ref(0)
 const orderName = ref('')
@@ -160,15 +160,6 @@ const goBack = () => {
   window.close()
 }
 
-const toggleAddMode = () => {
-  if (isAdding.value) {
-    handleConfirm()
-  } else {
-    isAdding.value = true
-    addEditRow()
-  }
-}
-
 const addEditRow = () => {
   const newRow: EditableDetailData = {
     id: 0,
@@ -188,36 +179,12 @@ const addEditRow = () => {
   currentPage.value = totalPages
 }
 
-const handleDelete = async (row: EditableDetailData) => {
-  const editIndex = editRows.value.indexOf(row)
-  if (editIndex !== -1) {
-    editRows.value.splice(editIndex, 1)
-    if (editRows.value.length === 0) {
-      isAdding.value = false
-    }
-    return
-  }
+const handleDetail = (row: EditableDetailData) => {
+  window.open(`/repair-order-detail/${row.id}?name=${encodeURIComponent(row.equipmentName)}`, '_blank')
+}
 
-  if (row.id > 0) {
-    try {
-      await ElMessageBox.confirm('确定要删除这条记录吗？', '删除确认', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      })
-
-      const success = await deleteDetail(row.id)
-      if (success) {
-        ElMessage.success('删除成功')
-      } else {
-        ElMessage.error('删除失败')
-      }
-    } catch (error) {
-      if (error !== 'cancel') {
-        ElMessage.error('删除失败')
-      }
-    }
-  }
+const handleAdd = (row: EditableDetailData) => {
+  row.isEditing = true
 }
 
 const handleCellEnter = () => {

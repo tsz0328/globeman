@@ -9,6 +9,7 @@ import ProjectManagementComponent from '@/components/work/ProjectManagement.vue'
 import CustomerManagementComponent from '@/components/work/CustomerManagement.vue'
 import CompanyManagementComponent from '@/components/work/CompanyManagement.vue'
 import OrderDetailComponent from '@/components/work/ProjectOrderDetail.vue'
+import RepairOrderDetailComponent from '@/components/work/RepairOrderDetail.vue'
 import OrderManagementComponent from '@/components/work/ProjectOrderManagement.vue'
 import RepairManagementComponent from '@/components/work/RepairManagement.vue'
 import RepairOrderManagementComponent from '@/components/work/RepairOrderManagement.vue'
@@ -85,6 +86,11 @@ const router = createRouter({
       path: '/repair-order/:id',
       name: 'RepairOrderManagement',
       component: RepairOrderManagementComponent,
+    },
+    {
+      path: '/repair-order-detail/:id',
+      name: 'RepairOrderDetail',
+      component: RepairOrderDetailComponent,
     },
     {
       path: '/order-detail/:id',

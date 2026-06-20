@@ -47,7 +47,7 @@
         <el-table-column type="selection" width="50"></el-table-column>
         <el-table-column prop="name" label="公司名称"></el-table-column>
         <el-table-column prop="time" label="创建时间" width="180"></el-table-column>
-        <el-table-column label="操作" width="140">
+        <el-table-column label="操作" width="133">
           <template #default="scope">
             <div class="action-buttons">
               <el-button type="primary" size="small" @click="viewCompany(scope.row)"

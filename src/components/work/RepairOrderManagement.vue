@@ -4,8 +4,6 @@
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">维修订单管理</h2>
       <div class="action-buttons">
-        <el-button type="primary" @click="addOrder">新建订单</el-button>
-        <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
       </div>
@@ -100,13 +98,13 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="80">
+        <el-table-column label="操作" width="73">
           <template #default="scope">
             <div class="action-buttons">
               <el-button
                 type="primary"
                 size="small"
-                @click="goToDetail(scope.row.id, scope.row.name)"
+                @click="goToRepairOrderDetail(scope.row.id, scope.row.name)"
                 >查看</el-button
               >
             </div>
@@ -236,19 +234,16 @@ const toggleFilter = () => {
   isFilterVisible.value = !isFilterVisible.value
 }
 
-// 跳转订单详情页
-const goToDetail = (orderId: number, orderName: string) => {
+// 跳转维修订单详情页
+const goToRepairOrderDetail = (orderId: number, orderName: string) => {
   if (!orderId || orderId === 0) {
     ElMessage.warning('无效的订单ID，无法跳转到订单详情')
     return
   }
   const encodedName = encodeURIComponent(orderName)
-  window.open(`/order-detail/${orderId}?name=${encodedName}`, '_blank')
+  window.open(`/repair-order-detail/${orderId}?name=${encodedName}`, '_blank')
 }
 
-const addOrder = () => {
-  orderFormVisible.value = true
-}
 
 const handleSearch = () => {
   currentPage.value = 1

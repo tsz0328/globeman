@@ -68,7 +68,7 @@
         <el-table-column prop="company" label="公司" />
         <el-table-column prop="role" label="角色" width="100" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="193">
           <template #default="scope">
             <div class="action-buttons">
               <el-button type="primary" size="small">查看</el-button>
