@@ -85,12 +85,8 @@
         </el-table-column>
         <el-table-column label="操作" width="133">
           <template #default="scope">
-            <el-button type="info" size="small" @click="handleDetail(scope.row)">
-              查看
-            </el-button>
-            <el-button type="primary" size="small" @click="handleAdd(scope.row)">
-              提交
-            </el-button>
+            <el-button type="info" size="small" @click="handleDetail(scope.row)"> 查看 </el-button>
+            <el-button type="primary" size="small" @click="handleAdd(scope.row)"> 提交 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -104,6 +100,28 @@
         />
       </div>
     </div>
+
+    <el-dialog v-model="detailDialogVisible" title="设备详情" width="600px">
+      <div v-if="detailData">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="设备名称">{{
+            detailData.equipmentName
+          }}</el-descriptions-item>
+          <el-descriptions-item label="设备型号">{{
+            detailData.equipmentModel
+          }}</el-descriptions-item>
+          <el-descriptions-item label="生产厂家">{{
+            detailData.manufacturer
+          }}</el-descriptions-item>
+          <el-descriptions-item label="数量">{{ detailData.quantity }}</el-descriptions-item>
+          <el-descriptions-item label="单价">{{ detailData.unitPrice }}</el-descriptions-item>
+          <el-descriptions-item label="总价">{{ detailData.total }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="detailDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -111,7 +129,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/useDetail'
+import request from '@/utile/request'
 
 const route = useRoute()
 const { createDetail, fetchDetails, detailList } = useDetail()
@@ -123,6 +143,8 @@ const pageSize = ref(8)
 const isAdding = ref(false)
 const editRows = ref<EditableDetailData[]>([])
 const isProjectIdValid = ref(true)
+const detailDialogVisible = ref(false)
+const detailData = ref<EditableDetailData | null>(null)
 
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -179,12 +201,70 @@ const addEditRow = () => {
   currentPage.value = totalPages
 }
 
-const handleDetail = (row: EditableDetailData) => {
-  window.open(`/repair-order-detail/${row.id}?name=${encodeURIComponent(row.equipmentName)}`, '_blank')
+const handleDetail = async (row: EditableDetailData) => {
+  if (!row.id) {
+    ElMessage.error('无效的数据ID')
+    return
+  }
+
+  try {
+    const response = await request.get(`/repair/get`, {
+      params: { id: row.id },
+    })
+    const res = response.data
+
+    if (res && (res.code === 200 || res.code === '200')) {
+      detailData.value = {
+        ...row,
+        ...res.data,
+      }
+      detailDialogVisible.value = true
+    } else if (res && typeof res === 'object' && !res.code) {
+      detailData.value = {
+        ...row,
+        ...res,
+      }
+      detailDialogVisible.value = true
+    } else {
+      ElMessage.error('获取详情失败')
+      console.error('响应数据:', res)
+    }
+  } catch (error) {
+    ElMessage.error('获取详情失败')
+    console.error('获取详情失败:', error)
+  }
 }
 
-const handleAdd = (row: EditableDetailData) => {
-  row.isEditing = true
+const handleAdd = async (row: EditableDetailData) => {
+  if (!row.id) {
+    ElMessage.error('无效的数据ID')
+    return
+  }
+
+  try {
+    const sn = await ElMessageBox.prompt('请输入SN码', '提交', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+    })
+
+    if (!sn.value) {
+      return
+    }
+
+    await request.put(`/repair/add`, null, {
+      params: {
+        sn: sn.value,
+        id: row.id,
+      },
+    })
+    ElMessage.success('提交成功')
+    await fetchDetails(orderId.value)
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('提交失败')
+      console.error('提交失败:', error)
+    }
+  }
 }
 
 const handleCellEnter = () => {
