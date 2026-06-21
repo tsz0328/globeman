@@ -106,9 +106,7 @@
         <el-table-column label="操作" width="73">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewRepair(scope.row)"
-                >查看</el-button
-              >
+              <el-button type="primary" size="small" @click="viewRepair(scope.row)">查看</el-button>
             </div>
           </template>
         </el-table-column>
@@ -132,8 +130,7 @@ import { useProject, type Project } from '@/composables/useProject'
 import { useUser } from '@/composables/useUser'
 import { useCustomer } from '@/composables/useCustomer'
 
-const { projectList, fetchProjects,} =
-  useProject()
+const { projectList: repairList, fetchProjects: fetchRepairs } = useProject()
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
 
@@ -142,16 +139,14 @@ const pageSize = ref(8)
 const selectedRows = ref<Project[]>([])
 
 onMounted(() => {
-  fetchProjects()
+  fetchRepairs()
   fetchUsers()
   fetchCustomers()
 })
 
-
 const viewRepair = (row: Project) => {
   window.open(`/repair-order/${row.id}`, '_blank')
 }
-
 
 const getRowKey = (row: Project) => row.id
 
@@ -168,14 +163,12 @@ const getStatusType = (status: string) => {
   }
 }
 
-
 const handleSelectionChange = (val: Project[]) => {
   selectedRows.value = val
 }
 
-
 const filteredData = computed(() => {
-  return projectList.value.filter((item) => {
+  return repairList.value.filter((item) => {
     if (filterForm.value.projectType && !item.projectType.includes(filterForm.value.projectType)) {
       return false
     }

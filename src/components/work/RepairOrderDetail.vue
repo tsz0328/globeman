@@ -131,10 +131,14 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/useDetail'
-import request from '@/utile/request'
+import request from '@/utils/request'
 
 const route = useRoute()
-const { createDetail, fetchDetails, detailList } = useDetail()
+const {
+  createDetail: createRepairDetail,
+  fetchDetails: fetchRepairDetails,
+  detailList: repairDetailList,
+} = useDetail()
 
 const orderId = ref(0)
 const orderName = ref('')
@@ -168,7 +172,7 @@ interface EditableDetailData {
 }
 
 const displayData = computed(() => {
-  const baseData = detailList.value.map((item) => ({ ...item, isEditing: false }))
+  const baseData = repairDetailList.value.map((item) => ({ ...item, isEditing: false }))
   return [...baseData, ...editRows.value]
 })
 
@@ -258,9 +262,9 @@ const handleAdd = async (row: EditableDetailData) => {
       },
     })
     ElMessage.success('提交成功')
-    await fetchDetails(orderId.value)
+    await fetchRepairDetails(orderId.value)
   } catch (error) {
-    if (error !== 'cancel') {
+    if ((error as { action?: string })?.action !== 'cancel') {
       ElMessage.error('提交失败')
       console.error('提交失败:', error)
     }
@@ -325,9 +329,9 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
     price: String(row.unitPrice),
   }
 
-  const success = await createDetail(submitData)
+  const success = await createRepairDetail(submitData)
   if (success) {
-    await fetchDetails(orderIdValue)
+    await fetchRepairDetails(orderIdValue)
     if (editIndex >= 0) {
       editRows.value.splice(editIndex, 1)
     }
@@ -357,7 +361,7 @@ onMounted(() => {
     orderName.value = decodeURIComponent(nameParam)
   }
 
-  fetchDetails(id)
+  fetchRepairDetails(id)
 })
 </script>
 

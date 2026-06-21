@@ -79,7 +79,9 @@
         border
         style="width: 100%"
         :row-key="getRowKey"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="50" />
         <el-table-column prop="name" label="订单名称" />
         <el-table-column prop="type" label="订单类型" width="81" />
         <el-table-column prop="customer" label="客户" />
@@ -147,7 +149,11 @@ const route = useRoute()
 const { fetchProjects } = useProject()
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
-const { orderList, createOrder, fetchOrders } = useOrder()
+const {
+  orderList: repairOrderList,
+  createOrder: createRepairOrder,
+  fetchOrders: fetchRepairOrders,
+} = useOrder()
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -155,6 +161,7 @@ const repairId = ref(0)
 const orderFormVisible = ref(false)
 const isRepairIdValid = ref(true)
 const isFilterVisible = ref(true)
+const selectedRows = ref<{ id: number }[]>([])
 
 const parseRepairId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -174,7 +181,7 @@ const filterForm = ref({
 })
 
 const filteredData = computed(() => {
-  return orderList.value.filter((item) => {
+  return repairOrderList.value.filter((item) => {
     if (filterForm.value.status && item.status !== filterForm.value.status) {
       return false
     }
@@ -234,6 +241,10 @@ const toggleFilter = () => {
   isFilterVisible.value = !isFilterVisible.value
 }
 
+const handleSelectionChange = (val: { id: number }[]) => {
+  selectedRows.value = val
+}
+
 // 跳转维修订单详情页
 const goToRepairOrderDetail = (orderId: number, orderName: string) => {
   if (!orderId || orderId === 0) {
@@ -243,7 +254,6 @@ const goToRepairOrderDetail = (orderId: number, orderName: string) => {
   const encodedName = encodeURIComponent(orderName)
   window.open(`/repair-order-detail/${orderId}?name=${encodedName}`, '_blank')
 }
-
 
 const handleSearch = () => {
   currentPage.value = 1
@@ -263,12 +273,12 @@ const handleReset = () => {
 
 const handleOrderSubmit = async (data: OrderFormData) => {
   try {
-    const success = await createOrder(data)
+    const success = await createRepairOrder(data)
     if (success) {
       orderFormVisible.value = false
       ElMessage.success('创建订单成功')
       // 创建成功后重新获取订单列表
-      await fetchOrders(repairId.value)
+      await fetchRepairOrders(repairId.value)
       // 跳转到第一页显示最新订单
       currentPage.value = 1
     } else {
@@ -289,7 +299,7 @@ onMounted(() => {
     return
   }
 
-  Promise.all([fetchProjects(), fetchUsers(), fetchCustomers(), fetchOrders(repairId.value)])
+  Promise.all([fetchProjects(), fetchUsers(), fetchCustomers(), fetchRepairOrders(repairId.value)])
 })
 </script>
 

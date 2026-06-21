@@ -1,4 +1,4 @@
-import request from '@/utile/request'
+import request from '@/utils/request'
 
 // 公司数据接口
 export interface CompanyData {

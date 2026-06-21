@@ -1,4 +1,4 @@
-import request from '@/utile/request'
+import request from '@/utils/request'
 
 export interface OrderData {
   id: number

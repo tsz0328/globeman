@@ -1,4 +1,4 @@
-import request from '@/utile/request'
+import request from '@/utils/request'
 
 // 项目数据
 export interface ProjectData {
