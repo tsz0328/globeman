@@ -32,25 +32,29 @@
       </div>
     </div>
 
-    <el-dialog v-model="detailDialogVisible" title="设备详情" width="600px">
-      <div v-if="detailData">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="设备名称">{{
-            detailData.equipmentName
-          }}</el-descriptions-item>
-          <el-descriptions-item label="设备型号">{{
-            detailData.equipmentModel
-          }}</el-descriptions-item>
-          <el-descriptions-item label="SN码">{{ detailData.sn || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="生产厂家">{{
-            detailData.manufacturer
-          }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(detailData.status)">
-              {{ detailData.status || '-' }}
-            </el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
+    <el-dialog v-model="detailDialogVisible" title="设备详情" width="800px">
+      <div v-if="detailDataList.length > 0">
+        <el-table :data="paginatedDetailData" border style="width: 100%">
+          <el-table-column prop="equipmentName" label="设备名称" width="150" />
+          <el-table-column prop="equipmentModel" label="设备型号" width="150" />
+          <el-table-column prop="sn" label="SN码" width="150" />
+          <el-table-column prop="manufacturer" label="生产厂家" />
+          <el-table-column prop="status" label="状态" width="100">
+            <template #default="scope">
+              <el-tag :type="getStatusType(scope.row.status)">
+                {{ scope.row.status || '-' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="margin-top: 15px; text-align: right">
+          <el-pagination
+            v-model:current-page="detailCurrentPage"
+            :page-size="detailPageSize"
+            layout="total, prev, pager, next, jumper"
+            :total="detailDataList.length"
+          />
+        </div>
       </div>
       <template #footer>
         <el-button @click="detailDialogVisible = false">关闭</el-button>
@@ -80,7 +84,9 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 const isProjectIdValid = ref(true)
 const detailDialogVisible = ref(false)
-const detailData = ref<EditableDetailData | null>(null)
+const detailDataList = ref<EditableDetailData[]>([])
+const detailCurrentPage = ref(1)
+const detailPageSize = ref(10)
 
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -112,6 +118,12 @@ const paginatedData = computed(() => {
   return displayData.value.slice(start, end)
 })
 
+const paginatedDetailData = computed(() => {
+  const start = (detailCurrentPage.value - 1) * detailPageSize.value
+  const end = start + detailPageSize.value
+  return detailDataList.value.slice(start, end)
+})
+
 const goBack = () => {
   window.close()
 }
@@ -137,35 +149,41 @@ const handleDetail = async (row: EditableDetailData) => {
     return
   }
 
+  detailCurrentPage.value = 1
+
   const res = await getRepairDetail(row.id)
 
   if (res && res.code === 200) {
     const dataValues = Object.values(res.data || {}) as unknown as Record<string, unknown>[]
     if (dataValues.length > 0) {
-      const detail = dataValues[0]!
-      detailData.value = {
+      detailDataList.value = dataValues.map((detail) => ({
         ...row,
+        id: (detail.id as number) || row.id,
         equipmentName: (detail.name as string) || row.equipmentName,
         equipmentModel: (detail.model as string) || row.equipmentModel,
         manufacturer: (detail.manufacturer as string) || row.manufacturer,
         sn: (detail.sn as string) || row.sn || '',
         status: (detail.status as string) || row.status || '',
-      }
+      }))
       detailDialogVisible.value = true
     } else {
-      detailData.value = {
-        ...row,
-        sn: row.sn || '',
-        status: row.status || '',
-      }
+      detailDataList.value = [
+        {
+          ...row,
+          sn: row.sn || '',
+          status: row.status || '',
+        },
+      ]
       detailDialogVisible.value = true
     }
   } else {
-    detailData.value = {
-      ...row,
-      sn: row.sn || '',
-      status: row.status || '',
-    }
+    detailDataList.value = [
+      {
+        ...row,
+        sn: row.sn || '',
+        status: row.status || '',
+      },
+    ]
     detailDialogVisible.value = true
   }
 }

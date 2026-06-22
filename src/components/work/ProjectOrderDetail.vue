@@ -3,7 +3,7 @@
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">订单详情</h2>
-      <el-button type="primary" @click="toggleAddMode">
+      <el-button type="primary" @click="toggleAddMode" :disabled="isLocked">
         {{ isAdding ? '确定' : '添加设备' }}
       </el-button>
     </div>
@@ -88,7 +88,12 @@
         </el-table-column>
         <el-table-column label="操作" width="73">
           <template #default="scope">
-            <el-button type="danger" size="small" @click="handleDelete(scope.row)">
+            <el-button
+              type="danger"
+              size="small"
+              @click="handleDelete(scope.row)"
+              :disabled="isLocked"
+            >
               删除
             </el-button>
           </template>
@@ -112,9 +117,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/useDetail'
+import { useOrder } from '@/composables/useOrder'
 
 const route = useRoute()
 const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()
+const { fetchOrders, orderList } = useOrder()
 
 const orderId = ref(0)
 const orderName = ref('')
@@ -123,6 +130,15 @@ const pageSize = ref(8)
 const isAdding = ref(false)
 const editRows = ref<EditableDetailData[]>([])
 const isProjectIdValid = ref(true)
+const orderStatus = ref('')
+
+const isLocked = computed(() => {
+  if (!orderStatus.value) {
+    return true
+  }
+  const lockedStatuses = ['订单已确认，无法修改', '已确认', '已完成', '已提交']
+  return lockedStatuses.includes(orderStatus.value)
+})
 
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -294,7 +310,7 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const id = parseProjectId(route.params.id)
 
   if (id === 0) {
@@ -308,6 +324,21 @@ onMounted(() => {
   const nameParam = route.query.name as string
   if (nameParam) {
     orderName.value = decodeURIComponent(nameParam)
+  }
+
+  const projectIdParam = route.query.projectId as string
+  if (projectIdParam) {
+    const projectId = parseInt(projectIdParam, 10)
+    if (!isNaN(projectId)) {
+      await fetchOrders(projectId)
+      const order = orderList.value.find((o) => o.id === id)
+      if (order) {
+        orderStatus.value = order.status
+        if (!orderName.value) {
+          orderName.value = order.name
+        }
+      }
+    }
   }
 
   fetchDetails(id)

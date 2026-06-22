@@ -7,11 +7,19 @@
           v-model="form.name"
           placeholder="请输入订单名称"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="type">
         <template #label>订单类型</template>
-        <el-select v-model="form.type" placeholder="请选择订单类型">
+        <el-select
+          v-model="form.type"
+          placeholder="请选择订单类型"
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        >
           <el-option label="销售订单" value="销售订单" />
           <el-option label="采购订单" value="采购订单" />
           <el-option label="维修订单" value="维修订单" />
@@ -19,7 +27,14 @@
       </el-form-item>
       <el-form-item prop="leaderAccount">
         <template #label>负责人</template>
-        <el-select v-model="leaderName" placeholder="请选择负责人" @change="handleLeaderChange">
+        <el-select
+          v-model="leaderName"
+          placeholder="请选择负责人"
+          @change="handleLeaderChange"
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        >
           <el-option
             v-for="user in props.userList"
             :key="user.account"
@@ -38,6 +53,8 @@
           @select="handleCustomerSelect"
           @blur="handleCustomerBlur"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="contact">
@@ -50,6 +67,8 @@
           @select="handleContactSelect"
           @blur="handleContactBlur"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="contactPhone">
@@ -58,6 +77,8 @@
           v-model="form.contactPhone"
           placeholder="请输入联系人电话（选填）"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="province">
@@ -66,6 +87,8 @@
           v-model="form.province"
           placeholder="请输入执行省份"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="city">
@@ -74,6 +97,8 @@
           v-model="form.city"
           placeholder="请输入执行市"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="district">
@@ -82,6 +107,8 @@
           v-model="form.district"
           placeholder="请输入执行区"
           @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
       <el-form-item prop="repairAddress">
@@ -90,6 +117,8 @@
           v-model="form.repairAddress"
           placeholder="请输入送修地址"
           @keyup.enter.prevent="handleSubmit"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
     </el-form>
@@ -103,6 +132,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import type { User } from '@/composables/useUser'
 import type { Customer } from '@/composables/useCustomer'
 
@@ -119,6 +149,7 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
+const isModalVisible = ref(false)
 
 const rules = {}
 
@@ -185,6 +216,34 @@ watch(
 
 const handleClose = () => {
   emit('update:visible', false)
+}
+
+const focusNextField = (currentInput: HTMLInputElement, direction: 'next' | 'prev') => {
+  const formElement = currentInput.closest('.el-form')
+  if (!formElement) return
+
+  const formItems = formElement.querySelectorAll('.el-input__inner, .el-select__input')
+  const currentIndex = Array.from(formItems).indexOf(currentInput)
+  let targetIndex: number
+
+  if (direction === 'next') {
+    targetIndex = Math.min(currentIndex + 1, formItems.length - 1)
+  } else {
+    targetIndex = Math.max(currentIndex - 1, 0)
+  }
+
+  const targetItem = formItems[targetIndex] as HTMLInputElement
+  targetItem.focus()
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  const currentInput = event.target as HTMLInputElement
+
+  if (event.key === 'ArrowUp') {
+    focusNextField(currentInput, 'prev')
+  } else if (event.key === 'ArrowDown') {
+    focusNextField(currentInput, 'next')
+  }
 }
 
 const handleLeaderChange = (name: string) => {
@@ -282,19 +341,56 @@ const handleContactBlur = () => {
 
 const handleEnter = (event: KeyboardEvent) => {
   const currentInput = event.target as HTMLInputElement
-  const formItems = currentInput.closest('.el-form')?.querySelectorAll('.el-input__inner')
-  if (!formItems) return
+  const formElement = currentInput.closest('.el-form')
+  if (!formElement) return
 
+  const formItems = formElement.querySelectorAll('.el-input__inner, .el-select__input')
   const currentIndex = Array.from(formItems).indexOf(currentInput)
+
   if (currentIndex < formItems.length - 1) {
-    ;(formItems[currentIndex + 1] as HTMLInputElement).focus()
+    focusNextField(currentInput, 'next')
   } else {
     handleSubmit()
   }
 }
 
-const handleSubmit = async () => {
-  if (!formRef.value) return
+const handleSubmit = () => {
+  if (isModalVisible.value) return
+
+  const errors: string[] = []
+
+  if (!form.value.name.trim()) {
+    errors.push('订单名称')
+  }
+  if (!form.value.type.trim()) {
+    errors.push('订单类型')
+  }
+  if (!form.value.leaderAccount.trim()) {
+    errors.push('负责人')
+  }
+  if (!form.value.customer.trim()) {
+    errors.push('客户')
+  }
+  if (!form.value.contact.trim()) {
+    errors.push('客户联系人')
+  }
+
+  if (errors.length > 0) {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    isModalVisible.value = true
+
+    ElMessageBox.alert(`请填写以下必填项：\n${errors.join('、')}`, '提示', {
+      confirmButtonText: '确定',
+    })
+      .then(() => {
+        isModalVisible.value = false
+      })
+      .catch(() => {
+        isModalVisible.value = false
+      })
+    return
+  }
+
   emit('submit', { ...form.value })
   emit('update:visible', false)
 }

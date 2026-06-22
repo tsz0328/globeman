@@ -86,7 +86,7 @@
         @selection-change="handleSelectionChange"
         :row-key="getRowKey"
       >
-        <el-table-column type="selection" width="50" />
+        <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
         <el-table-column prop="name" label="订单名称" />
         <el-table-column prop="type" label="订单类型" width="81" />
         <el-table-column prop="customer" label="客户" />
@@ -114,10 +114,18 @@
                 @click="goToDetail(scope.row.id, scope.row.name)"
                 >查看</el-button
               >
-              <el-button type="success" size="small" @click="handleSubmitBtn(scope.row)"
+              <el-button
+                type="success"
+                size="small"
+                @click="handleSubmitBtn(scope.row)"
+                :disabled="scope.row.status === '订单已确认，无法修改'"
                 >提交</el-button
               >
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+              <el-button
+                type="danger"
+                size="small"
+                @click="handleDeleteBtn(scope.row)"
+                :disabled="scope.row.status === '订单已确认，无法修改'"
                 >删除</el-button
               >
             </div>
@@ -223,6 +231,11 @@ const paginatedData = computed(() => {
 
 const getRowKey = (row: Order) => row.id
 
+const isRowSelectable = (row: Order) => {
+  const lockedStatuses = ['订单已确认，无法修改', '已确认', '已完成', '已提交']
+  return !lockedStatuses.includes(row.status)
+}
+
 const getStatusType = (status: string) => {
   switch (status) {
     case '编辑中':
@@ -255,7 +268,7 @@ const goToDetail = (orderId: number, orderName: string) => {
     return
   }
   const encodedName = encodeURIComponent(orderName)
-  window.open(`/order-detail/${orderId}?name=${encodedName}`, '_blank')
+  window.open(`/order-detail/${orderId}?name=${encodedName}&projectId=${projectId.value}`, '_blank')
 }
 
 const addOrder = () => {

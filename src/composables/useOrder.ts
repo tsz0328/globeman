@@ -1,5 +1,11 @@
 import { ref } from 'vue'
-import { createOrderApi, getOrdersApi, deleteOrderApi, submitOrderApi, type OrderData } from '@/api/OrderApi'
+import {
+  createOrderApi,
+  getOrdersApi,
+  deleteOrderApi,
+  submitOrderApi,
+  type OrderData,
+} from '@/api/OrderApi'
 import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
 
 export interface Order {
@@ -116,43 +122,6 @@ export function useOrder() {
     }
   }
 
-  const fetchOrderById = async (orderId: number): Promise<Order | null> => {
-    try {
-      const response = await getOrdersApi(orderId)
-
-      if (response.code === 200) {
-        const data = response.data
-        if (typeof data === 'object' && data !== null) {
-          const orders: Order[] = Object.values(data).map((item: OrderData) => ({
-            id: item.id,
-            projectId: item.project_id,
-            name: item.name,
-            type: item.type,
-            leaderAccount: item.leader_account,
-            leader: item.leader,
-            creator: item.creator,
-            creatorAccount: item.creator_account,
-            customer: item.customer,
-            contact: item.contact,
-            contactPhone: item.contact_phone,
-            province: item.province,
-            city: item.city,
-            district: item.district,
-            repairAddress: item.repair_address || '',
-            company: item.company,
-            status: item.state,
-            createTime: item.time,
-          }))
-          return orders.find((order) => order.id === orderId) || null
-        }
-      }
-      return null
-    } catch (error) {
-      console.error('获取订单信息失败:', error)
-      return null
-    }
-  }
-
   const getOrderName = (orderId: number): string | undefined => {
     const order = orderList.value.find((o) => o.id === orderId)
     return order?.name
@@ -164,7 +133,6 @@ export function useOrder() {
     fetchOrders,
     deleteOrder,
     submitOrder,
-    fetchOrderById,
     getOrderName,
   }
 }

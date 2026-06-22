@@ -111,6 +111,7 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
+const isModalVisible = ref(false)
 
 const isEdit = computed(() => !!props.editData)
 const title = computed(() => (isEdit.value ? '编辑用户' : '创建用户'))
@@ -202,7 +203,9 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
+  if (isModalVisible.value) return
+
   const errors: string[] = []
 
   if (!form.value.account.trim()) {
@@ -222,9 +225,18 @@ const handleSubmit = async () => {
   }
 
   if (errors.length > 0) {
-    await ElMessageBox.alert(`请填写以下必填项：\n${errors.join('、')}`, '提示', {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    isModalVisible.value = true
+
+    ElMessageBox.alert(`请填写以下必填项：\n${errors.join('、')}`, '提示', {
       confirmButtonText: '确定',
     })
+      .then(() => {
+        isModalVisible.value = false
+      })
+      .catch(() => {
+        isModalVisible.value = false
+      })
     return
   }
 

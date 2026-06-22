@@ -62,7 +62,7 @@
         @selection-change="handleSelectionChange"
         :row-key="getRowKey"
       >
-        <el-table-column type="selection" width="50" />
+        <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
         <el-table-column prop="account" label="账号" width="120" />
         <el-table-column prop="name" label="姓名" width="100" />
         <el-table-column prop="company" label="公司" />
@@ -173,6 +173,10 @@ const handleDelete = async (row: User) => {
 
 // 获取行key（用于模板调用，避免类型错误）
 const getRowKey = (row: User) => row.id
+
+const isRowSelectable = (row: User) => {
+  return row.role !== 'admin'
+}
 
 // 删除按钮点击（用于模板调用，避免类型错误）
 const handleDeleteBtn = (row: unknown) => {
