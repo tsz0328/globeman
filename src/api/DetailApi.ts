@@ -21,6 +21,7 @@ export interface DetailResponseData {
   status: string
   number: string
   price: string
+  total: string
 }
 
 export interface DetailData {

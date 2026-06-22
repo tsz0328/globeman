@@ -46,9 +46,9 @@ export function useDetail() {
             manufacturer: item.manufacturer,
             sn: item.sn || '',
             status: item.status || '',
-            quantity: parseInt(item.number) || 1,
+            quantity: parseInt(item.number) || 0,
             unitPrice: parseFloat(item.price) || 0,
-            total: (parseInt(item.number) || 1) * (parseFloat(item.price) || 0),
+            total: parseFloat(item.total) || 0,
           }))
         } else if (typeof data === 'object' && data !== null) {
           detailList.value = (Object.values(data) as DetailResponseData[]).map((item) => ({
@@ -62,7 +62,7 @@ export function useDetail() {
             status: item.status || '',
             quantity: parseInt(item.number) || 1,
             unitPrice: parseFloat(item.price) || 0,
-            total: (parseInt(item.number) || 1) * (parseFloat(item.price) || 0),
+            total: parseFloat(item.total) || 0,
           }))
         } else {
           detailList.value = []
