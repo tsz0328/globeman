@@ -28,6 +28,8 @@ export interface DetailData {
   equipmentName: string
   equipmentModel: string
   manufacturer: string
+  sn: string
+  status: string
   quantity: number
   unitPrice: number
   total: number
