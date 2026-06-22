@@ -19,6 +19,8 @@ export interface DetailResponseData {
   order_id: number
   details_id: number
   status: string
+  number: string
+  price: string
 }
 
 export interface DetailData {
