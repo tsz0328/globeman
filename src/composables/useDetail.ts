@@ -3,6 +3,8 @@ import {
   createDetailApi,
   getDetailsApi,
   deleteDetailApi,
+  getRepairDetailApi,
+  addRepairSnApi,
   type DetailFormData,
   type DetailData,
   type DetailResponseData,
@@ -42,9 +44,11 @@ export function useDetail() {
             equipmentName: item.name,
             equipmentModel: item.model,
             manufacturer: item.manufacturer,
-            quantity: item.number,
-            unitPrice: item.price,
-            total: item.total,
+            sn: item.sn || '',
+            status: item.status || '',
+            quantity: 1,
+            unitPrice: 0,
+            total: 0,
           }))
         } else if (typeof data === 'object' && data !== null) {
           detailList.value = (Object.values(data) as DetailResponseData[]).map((item) => ({
@@ -54,9 +58,11 @@ export function useDetail() {
             equipmentName: item.name,
             equipmentModel: item.model,
             manufacturer: item.manufacturer,
-            quantity: item.number,
-            unitPrice: item.price,
-            total: item.total,
+            sn: item.sn || '',
+            status: item.status || '',
+            quantity: 1,
+            unitPrice: 0,
+            total: 0,
           }))
         } else {
           detailList.value = []
@@ -92,11 +98,33 @@ export function useDetail() {
     }
   }
 
+  const getRepairDetail = async (id: number) => {
+    try {
+      const res = await getRepairDetailApi(id)
+      return res
+    } catch (error) {
+      console.error('获取维修详情失败:', error)
+      return null
+    }
+  }
+
+  const addRepairSn = async (sn: string, id: number): Promise<boolean> => {
+    try {
+      const res = await addRepairSnApi(sn, id)
+      return res.code === 200
+    } catch (error) {
+      console.error('提交SN码失败:', error)
+      return false
+    }
+  }
+
   return {
     loading,
     detailList,
     createDetail,
     fetchDetails,
     deleteDetail,
+    getRepairDetail,
+    addRepairSn,
   }
 }

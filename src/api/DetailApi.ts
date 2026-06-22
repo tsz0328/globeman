@@ -15,9 +15,10 @@ export interface DetailResponseData {
   name: string
   model: string
   manufacturer: string
-  number: number
-  price: number
-  total: number
+  sn: string
+  order_id: number
+  details_id: number
+  status: string
 }
 
 export interface DetailData {
@@ -62,5 +63,23 @@ export async function deleteDetailApi(id: number): Promise<ApiResponse<void>> {
     url: '/details/delete',
     method: 'delete',
     params: { id },
+  })
+}
+
+export async function getRepairDetailApi(
+  id: number,
+): Promise<ApiResponse<{ [key: string]: DetailResponseData }>> {
+  return request({
+    url: '/repair/get',
+    method: 'get',
+    params: { id },
+  })
+}
+
+export async function addRepairSnApi(sn: string, id: number): Promise<ApiResponse<void>> {
+  return request({
+    url: '/repair/add',
+    method: 'put',
+    params: { sn, id },
   })
 }

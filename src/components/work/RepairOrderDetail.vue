@@ -8,81 +8,12 @@
     <div class="equipment-section">
       <h3 class="section-title">订单名称：{{ orderName }}</h3>
       <el-table :data="paginatedData" border style="width: 100%">
-        <el-table-column prop="equipmentName" label="设备名称" width="150">
-          <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.equipmentName"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.equipmentName }}
-            </template>
-          </template>
-        </el-table-column>
-        <el-table-column prop="equipmentModel" label="设备型号" width="150">
-          <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.equipmentModel"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.equipmentModel }}
-            </template>
-          </template>
-        </el-table-column>
-        <el-table-column prop="manufacturer" label="生产厂家">
-          <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.manufacturer"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.manufacturer }}
-            </template>
-          </template>
-        </el-table-column>
-        <el-table-column prop="quantity" label="数量" width="100">
-          <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.quantity"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.quantity }}
-            </template>
-          </template>
-        </el-table-column>
-        <el-table-column prop="unitPrice" label="单价" width="150">
-          <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.unitPrice"
-                class="edit-input"
-                @keydown.enter.prevent="handleTotalEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.unitPrice }}
-            </template>
-          </template>
-        </el-table-column>
-        <el-table-column prop="total" label="总价" width="150">
-          <template #default="scope">
-            {{ scope.row.total || '-' }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="equipmentName" label="设备名称" width="150" />
+        <el-table-column prop="equipmentModel" label="设备型号" width="150" />
+        <el-table-column prop="manufacturer" label="生产厂家" />
+        <el-table-column prop="quantity" label="数量" width="100" />
+        <el-table-column prop="unitPrice" label="单价" width="150" />
+        <el-table-column prop="total" label="总价" width="150" />
         <el-table-column label="操作" width="133">
           <template #default="scope">
             <el-button type="info" size="small" @click="handleDetail(scope.row)"> 查看 </el-button>
@@ -110,12 +41,15 @@
           <el-descriptions-item label="设备型号">{{
             detailData.equipmentModel
           }}</el-descriptions-item>
+          <el-descriptions-item label="SN码">{{ detailData.sn || '-' }}</el-descriptions-item>
           <el-descriptions-item label="生产厂家">{{
             detailData.manufacturer
           }}</el-descriptions-item>
-          <el-descriptions-item label="数量">{{ detailData.quantity }}</el-descriptions-item>
-          <el-descriptions-item label="单价">{{ detailData.unitPrice }}</el-descriptions-item>
-          <el-descriptions-item label="总价">{{ detailData.total }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="getStatusType(detailData.status)">
+              {{ detailData.status || '-' }}
+            </el-tag>
+          </el-descriptions-item>
         </el-descriptions>
       </div>
       <template #footer>
@@ -131,21 +65,19 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/useDetail'
-import request from '@/utils/request'
 
 const route = useRoute()
 const {
-  createDetail: createRepairDetail,
   fetchDetails: fetchRepairDetails,
   detailList: repairDetailList,
+  getRepairDetail,
+  addRepairSn,
 } = useDetail()
 
 const orderId = ref(0)
 const orderName = ref('')
 const currentPage = ref(1)
 const pageSize = ref(8)
-const isAdding = ref(false)
-const editRows = ref<EditableDetailData[]>([])
 const isProjectIdValid = ref(true)
 const detailDialogVisible = ref(false)
 const detailData = ref<EditableDetailData | null>(null)
@@ -165,16 +97,14 @@ interface EditableDetailData {
   equipmentName: string
   equipmentModel: string
   manufacturer: string
-  quantity: string | number
-  unitPrice: string | number
-  total: string | number
-  isEditing: boolean
+  sn: string
+  status: string
+  quantity: number
+  unitPrice: number
+  total: number
 }
 
-const displayData = computed(() => {
-  const baseData = repairDetailList.value.map((item) => ({ ...item, isEditing: false }))
-  return [...baseData, ...editRows.value]
-})
+const displayData = computed(() => repairDetailList.value)
 
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -186,23 +116,19 @@ const goBack = () => {
   window.close()
 }
 
-const addEditRow = () => {
-  const newRow: EditableDetailData = {
-    id: 0,
-    projectId: parseProjectId(route.params.id),
-    belongProject: `订单${orderId.value}`,
-    equipmentName: '',
-    equipmentModel: '',
-    manufacturer: '',
-    quantity: '',
-    unitPrice: '',
-    total: '',
-    isEditing: true,
+const getStatusType = (status: string): '' | 'success' | 'warning' | 'danger' | 'info' => {
+  switch (status) {
+    case '待维修':
+      return 'warning'
+    case '维修中':
+      return 'info'
+    case '已完成':
+      return 'success'
+    case '已取消':
+      return 'danger'
+    default:
+      return 'info'
   }
-  editRows.value.push(newRow)
-
-  const totalPages = Math.ceil(displayData.value.length / pageSize.value)
-  currentPage.value = totalPages
 }
 
 const handleDetail = async (row: EditableDetailData) => {
@@ -211,31 +137,36 @@ const handleDetail = async (row: EditableDetailData) => {
     return
   }
 
-  try {
-    const response = await request.get(`/repair/get`, {
-      params: { id: row.id },
-    })
-    const res = response.data
+  const res = await getRepairDetail(row.id)
 
-    if (res && (res.code === 200 || res.code === '200')) {
+  if (res && res.code === 200) {
+    const dataValues = Object.values(res.data || {}) as unknown as Record<string, unknown>[]
+    if (dataValues.length > 0) {
+      const detail = dataValues[0]!
       detailData.value = {
         ...row,
-        ...res.data,
-      }
-      detailDialogVisible.value = true
-    } else if (res && typeof res === 'object' && !res.code) {
-      detailData.value = {
-        ...row,
-        ...res,
+        equipmentName: (detail.name as string) || row.equipmentName,
+        equipmentModel: (detail.model as string) || row.equipmentModel,
+        manufacturer: (detail.manufacturer as string) || row.manufacturer,
+        sn: (detail.sn as string) || row.sn || '',
+        status: (detail.status as string) || row.status || '',
       }
       detailDialogVisible.value = true
     } else {
-      ElMessage.error('获取详情失败')
-      console.error('响应数据:', res)
+      detailData.value = {
+        ...row,
+        sn: row.sn || '',
+        status: row.status || '',
+      }
+      detailDialogVisible.value = true
     }
-  } catch (error) {
-    ElMessage.error('获取详情失败')
-    console.error('获取详情失败:', error)
+  } else {
+    detailData.value = {
+      ...row,
+      sn: row.sn || '',
+      status: row.status || '',
+    }
+    detailDialogVisible.value = true
   }
 }
 
@@ -255,94 +186,14 @@ const handleAdd = async (row: EditableDetailData) => {
       return
     }
 
-    await request.put(`/repair/add`, null, {
-      params: {
-        sn: sn.value,
-        id: row.id,
-      },
-    })
-    ElMessage.success('提交成功')
-    await fetchRepairDetails(orderId.value)
-  } catch (error) {
-    if ((error as { action?: string })?.action !== 'cancel') {
+    const success = await addRepairSn(sn.value, row.id)
+    if (success) {
+      ElMessage.success('提交成功')
+      await fetchRepairDetails(orderId.value)
+    } else {
       ElMessage.error('提交失败')
-      console.error('提交失败:', error)
     }
-  }
-}
-
-const handleCellEnter = () => {
-  const allInputs = document.querySelectorAll('.edit-input')
-  const activeInput = document.activeElement as HTMLInputElement
-
-  for (let i = 0; i < allInputs.length; i++) {
-    if (allInputs[i] === activeInput && i < allInputs.length - 1) {
-      ;(allInputs[i + 1] as HTMLInputElement).focus()
-      break
-    }
-  }
-}
-
-const handleTotalEnter = () => {
-  for (const row of editRows.value) {
-    if (!row.equipmentName) {
-      ElMessage.warning('请输入设备名称')
-      return
-    }
-  }
-
-  handleConfirm()
-}
-
-const handleConfirm = async () => {
-  if (editRows.value.length === 0) {
-    isAdding.value = false
-    return
-  }
-
-  for (const row of editRows.value) {
-    if (!row.equipmentName) {
-      ElMessage.warning('请输入设备名称')
-      return
-    }
-    await submitEditRow(row, -1)
-  }
-
-  editRows.value = []
-  isAdding.value = false
-}
-
-const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
-  const orderIdValue = parseProjectId(route.params.id)
-
-  if (orderIdValue === 0) {
-    ElMessage.error('无效的订单ID')
-    return
-  }
-
-  const submitData = {
-    name: row.equipmentName,
-    model: row.equipmentModel,
-    manufacturer: row.manufacturer,
-    orderId: orderIdValue,
-    number: String(row.quantity),
-    price: String(row.unitPrice),
-  }
-
-  const success = await createRepairDetail(submitData)
-  if (success) {
-    await fetchRepairDetails(orderIdValue)
-    if (editIndex >= 0) {
-      editRows.value.splice(editIndex, 1)
-    }
-    ElMessage.success('创建设备成功')
-
-    if (isAdding.value && editRows.value.length === 0) {
-      addEditRow()
-    }
-  } else {
-    ElMessage.error('创建设备失败')
-  }
+  } catch {}
 }
 
 onMounted(() => {
@@ -407,19 +258,5 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-}
-
-.edit-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  font-size: inherit;
-  font-family: inherit;
-  color: inherit;
-  text-align: inherit;
-  cursor: text;
 }
 </style>
