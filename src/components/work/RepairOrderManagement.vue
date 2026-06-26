@@ -106,6 +106,7 @@
               <el-button
                 type="primary"
                 size="small"
+                :disabled="scope.row.status === '编辑中'"
                 @click="goToRepairOrderDetail(scope.row.id, scope.row.name)"
                 >查看</el-button
               >

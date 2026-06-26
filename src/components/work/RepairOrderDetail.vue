@@ -32,13 +32,34 @@
       </div>
     </div>
 
-    <el-dialog v-model="detailDialogVisible" title="设备详情" width="800px">
+    <el-dialog v-model="detailDialogVisible" title="设备详情" width="800px" :draggable="false">
       <div v-if="detailDataList.length > 0">
+        <div class="detail-summary">
+          <div class="summary-item">
+            <span class="summary-label">设备名称：</span>
+            <span>{{ detailCommonInfo.equipmentName || '-' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">设备型号：</span>
+            <span>{{ detailCommonInfo.equipmentModel || '-' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">生产厂家：</span>
+            <span>{{ detailCommonInfo.manufacturer || '-' }}</span>
+          </div>
+        </div>
+
         <el-table :data="paginatedDetailData" border style="width: 100%">
-          <el-table-column prop="equipmentName" label="设备名称" width="150" />
-          <el-table-column prop="equipmentModel" label="设备型号" width="150" />
-          <el-table-column prop="sn" label="SN码" width="150" />
-          <el-table-column prop="manufacturer" label="生产厂家" />
+          <el-table-column label="SN码">
+            <template #default="scope">
+              <el-input
+                v-model="scope.row.sn"
+                class="edit-input"
+                placeholder="编辑SN，回车提交"
+                @keyup.enter="handleInlineSnSubmit(scope.row)"
+              />
+            </template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="100">
             <template #default="scope">
               <el-tag :type="getStatusType(scope.row.status)">
@@ -86,7 +107,8 @@ const isProjectIdValid = ref(true)
 const detailDialogVisible = ref(false)
 const detailDataList = ref<EditableDetailData[]>([])
 const detailCurrentPage = ref(1)
-const detailPageSize = ref(10)
+const detailPageSize = ref(7)
+const currentDetailId = ref(0)
 
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -124,6 +146,15 @@ const paginatedDetailData = computed(() => {
   return detailDataList.value.slice(start, end)
 })
 
+const detailCommonInfo = computed(
+  () =>
+    detailDataList.value[0] || {
+      equipmentName: '',
+      equipmentModel: '',
+      manufacturer: '',
+    },
+)
+
 const goBack = () => {
   window.close()
 }
@@ -150,6 +181,7 @@ const handleDetail = async (row: EditableDetailData) => {
   }
 
   detailCurrentPage.value = 1
+  currentDetailId.value = row.id
 
   const res = await getRepairDetail(row.id)
 
@@ -158,7 +190,6 @@ const handleDetail = async (row: EditableDetailData) => {
     if (dataValues.length > 0) {
       detailDataList.value = dataValues.map((detail) => ({
         ...row,
-        id: (detail.id as number) || row.id,
         equipmentName: (detail.name as string) || row.equipmentName,
         equipmentModel: (detail.model as string) || row.equipmentModel,
         manufacturer: (detail.manufacturer as string) || row.manufacturer,
@@ -188,6 +219,27 @@ const handleDetail = async (row: EditableDetailData) => {
   }
 }
 
+const submitSn = async (sn: string, id: number) => {
+  if (!id) {
+    ElMessage.error('无效的数据ID')
+    return false
+  }
+  if (!sn) {
+    ElMessage.warning('SN码不能为空')
+    return false
+  }
+
+  const success = await addRepairSn(sn, id)
+  if (success) {
+    ElMessage.success('提交成功')
+    await fetchRepairDetails(orderId.value)
+    return true
+  }
+
+  ElMessage.error('提交失败')
+  return false
+}
+
 const handleAdd = async (row: EditableDetailData) => {
   if (!row.id) {
     ElMessage.error('无效的数据ID')
@@ -204,14 +256,26 @@ const handleAdd = async (row: EditableDetailData) => {
       return
     }
 
-    const success = await addRepairSn(sn.value, row.id)
-    if (success) {
-      ElMessage.success('提交成功')
-      await fetchRepairDetails(orderId.value)
-    } else {
-      ElMessage.error('提交失败')
-    }
+    await submitSn(sn.value, row.id)
   } catch {}
+}
+
+const handleInlineSnSubmit = async (row: EditableDetailData) => {
+  if (!currentDetailId.value) {
+    ElMessage.error('无效的数据ID')
+    return
+  }
+
+  const trimmedSn = String(row.sn || '').trim()
+  if (!trimmedSn) {
+    ElMessage.warning('SN码不能为空')
+    return
+  }
+
+  const success = await submitSn(trimmedSn, currentDetailId.value)
+  if (success) {
+    row.sn = trimmedSn
+  }
 }
 
 onMounted(() => {
@@ -264,6 +328,29 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+}
+
+.summary-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 220px;
+}
+
+.summary-label {
+  color: #606266;
+  font-weight: 600;
+}
+
 .section-title {
   font-size: 16px;
   font-weight: bold;
@@ -276,5 +363,25 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
+}
+
+:deep(.el-input__wrapper) {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+:deep(.el-input__inner) {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: text;
 }
 </style>
