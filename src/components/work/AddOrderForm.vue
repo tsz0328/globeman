@@ -1,8 +1,8 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="140px">
       <el-form-item prop="name">
-        <template #label>订单名称</template>
+        <template #label>订单名称（必填）</template>
         <el-input
           v-model="form.name"
           placeholder="请输入订单名称"
@@ -12,7 +12,7 @@
         />
       </el-form-item>
       <el-form-item prop="type">
-        <template #label>订单类型</template>
+        <template #label>订单类型（必填）</template>
         <el-select
           v-model="form.type"
           placeholder="请选择订单类型"
@@ -26,7 +26,7 @@
         </el-select>
       </el-form-item>
       <el-form-item prop="leaderAccount">
-        <template #label>负责人</template>
+        <template #label>负责人（必填）</template>
         <el-select
           v-model="leaderName"
           placeholder="请选择负责人"
@@ -44,7 +44,7 @@
         </el-select>
       </el-form-item>
       <el-form-item prop="customer">
-        <template #label>客户</template>
+        <template #label>客户（必填）</template>
         <el-autocomplete
           v-model="customerName"
           :fetch-suggestions="queryCustomerSearch"
@@ -58,7 +58,7 @@
         />
       </el-form-item>
       <el-form-item prop="contact">
-        <template #label>客户联系人</template>
+        <template #label>客户联系人（必填）</template>
         <el-autocomplete
           v-model="contactName"
           :fetch-suggestions="queryContactSearch"
@@ -111,10 +111,10 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="repairAddress">
+      <el-form-item prop="address">
         <template #label>送修地址</template>
         <el-input
-          v-model="form.repairAddress"
+          v-model="form.address"
           placeholder="请输入送修地址"
           @keyup.enter.prevent="handleSubmit"
           @keydown.up.prevent="handleKeydown($event)"
@@ -166,7 +166,7 @@ const form = ref<OrderFormData>({
   province: '',
   city: '',
   district: '',
-  repairAddress: '',
+  address: '',
 })
 
 const leaderName = ref('')
@@ -190,7 +190,7 @@ const resetForm = () => {
     province: '',
     city: '',
     district: '',
-    repairAddress: '',
+    address: '',
   }
   leaderName.value = ''
   customerName.value = ''
@@ -407,7 +407,7 @@ export interface OrderFormData {
   province: string
   city: string
   district: string
-  repairAddress: string
+  address: string
 }
 
 export default {}

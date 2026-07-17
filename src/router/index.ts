@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Cookies from 'js-cookie'
 import IndexView from '@/View/IndexView.vue'
 import WorkView from '@/View/WorkView.vue'
 import LoginComponent from '@/components/Index/LoginComponent.vue'
@@ -13,6 +14,7 @@ import RepairOrderDetailComponent from '@/components/work/RepairOrderDetail.vue'
 import OrderManagementComponent from '@/components/work/ProjectOrderManagement.vue'
 import RepairManagementComponent from '@/components/work/RepairManagement.vue'
 import RepairOrderManagementComponent from '@/components/work/RepairOrderManagement.vue'
+import RepairAcceptComponent from '@/components/work/RepairAccept.vue'
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
 const router = createRouter({
@@ -71,9 +73,14 @@ const router = createRouter({
           component: CompanyManagementComponent,
         },
         {
-          path: 'repair',
-          name: 'Repair',
+          path: 'repair-management',
+          name: 'RepairManagement',
           component: RepairManagementComponent,
+        },
+        {
+          path: 'repair-accept',
+          name: 'RepairAccept',
+          component: RepairAcceptComponent,
         },
       ],
     },
@@ -100,14 +107,14 @@ const router = createRouter({
   ],
 })
 
-// router.beforeEach((to, from, next) => {
-//   const token = Cookies.get('token')
-//   if (!token && to.name !== 'Login') {
-//     next({name: 'Login'})
-//     return
-//   }
+router.beforeEach((to, from, next) => {
+  const token = Cookies.get('token')
+  if (!token && to.name !== 'Login') {
+    next({ name: 'Login' })
+    return
+  }
 
-//   next()
-// })
+  next()
+})
 
 export default router

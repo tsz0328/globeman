@@ -118,6 +118,17 @@ export function useDetail() {
     }
   }
 
+  const acceptRepair = async (sn: string, account: string): Promise<boolean> => {
+    try {
+      const { acceptRepairApi } = await import('@/api/DetailApi')
+      const res = await acceptRepairApi(sn, account)
+      return res.code === 200
+    } catch (error) {
+      console.error('接单失败:', error)
+      return false
+    }
+  }
+
   return {
     loading,
     detailList,
@@ -126,5 +137,6 @@ export function useDetail() {
     deleteDetail,
     getRepairDetail,
     addRepairSn,
+    acceptRepair,
   }
 }

@@ -2,7 +2,7 @@
   <div class="order-detail">
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
-      <h2 class="title">订单详情</h2>
+      <h2 class="title">项目订单详情</h2>
       <el-button type="primary" @click="toggleAddMode" :disabled="isLocked">
         {{ isAdding ? '确定' : '添加设备' }}
       </el-button>
@@ -136,7 +136,7 @@ const isLocked = computed(() => {
   if (!orderStatus.value) {
     return true
   }
-  const lockedStatuses = ['订单已确认，无法修改', '已确认', '已完成', '已提交']
+  const lockedStatuses = ['订单已确认，无法修改']
   return lockedStatuses.includes(orderStatus.value)
 })
 
@@ -254,6 +254,24 @@ const handleTotalEnter = () => {
       ElMessage.warning('请输入设备名称')
       return
     }
+    if (!row.equipmentModel) {
+      ElMessage.warning('请输入设备型号')
+      return
+    }
+    if (!row.manufacturer) {
+      ElMessage.warning('请输入生产厂家')
+      return
+    }
+    const quantity = Number(row.quantity)
+    if (isNaN(quantity) || !Number.isInteger(quantity) || quantity <= 0) {
+      ElMessage.warning('数量必须为正整数')
+      return
+    }
+    const unitPrice = Number(row.unitPrice)
+    if (isNaN(unitPrice) || unitPrice <= 0) {
+      ElMessage.warning('单价必须为正数')
+      return
+    }
   }
 
   handleConfirm()
@@ -268,6 +286,24 @@ const handleConfirm = async () => {
   for (const row of editRows.value) {
     if (!row.equipmentName) {
       ElMessage.warning('请输入设备名称')
+      return
+    }
+    if (!row.equipmentModel) {
+      ElMessage.warning('请输入设备型号')
+      return
+    }
+    if (!row.manufacturer) {
+      ElMessage.warning('请输入生产厂家')
+      return
+    }
+    const quantity = Number(row.quantity)
+    if (isNaN(quantity) || !Number.isInteger(quantity) || quantity <= 0) {
+      ElMessage.warning('数量必须为正整数')
+      return
+    }
+    const unitPrice = Number(row.unitPrice)
+    if (isNaN(unitPrice) || unitPrice <= 0) {
+      ElMessage.warning('单价必须为正数')
       return
     }
     await submitEditRow(row, -1)

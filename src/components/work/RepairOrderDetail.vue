@@ -2,26 +2,26 @@
   <div class="order-detail">
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
-      <h2 class="title">订单详情</h2>
+      <h2 class="title">维修订单详情</h2>
     </div>
 
     <div class="equipment-section">
       <h3 class="section-title">订单名称：{{ orderName }}</h3>
       <el-table :data="paginatedData" border style="width: 100%">
         <el-table-column prop="equipmentName" label="设备名称" width="150" />
-        <el-table-column prop="equipmentModel" label="设备型号" width="150" />
+        <el-table-column prop="equipmentModel" label="设备名称" width="150" />
         <el-table-column prop="manufacturer" label="生产厂家" />
         <el-table-column prop="quantity" label="数量" width="100" />
         <el-table-column prop="unitPrice" label="单价" width="150" />
         <el-table-column prop="total" label="总价" width="150" />
-        <el-table-column label="操作" width="133">
+        <el-table-column label="操作" width="73">
           <template #default="scope">
             <el-button type="info" size="small" @click="handleDetail(scope.row)"> 查看 </el-button>
-            <el-button type="primary" size="small" @click="handleAdd(scope.row)"> 提交 </el-button>
           </template>
         </el-table-column>
       </el-table>
 
+      <!-- 分页组件 -->
       <div class="pagination-section">
         <el-pagination
           v-model:current-page="currentPage"
@@ -32,7 +32,15 @@
       </div>
     </div>
 
-    <el-dialog v-model="detailDialogVisible" title="设备详情" width="800px" :draggable="false">
+    <!-- 设备详情弹窗 -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="设备详情"
+      width="800px"
+      :draggable="false"
+      align-center
+      append-to-body
+    >
       <div v-if="detailDataList.length > 0">
         <div class="detail-summary">
           <div class="summary-item">
@@ -47,24 +55,40 @@
             <span class="summary-label">生产厂家：</span>
             <span>{{ detailCommonInfo.manufacturer || '-' }}</span>
           </div>
+          <el-button type="success" @click="handleBatchSubmit">确认</el-button>
         </div>
 
-        <el-table :data="paginatedDetailData" border style="width: 100%">
+        <!-- 设备详情表格 -->
+        <el-table :data="paginatedDetailData" border :max-height="510" style="width: 100%">
           <el-table-column label="SN码">
             <template #default="scope">
               <el-input
                 v-model="scope.row.sn"
-                class="edit-input"
                 placeholder="编辑SN，回车提交"
-                @keyup.enter="handleInlineSnSubmit(scope.row)"
+                :disabled="scope.row.status === '维修中'"
+                @keyup.enter.prevent="handleInlineSnSubmit(scope.row, true)"
+                @blur="handleInlineSnSubmit(scope.row, true)"
               />
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
+          <el-table-column prop="status" label="状态" width="81">
             <template #default="scope">
               <el-tag :type="getStatusType(scope.row.status)">
                 {{ scope.row.status || '-' }}
               </el-tag>
+            </template>
+          </el-table-column>
+          <!-- 操作列 -->
+          <el-table-column label="操作" width="73">
+            <template #default="scope">
+              <el-button
+                type="primary"
+                size="small"
+                @click="handleAccept(scope.row)"
+                :disabled="scope.row.status !== '待维修' || scope.row.accepted"
+              >
+                接单
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -88,7 +112,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ElMessageBox } from 'element-plus'
+import Cookies from 'js-cookie'
+
 import { useDetail } from '@/composables/useDetail'
 
 const route = useRoute()
@@ -97,7 +122,79 @@ const {
   detailList: repairDetailList,
   getRepairDetail,
   addRepairSn,
+  acceptRepair,
 } = useDetail()
+
+// 获取当前登录用户的账号
+const getCurrentUserAccount = (): string => {
+  return Cookies.get('account') || ''
+}
+
+// 接单处理
+const handleAccept = async (row: EditableDetailData) => {
+  const sn = String(row.sn || '').trim()
+  if (!sn) {
+    ElMessage.error('SN码不能为空')
+    return
+  }
+
+  if (row.status && row.status !== '待维修') {
+    ElMessage.warning('当前状态不可接单')
+    return
+  }
+
+  const account = getCurrentUserAccount()
+  if (!account) {
+    ElMessage.error('未获取到登录用户信息')
+    return
+  }
+
+  const success = await acceptRepair(sn, account)
+  if (success) {
+    ElMessage.success('接单成功')
+    row.status = '维修中'
+    row.accepted = true
+    await fetchRepairDetails(orderId.value)
+  } else {
+    ElMessage.error('接单失败')
+  }
+}
+
+const handleBatchSubmit = async () => {
+  const pendingRows = detailDataList.value.filter(
+    (row) => row.status === '待维修' && row.sn?.trim(),
+  )
+
+  if (pendingRows.length === 0) {
+    ElMessage.warning('没有待提交的数据')
+    return
+  }
+
+  let successCount = 0
+  let failCount = 0
+
+  for (const row of pendingRows) {
+    const sn = String(row.sn || '').trim()
+    const id = Number(row.id)
+
+    if (sn && id) {
+      const success = await submitSn(sn, id)
+      if (success) {
+        successCount++
+        row.lastSn = sn
+      } else {
+        failCount++
+      }
+    }
+  }
+
+  if (successCount > 0) {
+    ElMessage.success(`成功提交 ${successCount} 条数据`)
+  }
+  if (failCount > 0) {
+    ElMessage.error(`提交失败 ${failCount} 条数据`)
+  }
+}
 
 const orderId = ref(0)
 const orderName = ref('')
@@ -107,8 +204,7 @@ const isProjectIdValid = ref(true)
 const detailDialogVisible = ref(false)
 const detailDataList = ref<EditableDetailData[]>([])
 const detailCurrentPage = ref(1)
-const detailPageSize = ref(7)
-const currentDetailId = ref(0)
+const detailPageSize = ref(10)
 
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
@@ -130,6 +226,9 @@ interface EditableDetailData {
   quantity: number
   unitPrice: number
   total: number
+  accepted: boolean
+  submitting?: boolean
+  lastSn?: string
 }
 
 const displayData = computed(() => repairDetailList.value)
@@ -159,42 +258,43 @@ const goBack = () => {
   window.close()
 }
 
-const getStatusType = (status: string): '' | 'success' | 'warning' | 'danger' | 'info' => {
+const getStatusType = (
+  status: string,
+): '' | 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
   switch (status) {
     case '待维修':
-      return 'warning'
+      return 'primary'
     case '维修中':
-      return 'info'
-    case '已完成':
-      return 'success'
-    case '已取消':
-      return 'danger'
+      return 'warning'
     default:
       return 'info'
   }
 }
 
+// 处理设备详情弹窗显示
 const handleDetail = async (row: EditableDetailData) => {
+  // 检查数据ID是否有效
   if (!row.id) {
     ElMessage.error('无效的数据ID')
     return
   }
-
+  // 清空设备详情列表
   detailCurrentPage.value = 1
-  currentDetailId.value = row.id
-
+  // 获取设备详情列表
   const res = await getRepairDetail(row.id)
-
+  // 处理设备详情列表
   if (res && res.code === 200) {
     const dataValues = Object.values(res.data || {}) as unknown as Record<string, unknown>[]
     if (dataValues.length > 0) {
       detailDataList.value = dataValues.map((detail) => ({
         ...row,
+        id: (detail.id as number) || row.id,
         equipmentName: (detail.name as string) || row.equipmentName,
         equipmentModel: (detail.model as string) || row.equipmentModel,
         manufacturer: (detail.manufacturer as string) || row.manufacturer,
         sn: (detail.sn as string) || row.sn || '',
         status: (detail.status as string) || row.status || '',
+        accepted: false,
       }))
       detailDialogVisible.value = true
     } else {
@@ -203,6 +303,7 @@ const handleDetail = async (row: EditableDetailData) => {
           ...row,
           sn: row.sn || '',
           status: row.status || '',
+          accepted: false,
         },
       ]
       detailDialogVisible.value = true
@@ -213,6 +314,7 @@ const handleDetail = async (row: EditableDetailData) => {
         ...row,
         sn: row.sn || '',
         status: row.status || '',
+        accepted: false,
       },
     ]
     detailDialogVisible.value = true
@@ -240,41 +342,40 @@ const submitSn = async (sn: string, id: number) => {
   return false
 }
 
-const handleAdd = async (row: EditableDetailData) => {
-  if (!row.id) {
-    ElMessage.error('无效的数据ID')
+const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => {
+  if (!submit) {
+    return
+  }
+  // 防止回车提交过程中失焦触发的并发重复提交
+  if (row.submitting) {
     return
   }
 
-  try {
-    const sn = await ElMessageBox.prompt('请输入SN码', '提交', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-    })
-
-    if (!sn.value) {
-      return
-    }
-
-    await submitSn(sn.value, row.id)
-  } catch {}
-}
-
-const handleInlineSnSubmit = async (row: EditableDetailData) => {
-  if (!currentDetailId.value) {
+  const targetId = Number(row.id)
+  if (!targetId) {
     ElMessage.error('无效的数据ID')
     return
   }
 
   const trimmedSn = String(row.sn || '').trim()
+  // 空值静默跳过，避免点进输入框又点出时误报"不能为空"
   if (!trimmedSn) {
-    ElMessage.warning('SN码不能为空')
+    return
+  }
+  // 值与上次已提交的 SN 一致时跳过，避免多次失焦重复提交
+  if (row.lastSn === trimmedSn) {
     return
   }
 
-  const success = await submitSn(trimmedSn, currentDetailId.value)
-  if (success) {
-    row.sn = trimmedSn
+  row.submitting = true
+  try {
+    const success = await submitSn(trimmedSn, targetId)
+    if (success) {
+      row.sn = trimmedSn
+      row.lastSn = trimmedSn
+    }
+  } finally {
+    row.submitting = false
   }
 }
 
@@ -330,7 +431,8 @@ onMounted(() => {
 
 .detail-summary {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
   gap: 24px;
   margin-bottom: 18px;
   padding: 12px 16px;
@@ -343,7 +445,7 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   align-items: center;
-  min-width: 220px;
+  flex: 1;
 }
 
 .summary-label {
@@ -365,23 +467,9 @@ onMounted(() => {
   padding: 15px 20px;
 }
 
-:deep(.el-input__wrapper) {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-}
-
-:deep(.el-input__inner) {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  font-size: inherit;
-  font-family: inherit;
-  color: inherit;
-  text-align: inherit;
-  cursor: text;
+/* 限制弹窗内容高度，防止表格行数过多时撑高弹窗导致 overlay 滚动、弹窗位置漂移 */
+:deep(.el-dialog__body) {
+  max-height: 60vh;
+  overflow-y: auto;
 }
 </style>

@@ -88,3 +88,12 @@ export async function addRepairSnApi(sn: string, id: number): Promise<ApiRespons
     params: { sn, id },
   })
 }
+
+// 接单 API：将指定维修明细标记为已接单或分配给当前用户
+export async function acceptRepairApi(sn: string, account: string): Promise<ApiResponse<void>> {
+  return request({
+    url: '/repair/take',
+    method: 'put',
+    params: { sn, account },
+  })
+}

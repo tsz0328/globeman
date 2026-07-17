@@ -2,7 +2,7 @@
   <div class="order-management">
     <div class="page-header">
       <el-button @click="goBack">← 返回</el-button>
-      <h2 class="title">订单管理</h2>
+      <h2 class="title">项目订单管理</h2>
       <div class="action-buttons">
         <el-button type="primary" @click="addOrder">新建订单</el-button>
         <el-button>导入Excel</el-button>
@@ -19,9 +19,8 @@
         <label>订单状态：</label>
         <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
-          <el-option label="待确认" value="待确认" />
-          <el-option label="已确认" value="已确认" />
-          <el-option label="已完成" value="已完成" />
+          <el-option label="编辑中" value="编辑中" />
+          <el-option label="订单已确认，无法修改" value="订单已确认，无法修改" />
         </el-select>
       </div>
       <div class="filter-item">
@@ -96,7 +95,7 @@
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
-        <el-table-column prop="repairAddress" label="送修地址" />
+        <el-table-column prop="address" label="送修地址" />
         <el-table-column prop="status" label="状态" width="165">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
@@ -232,22 +231,16 @@ const paginatedData = computed(() => {
 const getRowKey = (row: Order) => row.id
 
 const isRowSelectable = (row: Order) => {
-  const lockedStatuses = ['订单已确认，无法修改', '已确认', '已完成', '已提交']
+  const lockedStatuses = ['订单已确认，无法修改', '已完成', '已提交']
   return !lockedStatuses.includes(row.status)
 }
 
 const getStatusType = (status: string) => {
   switch (status) {
     case '编辑中':
-      return 'primary'
-    case '已完成':
-      return 'success'
-    case '已取消':
-      return 'danger'
-    case '待确认':
       return 'warning'
-    case '已确认':
-      return 'primary'
+    case '订单已确认，无法修改':
+      return 'danger'
     default:
       return 'info'
   }

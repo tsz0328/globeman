@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { createUserApi, getUsersApi, deleteUserApi } from '@/api/UserApi'
+import { sortByCreateTimeDesc } from '@/utils/sort'
 
 export interface User {
   id: number
@@ -91,6 +92,8 @@ export function useUser() {
           }
           return user
         })
+        // 按创建时间降序（最新在前）
+        userList.value = sortByCreateTimeDesc(userList.value)
       } else {
         console.warn('获取用户列表返回异常:', res.msg)
       }

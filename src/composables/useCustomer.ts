@@ -6,6 +6,7 @@ import {
   batchDeleteCustomersApi,
   type CustomerData,
 } from '@/api/CustomerApi'
+import { sortByCreateTimeDesc } from '@/utils/sort'
 
 // 客户接口
 export interface Customer {
@@ -86,6 +87,8 @@ export function useCustomer() {
           }
           return customer
         })
+        // 按创建时间降序（最新在前）
+        customerList.value = sortByCreateTimeDesc(customerList.value)
       } else {
         console.warn('获取客户列表返回异常:', res.msg)
       }

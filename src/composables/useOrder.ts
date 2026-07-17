@@ -7,6 +7,7 @@ import {
   type OrderData,
 } from '@/api/OrderApi'
 import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
+import { sortByCreateTimeDesc } from '@/utils/sort'
 
 export interface Order {
   id: number
@@ -23,7 +24,7 @@ export interface Order {
   province: string
   city: string
   district: string
-  repairAddress: string
+  address: string
   company: string
   status: string
   createTime: string
@@ -71,12 +72,15 @@ export function useOrder() {
             province: item.province,
             city: item.city,
             district: item.district,
-            repairAddress: item.repair_address || '',
+            address: item.address || '',
             company: item.company,
             status: item.state,
             createTime: item.time,
           }))
-          orderList.value = orders
+          // 按创建时间降序（最新在前）排序
+          // 兼容 "2026-07-17 10:32:20"（MySQL DATETIME，空格分隔）等非标准格式
+          // 无效时间兜底为 0 排末尾；时间相同时用 id 兜底，保证稳定有序
+          orderList.value = sortByCreateTimeDesc(orders)
         } else {
           orderList.value = []
         }

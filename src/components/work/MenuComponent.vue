@@ -18,15 +18,32 @@
         <span class="menu-icon">🏢</span>
         <span class="menu-text">公司管理</span>
       </router-link>
-      <router-link to="/work/repair" class="menu-item" active-class="active">
+      <div class="menu-item sub-menu-header" @click="toggleRepairMenu">
         <span class="menu-icon">🔧</span>
-        <span class="menu-text">维修管理</span>
-      </router-link>
+        <span class="menu-text">维修</span>
+        <span class="menu-arrow">{{ isRepairMenuOpen ? '▼' : '▶' }}</span>
+      </div>
+      <div class="sub-menu-items" v-show="isRepairMenuOpen">
+        <router-link to="/work/repair-management" class="sub-menu-item" active-class="active">
+          <span class="menu-text">维修管理</span>
+        </router-link>
+        <router-link to="/work/repair-accept" class="sub-menu-item" active-class="active">
+          <span class="menu-text">维修接单</span>
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const isRepairMenuOpen = ref(false)
+
+const toggleRepairMenu = () => {
+  isRepairMenuOpen.value = !isRepairMenuOpen.value
+}
+</script>
 
 <style scoped>
 .menu-container {
@@ -80,5 +97,39 @@
 
 .menu-text {
   font-size: 14px;
+}
+
+.sub-menu-header {
+  cursor: pointer;
+}
+
+.menu-arrow {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.sub-menu-items {
+  padding-left: 20px;
+}
+
+.sub-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  color: #a7b1c2;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.sub-menu-item:hover {
+  background-color: #1ab394;
+  color: white;
+}
+
+.sub-menu-item.active {
+  background-color: #1ab394;
+  color: white;
 }
 </style>

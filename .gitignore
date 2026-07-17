@@ -15,8 +15,8 @@ coverage
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/
+.trae/
 .idea
 *.suo
 *.ntvs*
@@ -40,3 +40,15 @@ __screenshots__/
 
 test-results/
 playwright-report/
+
+# 构建产物（vite outDir 已设为 static/）
+# 整个 static/ 均为构建产物或与 public/ 重复的静态资源，统一忽略
+static/
+
+# 本地 AI 工作记忆（含项目日志，不应进版本库）
+.workbuddy/
+
+# 环境变量（敏感，防患未然；保留 .env.example 作为模板）
+.env
+.env.*
+!.env.example

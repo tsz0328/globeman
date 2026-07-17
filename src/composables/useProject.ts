@@ -6,6 +6,7 @@ import {
   deleteProjectApi,
   batchDeleteProjectsApi,
 } from '@/api/ProjectApi'
+import { sortByCreateTimeDesc } from '@/utils/sort'
 
 export interface Project {
   id: number
@@ -104,6 +105,8 @@ export function useProject() {
           }
           return project
         })
+        // 按创建时间降序（最新在前）
+        projectList.value = sortByCreateTimeDesc(projectList.value)
       } else {
         console.warn('获取项目列表返回异常:', res.msg)
       }

@@ -15,7 +15,7 @@ export interface OrderData {
   province: string
   city: string
   district: string
-  repair_address?: string
+  address: string
   company: string
   state: string
   time: string
@@ -39,7 +39,7 @@ export interface CreateOrderData {
   province: string
   city: string
   district: string
-  repairAddress: string
+  address: string
 }
 
 export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse<{ id: number }>> {
