@@ -13,72 +13,52 @@
       <el-table :data="paginatedData" border style="width: 100%">
         <el-table-column prop="equipmentName" label="设备名称" width="150">
           <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.equipmentName"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.equipmentName }}
-            </template>
+            <span v-if="scope.row.id > 0">{{ scope.row.equipmentName }}</span>
+            <el-input
+              v-else
+              v-model="scope.row.equipmentName"
+              @keydown.enter.prevent="handleCellEnter"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="equipmentModel" label="设备型号" width="150">
           <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.equipmentModel"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.equipmentModel }}
-            </template>
+            <span v-if="scope.row.id > 0">{{ scope.row.equipmentModel }}</span>
+            <el-input
+              v-else
+              v-model="scope.row.equipmentModel"
+              @keydown.enter.prevent="handleCellEnter"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="manufacturer" label="生产厂家">
           <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.manufacturer"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.manufacturer }}
-            </template>
+            <span v-if="scope.row.id > 0">{{ scope.row.manufacturer }}</span>
+            <el-input
+              v-else
+              v-model="scope.row.manufacturer"
+              @keydown.enter.prevent="handleCellEnter"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="quantity" label="数量" width="100">
           <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.quantity"
-                class="edit-input"
-                @keydown.enter.prevent="handleCellEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.quantity }}
-            </template>
+            <span v-if="scope.row.id > 0">{{ scope.row.quantity }}</span>
+            <el-input
+              v-else
+              v-model="scope.row.quantity"
+              @keydown.enter.prevent="handleCellEnter"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="unitPrice" label="单价" width="150">
           <template #default="scope">
-            <template v-if="scope.row.isEditing">
-              <input
-                v-model="scope.row.unitPrice"
-                class="edit-input"
-                @keydown.enter.prevent="handleTotalEnter"
-              />
-            </template>
-            <template v-else>
-              {{ scope.row.unitPrice }}
-            </template>
+            <span v-if="scope.row.id > 0">{{ scope.row.unitPrice }}</span>
+            <el-input
+              v-else
+              v-model="scope.row.unitPrice"
+              @keydown.enter.prevent="handleTotalEnter"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="total" label="总价" width="150">
@@ -132,11 +112,12 @@ const editRows = ref<EditableDetailData[]>([])
 const isProjectIdValid = ref(true)
 const orderStatus = ref('')
 
+// 订单状态是否锁定（已确认，无法修改）
 const isLocked = computed(() => {
   if (!orderStatus.value) {
     return true
   }
-  const lockedStatuses = ['订单已确认，无法修改']
+  const lockedStatuses = ['已确认']
   return lockedStatuses.includes(orderStatus.value)
 })
 
@@ -237,13 +218,15 @@ const handleDelete = async (row: EditableDetailData) => {
 }
 
 const handleCellEnter = () => {
-  const allInputs = document.querySelectorAll('.edit-input')
+  const allInputs = Array.from(
+    document.querySelectorAll('.equipment-section input.el-input__inner'),
+  ) as HTMLInputElement[]
   const activeInput = document.activeElement as HTMLInputElement
-
-  for (let i = 0; i < allInputs.length; i++) {
-    if (allInputs[i] === activeInput && i < allInputs.length - 1) {
-      ;(allInputs[i + 1] as HTMLInputElement).focus()
-      break
+  const idx = allInputs.indexOf(activeInput)
+  if (idx !== -1 && idx < allInputs.length - 1) {
+    const nextInput = allInputs[idx + 1]
+    if (nextInput) {
+      nextInput.focus()
     }
   }
 }
@@ -423,19 +406,5 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-}
-
-.edit-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  font-size: inherit;
-  font-family: inherit;
-  color: inherit;
-  text-align: inherit;
-  cursor: text;
 }
 </style>

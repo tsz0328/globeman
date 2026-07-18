@@ -15,6 +15,8 @@ import OrderManagementComponent from '@/components/work/ProjectOrderManagement.v
 import RepairManagementComponent from '@/components/work/RepairManagement.vue'
 import RepairOrderManagementComponent from '@/components/work/RepairOrderManagement.vue'
 import RepairAcceptComponent from '@/components/work/RepairAccept.vue'
+import EquipmentRepairInformationComponent from '@/components/work/EquipmentRepairInformation.vue'
+
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
 const router = createRouter({
@@ -103,6 +105,11 @@ const router = createRouter({
       path: '/order-detail/:id',
       name: 'OrderDetail',
       component: OrderDetailComponent,
+    },
+    {
+      path: '/equipment-repair-information/:id',
+      name: 'EquipmentRepairInformation',
+      component: EquipmentRepairInformationComponent,
     },
   ],
 })

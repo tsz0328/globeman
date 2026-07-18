@@ -55,7 +55,6 @@
             <span class="summary-label">生产厂家：</span>
             <span>{{ detailCommonInfo.manufacturer || '-' }}</span>
           </div>
-          <el-button type="success" @click="handleBatchSubmit">确认</el-button>
         </div>
 
         <!-- 设备详情表格 -->
@@ -65,7 +64,7 @@
               <el-input
                 v-model="scope.row.sn"
                 placeholder="编辑SN，回车提交"
-                :disabled="scope.row.status === '维修中'"
+                :readonly="scope.row.status === '维修中' || scope.row.status === '待维修'"
                 @keyup.enter.prevent="handleInlineSnSubmit(scope.row, true)"
                 @blur="handleInlineSnSubmit(scope.row, true)"
               />
@@ -137,62 +136,27 @@ const handleAccept = async (row: EditableDetailData) => {
     ElMessage.error('SN码不能为空')
     return
   }
-
+  // 检查状态是否为待维修
   if (row.status && row.status !== '待维修') {
     ElMessage.warning('当前状态不可接单')
     return
   }
-
+  // 检查登录用户信息是否有效
   const account = getCurrentUserAccount()
   if (!account) {
     ElMessage.error('未获取到登录用户信息')
     return
   }
-
+  // 调用接单接口
   const success = await acceptRepair(sn, account)
   if (success) {
     ElMessage.success('接单成功')
     row.status = '维修中'
     row.accepted = true
+    // 刷新设备详情列表
     await fetchRepairDetails(orderId.value)
   } else {
     ElMessage.error('接单失败')
-  }
-}
-
-const handleBatchSubmit = async () => {
-  const pendingRows = detailDataList.value.filter(
-    (row) => row.status === '待维修' && row.sn?.trim(),
-  )
-
-  if (pendingRows.length === 0) {
-    ElMessage.warning('没有待提交的数据')
-    return
-  }
-
-  let successCount = 0
-  let failCount = 0
-
-  for (const row of pendingRows) {
-    const sn = String(row.sn || '').trim()
-    const id = Number(row.id)
-
-    if (sn && id) {
-      const success = await submitSn(sn, id)
-      if (success) {
-        successCount++
-        row.lastSn = sn
-      } else {
-        failCount++
-      }
-    }
-  }
-
-  if (successCount > 0) {
-    ElMessage.success(`成功提交 ${successCount} 条数据`)
-  }
-  if (failCount > 0) {
-    ElMessage.error(`提交失败 ${failCount} 条数据`)
   }
 }
 
@@ -206,6 +170,7 @@ const detailDataList = ref<EditableDetailData[]>([])
 const detailCurrentPage = ref(1)
 const detailPageSize = ref(10)
 
+// 解析项目ID
 const parseProjectId = (id: unknown): number => {
   if (typeof id === 'string') {
     const parsed = parseInt(id, 10)
@@ -214,6 +179,7 @@ const parseProjectId = (id: unknown): number => {
   return 0
 }
 
+// 设备详情数据接口
 interface EditableDetailData {
   id: number
   projectId: number
@@ -321,7 +287,7 @@ const handleDetail = async (row: EditableDetailData) => {
   }
 }
 
-const submitSn = async (sn: string, id: number) => {
+const submitSn = async (sn: string, id: number, row?: EditableDetailData) => {
   if (!id) {
     ElMessage.error('无效的数据ID')
     return false
@@ -334,6 +300,10 @@ const submitSn = async (sn: string, id: number) => {
   const success = await addRepairSn(sn, id)
   if (success) {
     ElMessage.success('提交成功')
+    if (row) {
+      row.status = '维修中'
+      row.accepted = true
+    }
     await fetchRepairDetails(orderId.value)
     return true
   }
@@ -369,7 +339,7 @@ const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => 
 
   row.submitting = true
   try {
-    const success = await submitSn(trimmedSn, targetId)
+    const success = await submitSn(trimmedSn, targetId, row)
     if (success) {
       row.sn = trimmedSn
       row.lastSn = trimmedSn

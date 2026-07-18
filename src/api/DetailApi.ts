@@ -97,3 +97,66 @@ export async function acceptRepairApi(sn: string, account: string): Promise<ApiR
     params: { sn, account },
   })
 }
+
+export interface TakenDetailData {
+  id: number
+  details_id: number
+  project_id: number
+  order_id: number
+  name: string
+  model: string
+  manufacturer: string
+  sn: string
+  status: string
+  repairman: string
+  repairman_account: string
+}
+
+export async function getTakenDetailsApi(): Promise<
+  ApiResponse<{ [key: string]: TakenDetailData }>
+> {
+  return request({
+    url: '/take/get',
+    method: 'get',
+  })
+}
+
+export interface RepairImageData {
+  id: number
+  address: string
+}
+
+export async function getRepairImagesApi(
+  id: number,
+): Promise<ApiResponse<{ [key: string]: RepairImageData }>> {
+  return request({
+    url: '/take/getImg',
+    method: 'get',
+    params: { id },
+  })
+}
+
+export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void>> {
+  return request({
+    url: '/take/delectImg',
+    method: 'put',
+    params: { id },
+  })
+}
+
+export async function uploadRepairImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
+  const formData = new FormData()
+  files.forEach((file) => {
+    formData.append('files', file)
+  })
+  formData.append('id', id.toString())
+
+  return request({
+    url: '/take/uploadImgs',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+}

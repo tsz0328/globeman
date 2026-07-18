@@ -27,7 +27,7 @@
         <label>项目状态：</label>
         <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
-          <el-option label="编辑" value="编辑" />
+          <el-option label="编辑中" value="编辑中" />
           <el-option label="已完成" value="已完成" />
           <el-option label="已取消" value="已取消" />
         </el-select>
@@ -375,7 +375,6 @@ const handleReset = () => {
 
 /* 筛选区域 */
 .filter-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);

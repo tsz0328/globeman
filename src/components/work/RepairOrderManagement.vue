@@ -4,6 +4,7 @@
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">维修订单管理</h2>
       <div class="action-buttons">
+        <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
       </div>
@@ -15,7 +16,7 @@
         <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="编辑中" value="编辑中" />
-          <el-option label="订单已确认，无法修改" value="订单已确认，无法修改" />
+          <el-option label="已确认" value="已确认" />
         </el-select>
       </div>
       <div class="filter-item">
@@ -49,7 +50,7 @@
       </div>
       <div class="filter-item">
         <label>客户：</label>
-        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
           <el-option
             v-for="customer in customerList"
@@ -80,18 +81,18 @@
         :row-key="getRowKey"
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="50" />
+        <el-table-column type="selection" width="39" />
         <el-table-column prop="name" label="订单名称" />
         <el-table-column prop="type" label="订单类型" width="81" />
         <el-table-column prop="customer" label="客户" />
         <el-table-column prop="contact" label="客户联系人" />
-        <el-table-column prop="contactPhone" label="联系人电话" />
+        <el-table-column prop="contactPhone" label="联系人电话" width="111" />
         <el-table-column prop="leader" label="负责人" />
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
         <el-table-column prop="address" label="送修地址" />
-        <el-table-column prop="status" label="状态" width="165">
+        <el-table-column prop="status" label="状态" width="81">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
               {{ scope.row.status }}
@@ -180,6 +181,7 @@ const filterForm = ref({
   createTime: null,
 })
 
+// 筛选数据
 const filteredData = computed(() => {
   return repairOrderList.value.filter((item) => {
     if (filterForm.value.status && item.status !== filterForm.value.status) {
@@ -208,6 +210,7 @@ const filteredData = computed(() => {
   })
 })
 
+// 分页数据
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
@@ -216,11 +219,12 @@ const paginatedData = computed(() => {
 
 const getRowKey = (row: { id: number }) => row.id
 
+// 获取状态类型
 const getStatusType = (status: string) => {
   switch (status) {
     case '编辑中':
       return 'warning'
-    case '订单已确认，无法修改':
+    case '已确认':
       return 'danger'
     default:
       return 'info'
@@ -231,10 +235,11 @@ const goBack = () => {
   window.close()
 }
 
+// 切换筛选显示
 const toggleFilter = () => {
   isFilterVisible.value = !isFilterVisible.value
 }
-
+// 处理选择变化
 const handleSelectionChange = (val: { id: number }[]) => {
   selectedRows.value = val
 }
@@ -325,7 +330,6 @@ onMounted(() => {
 }
 
 .filter-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);

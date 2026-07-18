@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     allowedHosts: true,
     host: '0.0.0.0',
-    port: 81,
+    port: 80,
     proxy: {
       '/api': {
         target: 'http://172.16.20.253:8080',

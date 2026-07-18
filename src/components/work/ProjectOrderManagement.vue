@@ -20,7 +20,7 @@
         <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="编辑中" value="编辑中" />
-          <el-option label="订单已确认，无法修改" value="订单已确认，无法修改" />
+          <el-option label="已确认" value="已确认" />
         </el-select>
       </div>
       <div class="filter-item">
@@ -54,7 +54,7 @@
       </div>
       <div class="filter-item">
         <label>客户：</label>
-        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
           <el-option
             v-for="customer in customerList"
@@ -85,18 +85,18 @@
         @selection-change="handleSelectionChange"
         :row-key="getRowKey"
       >
-        <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
+        <el-table-column type="selection" width="39" :selectable="isRowSelectable" />
         <el-table-column prop="name" label="订单名称" />
         <el-table-column prop="type" label="订单类型" width="81" />
         <el-table-column prop="customer" label="客户" />
         <el-table-column prop="contact" label="客户联系人" />
-        <el-table-column prop="contactPhone" label="联系人电话" />
+        <el-table-column prop="contactPhone" label="联系人电话" width="111" />
         <el-table-column prop="leader" label="负责人" />
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
         <el-table-column prop="address" label="送修地址" />
-        <el-table-column prop="status" label="状态" width="165">
+        <el-table-column prop="status" label="状态" width="81">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
               {{ scope.row.status }}
@@ -117,14 +117,14 @@
                 type="success"
                 size="small"
                 @click="handleSubmitBtn(scope.row)"
-                :disabled="scope.row.status === '订单已确认，无法修改'"
+                :disabled="scope.row.status === '已确认'"
                 >提交</el-button
               >
               <el-button
                 type="danger"
                 size="small"
                 @click="handleDeleteBtn(scope.row)"
-                :disabled="scope.row.status === '订单已确认，无法修改'"
+                :disabled="scope.row.status === '已确认'"
                 >删除</el-button
               >
             </div>
@@ -231,7 +231,7 @@ const paginatedData = computed(() => {
 const getRowKey = (row: Order) => row.id
 
 const isRowSelectable = (row: Order) => {
-  const lockedStatuses = ['订单已确认，无法修改', '已完成', '已提交']
+  const lockedStatuses = ['已确认', '已完成', '已提交']
   return !lockedStatuses.includes(row.status)
 }
 
@@ -239,7 +239,7 @@ const getStatusType = (status: string) => {
   switch (status) {
     case '编辑中':
       return 'warning'
-    case '订单已确认，无法修改':
+    case '已确认':
       return 'danger'
     default:
       return 'info'
@@ -426,7 +426,6 @@ onMounted(() => {
 }
 
 .filter-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
