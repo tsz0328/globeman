@@ -17,17 +17,19 @@
     <!-- 筛选栏 -->
     <div class="filter-section">
         <div class="filter-item">
-          <label>公司名称:</label>
-          <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" @keyup.enter.prevent="handleSearch" />
+        <label for="companyName">公司名称:</label>
+        <el-input id="companyName" aria-label="公司名称" v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" @keyup.enter.prevent="handleSearch" />
         </div>
         <div class="filter-item">
-          <label>创建时间:</label>
-          <el-date-picker
-            v-model="filterForm.createTime"
-            type="date"
-            placeholder="选择日期"
-            style="width: 150px"
-          />
+        <label for="createTime">创建时间:</label>
+        <el-date-picker
+          id="createTime"
+          aria-label="创建时间"
+          v-model="filterForm.createTime"
+          type="date"
+          placeholder="选择日期"
+          style="width: 150px"
+        />
           </div>
           <div class="filter-item">
           <el-button type="primary" @click="handleSearch">查询</el-button>

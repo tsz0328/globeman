@@ -36,7 +36,7 @@ onMounted(() => {
 
 <template>
   <div class="main">
-    <div class="head">
+    <div class="head idx-base">
       <div class="logo">
         <div class="logo_left">
           <img src="/logo.jpg" alt="logo" />
@@ -53,9 +53,16 @@ onMounted(() => {
       <div class="search">
         <div class="search-icon">
           <!-- 搜索输入框 -->
-          <input type="text" class="search-input" placeholder="请输入公告标题包含的关键字" />
+          <input
+            id="announcementSearch"
+            name="announcementSearch"
+            type="text"
+            class="search-input"
+            aria-label="公告标题搜索"
+            placeholder="请输入公告标题包含的关键字"
+          />
           <!-- 搜索按钮 -->
-          <button class="search-button">搜索</button>
+          <button type="button" class="search-button">搜索</button>
         </div>
       </div>
     </div>
@@ -64,12 +71,11 @@ onMounted(() => {
       <div class="carousel">
         <CarouselComponent/>
       </div>
-      <div class="notice">
+      <div class="notice idx-base">
         <div class="new">
           <h4>
             <img
-              data-v-447a2b78=""
-              src="/trumpet.png"
+                            src="/trumpet.png"
               alt=""
             />
             最新公告
@@ -150,15 +156,7 @@ onMounted(() => {
 }
 
 .company_name {
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   cursor: pointer;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   font-size: 24px;
   font-weight: 350;
@@ -166,16 +164,7 @@ onMounted(() => {
 }
 
 .company_n {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   cursor: pointer;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   font-size: 12px;
   font-weight: 300;
@@ -241,17 +230,6 @@ onMounted(() => {
 }
 
 .notice {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   width: 100%;
   height: 40px;
   opacity: 0.95;
@@ -263,33 +241,11 @@ onMounted(() => {
 }
 
 .new {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 105px;
 }
 
 .new h4 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   font-size: 14px;
   color: #0C1390;
@@ -297,19 +253,9 @@ onMounted(() => {
 }
 
 .new img {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   font-size: 14px;
   color: #0C1390;
   font-weight: 500;
-  box-sizing: border-box;
-  user-select: none;
   border: 0;
   width: 17px;
   height: 17px;
@@ -317,17 +263,6 @@ onMounted(() => {
 }
 
 .notice-content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   font-size: 12px;
   color: #333;
@@ -341,20 +276,18 @@ onMounted(() => {
 
 .content {
   width: 100%;
-  height: 1275px;
   display: flex;
   flex-direction: row;
+  align-items: stretch;
 }
 
 .announcement {
   width: 70%;
-  height: 1275px;
   background-color: #f6f6f6;
 }
 
 .side{
   width: 30%;
-  height: 1275px;
   background-color: #f6f6f6;
   display: flex;
   flex-direction: column;
@@ -362,17 +295,17 @@ onMounted(() => {
 
 .login {
   width: 100%;
-  height: 300px;
+  min-height: 300px;
 }
 
 .platform-notice{
   width: 100%;
-  height: 555px;
+  min-height: 555px;
 }
 
 .introduction{
   width: 100%;
-  height: 420px;
+  min-height: 420px;
 }
 
 .foot{

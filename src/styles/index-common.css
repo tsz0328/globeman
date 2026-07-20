@@ -1,0 +1,18 @@
+/* 首页通用初始化样式
+ * 原分散在 IndexView 及 6 个 Index 子组件（Foot / Introduction / Message /
+ * Login / LoginSuccess / PlatformNotice）中大量重复的初始化 CSS，
+ * 现统一提取到此处，由带 .idx-base 的容器继承到整个相关子树。
+ *
+ * 说明：原块中的 --minWidth / --maxWidth / --autoWidth / --loginNavFontSize
+ * 四个 CSS 变量从未被 var() 消费，属死代码，已从各组件删除、此处也不保留。
+ */
+.idx-base,
+.idx-base * {
+  line-height: 1.15;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  box-sizing: border-box;
+  user-select: none;
+  margin: 0;
+}

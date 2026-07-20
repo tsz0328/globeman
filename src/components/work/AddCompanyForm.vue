@@ -1,9 +1,8 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" @submit.prevent>
-      <el-form-item prop="name">
-        <template #label>公司名称</template>
-        <el-input
+      <el-form-item prop="name" label="公司名称">
+  <el-input
           v-model="form.name"
           placeholder="请输入公司名称"
           @keyup.enter.prevent="handleSubmit"

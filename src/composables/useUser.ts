@@ -150,24 +150,6 @@ export function useUser() {
     }
   }
 
-  // 更新用户
-  // 支持更新用户信息并更新用户列表
-  const updateUser = async (id: number, data: Partial<Omit<User, 'id'>>): Promise<boolean> => {
-    loading.value = true
-    try {
-      const index = userList.value.findIndex((u) => u.id === id)
-      if (index !== -1) {
-        userList.value[index] = { ...userList.value[index], ...data } as User
-      }
-      return true
-    } catch (error) {
-      console.error('更新用户失败:', error)
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
-
   // 删除用户
   // 支持删除用户并更新用户列表
   const deleteUser = async (id: number, account: string): Promise<boolean> => {
@@ -202,5 +184,5 @@ export function useUser() {
     }
   }
 
-  return { userList, loading, fetchUsers, createUser, updateUser, deleteUser, batchDeleteUsers }
+  return { userList, loading, fetchUsers, createUser, deleteUser, batchDeleteUsers }
 }

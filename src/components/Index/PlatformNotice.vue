@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="login-title">
+  <div class="login-title idx-base">
     <div class="bg-box">
       <div class="bg1"></div>
       <div class="bg2"></div>
@@ -50,34 +50,12 @@
   justify-content: space-between;
   -webkit-box-align: baseline;
   align-items: baseline;
-  margin: 0;
-  user-select: none;
-  box-sizing: border-box;
   color: #fff;
   font-size: 18px;
   font-weight: 500;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
 }
 
 .login-title {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   background: linear-gradient(90deg, #0C1390, #eeeeff);
@@ -87,17 +65,6 @@
 }
 
 .bg-box {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
@@ -106,17 +73,6 @@
 }
 
 .bg1 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 66px;
   height: 66px;
@@ -130,17 +86,6 @@
 }
 
 .bg2 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   opacity: 0.2;
@@ -154,17 +99,6 @@
 }
 
 .bg3 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 103px;
   height: 103px;
@@ -177,17 +111,6 @@
 }
 
 .bg4 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   transform: rotate(315deg);
@@ -200,17 +123,6 @@
 }
 
 .login-content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   position: absolute;
   width: 100%;
@@ -224,17 +136,6 @@
 }
 
 .content{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   background-color: #fff;
   min-height: 300px;
   height: 493px;
@@ -242,34 +143,13 @@
 }
 
 .list-item{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  user-select: none;
   margin: 0 0 15px;
-  box-sizing: border-box;
   background: #f8f8f8;
   padding: 10px 15px 10px 0;
   height: 252px;
 }
 
 .notice-title{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   display: flex;
   -webkit-box-align: center;
@@ -277,17 +157,6 @@
 }
 
 .line{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 3px;
   height: 11px;
@@ -296,15 +165,6 @@
 }
 
 .title-text{
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
   margin: 0 0 0 5px;
   padding: 0;
   font-weight: 400;
@@ -314,14 +174,6 @@
 }
 
 .notice-content{
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0 0 0 6px;
   font-size: 14px;
   line-height: 29px;
@@ -329,19 +181,9 @@
 }
 
 p{
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   font-size: 14px;
   line-height: 29px;
   text-indent: 2em;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
 }
 </style>

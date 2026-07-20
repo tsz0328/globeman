@@ -16,6 +16,9 @@ import RepairManagementComponent from '@/components/work/RepairManagement.vue'
 import RepairOrderManagementComponent from '@/components/work/RepairOrderManagement.vue'
 import RepairAcceptComponent from '@/components/work/RepairAccept.vue'
 import EquipmentRepairInformationComponent from '@/components/work/EquipmentRepairInformation.vue'
+import OutboundManagementComponent from '@/components/work/OutboundManagement.vue'
+import InboundManagementComponent from '@/components/work/InboundManagement.vue'
+import InventoryManagementComponent from '@/components/work/InventoryManagement.vue'
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -83,6 +86,21 @@ const router = createRouter({
           path: 'repair-accept',
           name: 'RepairAccept',
           component: RepairAcceptComponent,
+        },
+        {
+          path: 'outbound',
+          name: 'OutboundManagement',
+          component: OutboundManagementComponent,
+        },
+        {
+          path: 'inbound',
+          name: 'InboundManagement',
+          component: InboundManagementComponent,
+        },
+        {
+          path: 'inventory',
+          name: 'InventoryManagement',
+          component: InventoryManagementComponent,
         },
       ],
     },

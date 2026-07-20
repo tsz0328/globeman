@@ -2,7 +2,6 @@ import { ref } from 'vue'
 import {
   getProjectsApi,
   createProjectApi,
-  updateProjectApi,
   deleteProjectApi,
   batchDeleteProjectsApi,
 } from '@/api/ProjectApi'
@@ -142,37 +141,6 @@ export function useProject() {
     }
   }
 
-  // 更新项目
-  const updateProject = async (id: number, data: ProjectFormData): Promise<boolean> => {
-    loading.value = true
-    try {
-      const res = await updateProjectApi(id, data)
-      if (res.code === 200) {
-        const index = projectList.value.findIndex((p) => p.id === id)
-        if (index !== -1) {
-          const oldProject = projectList.value[index]
-          if (oldProject) {
-            projectList.value[index] = {
-              ...oldProject,
-              projectName: data.name,
-              projectType: data.type,
-              projectManager: data.leaderAccount,
-              cooperativeUnit: data.customer,
-              contactPerson: data.contact,
-            }
-          }
-        }
-        return true
-      }
-      return false
-    } catch (error) {
-      console.error('更新项目失败:', error)
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
-
   // 删除项目
   const deleteProject = async (id: number): Promise<boolean> => {
     loading.value = true
@@ -214,7 +182,6 @@ export function useProject() {
     loading,
     fetchProjects,
     createProject,
-    updateProject,
     deleteProject,
     batchDeleteProjects,
   }

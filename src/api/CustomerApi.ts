@@ -36,6 +36,17 @@ export async function createCustomerApi(
   })
 }
 
+// 更新客户
+export async function updateCustomerApi(
+  data: CustomerData,
+): Promise<ApiResponse<CustomerData>> {
+  return request({
+    url: '/customer/update',
+    method: 'post',
+    data,
+  })
+}
+
 // 删除客户
 export async function deleteCustomerApi(id: number): Promise<ApiResponse<unknown>> {
   return request({

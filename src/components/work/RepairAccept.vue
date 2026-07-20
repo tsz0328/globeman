@@ -9,24 +9,24 @@
     </div>
     <div class="filter-section">
       <div class="filter-item">
-        <label>状态：</label>
-        <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+        <label for="status">状态：</label>
+        <el-select id="status" aria-label="状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="维修中" value="维修中" />
           <el-option label="已完成" value="已完成" />
         </el-select>
       </div>
       <div class="filter-item">
-        <label>设备名称：</label>
-        <el-input v-model="filterForm.name" placeholder="请输入设备名称" style="width: 150px" />
+        <label for="equipmentName">设备名称：</label>
+        <el-input id="equipmentName" aria-label="设备名称" v-model="filterForm.name" placeholder="请输入设备名称" style="width: 150px" />
       </div>
       <div class="filter-item">
-        <label>设备型号：</label>
-        <el-input v-model="filterForm.model" placeholder="请输入设备型号" style="width: 150px" />
+        <label for="equipmentModel">设备型号：</label>
+        <el-input id="equipmentModel" aria-label="设备型号" v-model="filterForm.model" placeholder="请输入设备型号" style="width: 150px" />
       </div>
       <div class="filter-item">
-        <label>SN码：</label>
-        <el-input v-model="filterForm.sn" placeholder="请输入SN码" style="width: 150px" />
+        <label for="snCode">SN码：</label>
+        <el-input id="snCode" aria-label="SN码" v-model="filterForm.sn" placeholder="请输入SN码" style="width: 150px" />
       </div>
       <div class="filter-item">
         <el-button type="primary" @click="handleSearch">查询</el-button>

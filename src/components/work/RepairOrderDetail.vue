@@ -9,7 +9,7 @@
       <h3 class="section-title">订单名称：{{ orderName }}</h3>
       <el-table :data="paginatedData" border style="width: 100%">
         <el-table-column prop="equipmentName" label="设备名称" width="150" />
-        <el-table-column prop="equipmentModel" label="设备名称" width="150" />
+        <el-table-column prop="equipmentModel" label="设备型号" width="150" />
         <el-table-column prop="manufacturer" label="生产厂家" />
         <el-table-column prop="quantity" label="数量" width="100" />
         <el-table-column prop="unitPrice" label="单价" width="150" />
@@ -64,6 +64,7 @@
               <el-input
                 v-model="scope.row.sn"
                 placeholder="编辑SN，回车提交"
+                aria-label="SN码"
                 :readonly="scope.row.status === '维修中' || scope.row.status === '待维修'"
                 @keyup.enter.prevent="handleInlineSnSubmit(scope.row, true)"
                 @blur="handleInlineSnSubmit(scope.row, true)"
@@ -115,6 +116,7 @@ import Cookies from 'js-cookie'
 
 import { useDetail } from '@/composables/useDetail'
 
+// 设备详情路由参数
 const route = useRoute()
 const {
   fetchDetails: fetchRepairDetails,
@@ -151,10 +153,10 @@ const handleAccept = async (row: EditableDetailData) => {
   const success = await acceptRepair(sn, account)
   if (success) {
     ElMessage.success('接单成功')
-    row.status = '维修中'
     row.accepted = true
-    // 刷新设备详情列表
+    // 刷新设备详情列表（外层）与弹窗内表格（状态与后端同步）
     await fetchRepairDetails(orderId.value)
+    await refreshDetailData()
   } else {
     ElMessage.error('接单失败')
   }
@@ -164,11 +166,12 @@ const orderId = ref(0)
 const orderName = ref('')
 const currentPage = ref(1)
 const pageSize = ref(8)
-const isProjectIdValid = ref(true)
 const detailDialogVisible = ref(false)
 const detailDataList = ref<EditableDetailData[]>([])
 const detailCurrentPage = ref(1)
 const detailPageSize = ref(10)
+// 当前打开弹窗的父设备行 ID（用于提交 SN / 接单后刷新弹窗内表格）
+const currentDetailParentId = ref(0)
 
 // 解析项目ID
 const parseProjectId = (id: unknown): number => {
@@ -197,20 +200,24 @@ interface EditableDetailData {
   lastSn?: string
 }
 
+// 设备详情列表
 const displayData = computed(() => repairDetailList.value)
 
+// 设备详情分页数据
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return displayData.value.slice(start, end)
 })
 
+// 设备详情分页数据
 const paginatedDetailData = computed(() => {
   const start = (detailCurrentPage.value - 1) * detailPageSize.value
   const end = start + detailPageSize.value
   return detailDataList.value.slice(start, end)
 })
 
+// 设备详情公共信息
 const detailCommonInfo = computed(
   () =>
     detailDataList.value[0] || {
@@ -220,10 +227,12 @@ const detailCommonInfo = computed(
     },
 )
 
+// 返回上一页
 const goBack = () => {
   window.close()
 }
 
+// 获取状态类型
 const getStatusType = (
   status: string,
 ): '' | 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
@@ -237,6 +246,59 @@ const getStatusType = (
   }
 }
 
+// 把 getRepairDetail 的响应映射为弹窗表格数据；baseRow 提供字段兜底与外层设备信息
+const buildDetailList = (
+  res: Awaited<ReturnType<typeof getRepairDetail>>,
+  baseRow: EditableDetailData,
+): EditableDetailData[] => {
+  const dataValues = Object.values(res?.data || {}) as unknown as Record<string, unknown>[]
+  if (dataValues.length > 0) {
+    return dataValues.map((detail) => ({
+      ...baseRow,
+      id: (detail.id as number) || baseRow.id,
+      equipmentName: (detail.name as string) || baseRow.equipmentName,
+      equipmentModel: (detail.model as string) || baseRow.equipmentModel,
+      manufacturer: (detail.manufacturer as string) || baseRow.manufacturer,
+      sn: (detail.sn as string) || '',
+      status: (detail.status as string) || '',
+      accepted: false,
+      // 记录已提交 SN，避免刷新后失焦再次触发重复提交（仅取本行 SN，不回退到 baseRow）
+      lastSn: (detail.sn as string) || '',
+    }))
+  }
+  return [
+    {
+      ...baseRow,
+      sn: baseRow.sn || '',
+      status: baseRow.status || '',
+      accepted: false,
+      lastSn: baseRow.sn || '',
+    },
+  ]
+}
+
+// 提交 SN / 接单后，重新拉取弹窗内设备详情，使状态与后端同步（输入框立即变只读、状态标签即时更新）
+const refreshDetailData = async () => {
+  const parentId = currentDetailParentId.value
+  if (!parentId) return
+  const base = detailDataList.value[0]
+  if (!base) return
+  const res = await getRepairDetail(parentId)
+  if (res && res.code === 200) {
+    detailDataList.value = buildDetailList(res, base)
+  } else {
+    detailDataList.value = [
+      {
+        ...base,
+        sn: base.sn || '',
+        status: base.status || '',
+        accepted: false,
+        lastSn: base.sn || '',
+      },
+    ]
+  }
+}
+
 // 处理设备详情弹窗显示
 const handleDetail = async (row: EditableDetailData) => {
   // 检查数据ID是否有效
@@ -246,34 +308,13 @@ const handleDetail = async (row: EditableDetailData) => {
   }
   // 清空设备详情列表
   detailCurrentPage.value = 1
+  // 记录父设备行 ID，供后续刷新弹窗内表格使用
+  currentDetailParentId.value = row.id
   // 获取设备详情列表
   const res = await getRepairDetail(row.id)
   // 处理设备详情列表
   if (res && res.code === 200) {
-    const dataValues = Object.values(res.data || {}) as unknown as Record<string, unknown>[]
-    if (dataValues.length > 0) {
-      detailDataList.value = dataValues.map((detail) => ({
-        ...row,
-        id: (detail.id as number) || row.id,
-        equipmentName: (detail.name as string) || row.equipmentName,
-        equipmentModel: (detail.model as string) || row.equipmentModel,
-        manufacturer: (detail.manufacturer as string) || row.manufacturer,
-        sn: (detail.sn as string) || row.sn || '',
-        status: (detail.status as string) || row.status || '',
-        accepted: false,
-      }))
-      detailDialogVisible.value = true
-    } else {
-      detailDataList.value = [
-        {
-          ...row,
-          sn: row.sn || '',
-          status: row.status || '',
-          accepted: false,
-        },
-      ]
-      detailDialogVisible.value = true
-    }
+    detailDataList.value = buildDetailList(res, row)
   } else {
     detailDataList.value = [
       {
@@ -281,13 +322,15 @@ const handleDetail = async (row: EditableDetailData) => {
         sn: row.sn || '',
         status: row.status || '',
         accepted: false,
+        lastSn: row.sn || '',
       },
     ]
-    detailDialogVisible.value = true
   }
+  detailDialogVisible.value = true
 }
 
-const submitSn = async (sn: string, id: number, row?: EditableDetailData) => {
+// 提交设备详情的SN码
+const submitSn = async (sn: string, id: number) => {
   if (!id) {
     ElMessage.error('无效的数据ID')
     return false
@@ -297,13 +340,11 @@ const submitSn = async (sn: string, id: number, row?: EditableDetailData) => {
     return false
   }
 
+  // 调用提交接口
   const success = await addRepairSn(sn, id)
   if (success) {
     ElMessage.success('提交成功')
-    if (row) {
-      row.status = '维修中'
-      row.accepted = true
-    }
+    // 刷新外层设备列表
     await fetchRepairDetails(orderId.value)
     return true
   }
@@ -339,10 +380,10 @@ const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => 
 
   row.submitting = true
   try {
-    const success = await submitSn(trimmedSn, targetId, row)
+    const success = await submitSn(trimmedSn, targetId)
     if (success) {
-      row.sn = trimmedSn
-      row.lastSn = trimmedSn
+      // 重新拉取弹窗内设备详情，使状态与后端同步：输入框立即变只读、状态标签即时更新
+      await refreshDetailData()
     }
   } finally {
     row.submitting = false
@@ -353,7 +394,6 @@ onMounted(() => {
   const id = parseProjectId(route.params.id)
 
   if (id === 0) {
-    isProjectIdValid.value = false
     ElMessage.error('无效的订单ID')
     return
   }

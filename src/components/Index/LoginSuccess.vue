@@ -22,7 +22,7 @@ async function handleWork() {
 </script>
 
 <template>
-  <div class="login-title">
+  <div class="login-title idx-base">
     <div class="bg-box">
       <div class="bg1"></div>
       <div class="bg2"></div>
@@ -38,11 +38,16 @@ async function handleWork() {
 
   <div class="content" style="height: 240px; padding: 20px 15px">
     <form class="el-form el-form--label-left" @submit.prevent="">
-      <div class="el-form-item is-required">
+      <!-- 占位：与登录页两行输入框等高，使“工作台”按钮与“登录”按钮处于同一垂直位置 -->
+      <div class="el-form-item" style="margin: 0 0 36px; height: 30px">
+        <div class="el-form-item__content"></div>
+      </div>
+      <div class="el-form-item" style="margin: 0 0 36px; height: 30px">
+        <div class="el-form-item__content"></div>
       </div>
       <div class="el-form-item" style="margin-bottom: 20px">
         <div class="el-form-item__content">
-          <button class="loginBtn" @click="handleWork">工作台</button>
+          <button type="button" class="loginBtn" @click="handleWork">工作台</button>
         </div>
       </div>
       <div class="logout" @click="handleLogout"><span> 退出登录 </span></div>
@@ -59,34 +64,12 @@ async function handleWork() {
   justify-content: space-between;
   -webkit-box-align: baseline;
   align-items: baseline;
-  margin: 0;
-  user-select: none;
-  box-sizing: border-box;
   color: #fff;
   font-size: 18px;
   font-weight: 500;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
 }
 
 .login-content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   position: absolute;
   width: 100%;
@@ -100,17 +83,6 @@ async function handleWork() {
 }
 
 .bg-box {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
@@ -119,17 +91,6 @@ async function handleWork() {
 }
 
 .login-title {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   background: linear-gradient(90deg, #0c1390, #eeeeff);
@@ -139,17 +100,6 @@ async function handleWork() {
 }
 
 .bg1 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 66px;
   height: 66px;
@@ -163,17 +113,6 @@ async function handleWork() {
 }
 
 .bg2 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   opacity: 0.2;
@@ -187,17 +126,6 @@ async function handleWork() {
 }
 
 .bg3 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 103px;
   height: 103px;
@@ -210,17 +138,6 @@ async function handleWork() {
 }
 
 .bg4 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   transform: rotate(315deg);
@@ -233,15 +150,6 @@ async function handleWork() {
 }
 
 .content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   background-color: #fff;
   min-height: 240px;
   height: 300px;
@@ -250,31 +158,10 @@ async function handleWork() {
 }
 
 .el-form--label-left {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
 }
 
 .is-required {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
   margin: 0 0 36px;
   padding: 0;
   /*按钮之间的高度*/
@@ -283,16 +170,6 @@ async function handleWork() {
 }
 
 .el-form-item__content {
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   /*输入栏和按钮之间的高度*/
   line-height: 40px;
@@ -301,14 +178,6 @@ async function handleWork() {
 }
 
 .loginBtn {
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   text-align: center;
   width: 100%;
@@ -335,16 +204,6 @@ async function handleWork() {
 }
 
 .logout {
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   font-size: 14px;
   color: #08138d;

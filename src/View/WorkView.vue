@@ -37,7 +37,7 @@ function handleIndex() {
     </div>
   </div>
   <div class="body">
-    <div class="menu">
+    <div class="sidebar">
       <MenuComponent />
     </div>
     <div class="work">
@@ -110,15 +110,15 @@ function handleIndex() {
   object-fit: cover;
 }
 
-.menu {
+.sidebar {
   width: 180px;
-  height: 735px;
+  height: calc(100vh - 60px);
   background-color: white;
 }
 
 .work {
   width: 100%;
-  height: 735px;
+  height: calc(100vh - 60px);
   background-color: white;
 }
 </style>

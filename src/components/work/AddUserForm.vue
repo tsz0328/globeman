@@ -1,9 +1,8 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" label-width="100px">
-      <el-form-item prop="account">
-        <template #label>账号</template>
-        <el-input
+      <el-form-item prop="account" label="账号">
+  <el-input
           v-model="form.account"
           placeholder="请输入账号"
           @keyup.enter.prevent="handleEnter($event)"
@@ -11,9 +10,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="password">
-        <template #label>密码</template>
-        <el-input
+      <el-form-item prop="password" label="密码">
+  <el-input
           v-model="form.password"
           type="password"
           placeholder="请输入密码"
@@ -22,9 +20,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="name">
-        <template #label>姓名</template>
-        <el-input
+      <el-form-item prop="name" label="姓名">
+  <el-input
           v-model="form.name"
           placeholder="请输入姓名"
           @keyup.enter.prevent="handleEnter($event)"
@@ -32,9 +29,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="company">
-        <template #label>公司</template>
-        <el-select
+      <el-form-item prop="company" label="公司">
+  <el-select
           v-model="form.company"
           placeholder="请选择公司"
           @keyup.enter.prevent="handleEnter($event)"
@@ -49,9 +45,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item prop="role">
-        <template #label>角色</template>
-        <el-select
+      <el-form-item prop="role" label="角色">
+  <el-select
           v-model="form.role"
           placeholder="请选择角色"
           @keyup.enter.prevent="handleSubmit"

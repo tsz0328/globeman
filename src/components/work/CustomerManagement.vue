@@ -15,8 +15,10 @@
     <!-- 筛选区域 -->
     <div class="filter-section">
       <div class="filter-item">
-        <label>客户名称：</label>
+        <label for="customerName">客户名称：</label>
         <el-input
+          id="customerName"
+          aria-label="客户名称"
           v-model="filterForm.name"
           placeholder="请输入客户名称"
           style="width: 150px"
@@ -24,8 +26,10 @@
         />
       </div>
       <div class="filter-item">
-        <label>联系人：</label>
+        <label for="contactPerson">联系人：</label>
         <el-input
+          id="contactPerson"
+          aria-label="联系人"
           v-model="filterForm.contact"
           placeholder="请输入联系人"
           style="width: 150px"
@@ -96,7 +100,7 @@ import type { CustomerFormData } from './AddCustomerForm.vue'
 import { useCustomer, type Customer } from '@/composables/useCustomer'
 import { useCompany } from '@/composables/useCompany'
 
-const { customerList, fetchCustomers, createCustomer, deleteCustomer, batchDeleteCustomers } =
+const { customerList, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, batchDeleteCustomers } =
   useCustomer()
 const { companyList, fetchCompanies } = useCompany()
 
@@ -135,7 +139,7 @@ const handleCustomerSubmit = async (data: CustomerFormData) => {
   try {
     let success = false
     if (data.id) {
-      success = await createCustomer(data)
+      success = await updateCustomer(data)
     } else {
       success = await createCustomer(data)
     }
@@ -316,40 +320,5 @@ const handleReset = () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-}
-
-.total {
-  font-size: 14px;
-  color: #666;
-}
-
-.pagination {
-  display: flex;
-  gap: 5px;
-}
-
-.page-btn {
-  padding: 4px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.page-btn.active {
-  background-color: #1890ff;
-  color: white;
-  border-color: #1890ff;
-}
-
-.page-btn:disabled {
-  cursor: not-allowed;
-  color: #ccc;
 }
 </style>

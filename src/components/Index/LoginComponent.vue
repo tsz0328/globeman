@@ -1,30 +1,15 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { loginApi } from '@/api/LoginApi'
-import { getUserInfoApi } from '@/api/UserApi'
-import Cookies from 'js-cookie'
-import CryptoJS from 'crypto-js'
+import { useLogin } from '@/composables/useLogin'
 import router from '@/router'
+
+const { login } = useLogin()
 
 //定义数据类型
 interface LoginForm {
   account: string
   password: string
-}
-
-interface UserDetailData {
-  name?: string
-  email?: string
-  phone?: string
-  department?: string
-  role?: string
-  company?: string
-  time?: string
-  createTime?: string
-  createdAt?: string
-  created_at?: string
-  admin?: UserDetailData
 }
 
 //初始化表单
@@ -36,83 +21,19 @@ const loginForm = reactive<LoginForm>({
 const buttonStatus = ref(false)
 //初始化按钮文字
 const buttonText = ref('登录')
-//加密密钥
-const SECRET_KEY = 'qqr13637332568.'
-//加密函数
-function encrypt(text: string): string {
-  return CryptoJS.AES.encrypt(text, SECRET_KEY).toString()
-}
-//登录成功后存储用户信息
-async function setUserInfo(data: { role: string; token: string; company?: string; time?: string }) {
-  const { role, token, company, time } = data
-  Cookies.set('token', token, { expires: 1 })
-  Cookies.set('account', loginForm.account, { expires: 7 })
-  Cookies.set('password', encrypt(loginForm.password), { expires: 7 })
-  if (company) {
-    Cookies.set('company', company, { expires: 7 })
-  }
-  if (role) {
-    Cookies.set('role', role, { expires: 7 })
-  }
-  if (time) {
-    Cookies.set('time', time, { expires: 7 })
-  }
-}
-
-//存储用户个人信息
-async function setUserDetailInfo(userData: UserDetailData) {
-  if (userData.name) {
-    Cookies.set('name', userData.name, { expires: 7 })
-  }
-  if (userData.email) {
-    Cookies.set('email', userData.email, { expires: 7 })
-  }
-  if (userData.phone) {
-    Cookies.set('phone', userData.phone, { expires: 7 })
-  }
-  if (userData.department) {
-    Cookies.set('department', userData.department, { expires: 7 })
-  }
-}
-
 //登入请求
 async function loginRequest() {
   try {
     buttonStatus.value = true
     buttonText.value = '登录中'
-    const res = await loginApi(loginForm)
-    if (res.code === 200) {
-      setUserInfo(res.data)
-      try {
-        const userInfoRes = await getUserInfoApi(loginForm.account)
-        if (userInfoRes.code === 200) {
-          const userInfo =
-            (userInfoRes.data as UserDetailData)?.admin ?? (userInfoRes.data as UserDetailData)
-          setUserDetailInfo(userInfo as UserDetailData)
-          const detailRole = userInfo.role
-          if ((!res.data || !res.data.role) && detailRole) {
-            Cookies.set('role', detailRole, { expires: 7 })
-          }
-          const detailCompany = userInfo.company
-          if ((!res.data || !res.data.company) && detailCompany) {
-            Cookies.set('company', detailCompany, { expires: 7 })
-          }
-          const detailTime =
-            userInfo.time ?? userInfo.createTime ?? userInfo.createdAt ?? userInfo.created_at
-          if ((!res.data || !res.data.time) && detailTime) {
-            Cookies.set('time', detailTime, { expires: 7 })
-          }
-        }
-      } catch (infoErr) {
-        console.warn('获取用户详细信息失败:', infoErr)
-      }
-      ElMessage.success(res.msg || '登录成功')
+    const { success, message } = await login(loginForm)
+    if (success) {
+      ElMessage.success(message)
       router.push({ name: 'LoginSuccess' })
     } else {
-      ElMessage.error(res.msg || '登录失败')
+      ElMessage.error(message)
     }
-  } catch (err) {
-    console.error('登录异常：', err)
+  } catch {
     ElMessage.error('网络异常')
   } finally {
     buttonStatus.value = false
@@ -122,7 +43,7 @@ async function loginRequest() {
 </script>
 
 <template>
-  <div class="login-title">
+  <div class="login-title idx-base">
     <div class="bg-box">
       <div class="bg1"></div>
       <div class="bg2"></div>
@@ -159,6 +80,7 @@ async function loginRequest() {
               name="userName"
               placeholder="请输入"
               class="el-input__inner"
+              aria-label="用户名"
               v-model="loginForm.account"
             />
           </div>
@@ -185,6 +107,7 @@ async function loginRequest() {
               name="password"
               placeholder="请输入"
               class="el-input__inner"
+              aria-label="密码"
               v-model="loginForm.password"
             />
           </div>
@@ -193,12 +116,12 @@ async function loginRequest() {
 
       <div class="el-form-item" style="margin-bottom: 20px">
         <div class="el-form-item__content">
-          <button class="loginBtn" @click="loginRequest" :disabled="buttonStatus">
+          <button type="button" class="loginBtn" @click="loginRequest" :disabled="buttonStatus">
             {{ buttonText }}
           </button>
         </div>
       </div>
-      <div class="forgetPass"><span data-v-59e3a17f=""> 忘记密码 </span></div>
+      <div class="forgetPass"><span > 忘记密码 </span></div>
     </form>
   </div>
 </template>
@@ -212,34 +135,12 @@ async function loginRequest() {
   justify-content: space-between;
   -webkit-box-align: baseline;
   align-items: baseline;
-  margin: 0;
-  user-select: none;
-  box-sizing: border-box;
   color: #fff;
   font-size: 18px;
   font-weight: 500;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
 }
 
 .login-content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   position: absolute;
   width: 100%;
@@ -253,17 +154,6 @@ async function loginRequest() {
 }
 
 .bg-box {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
@@ -272,17 +162,6 @@ async function loginRequest() {
 }
 
 .login-title {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   background: linear-gradient(90deg, #0c1390, #eeeeff);
@@ -292,17 +171,6 @@ async function loginRequest() {
 }
 
 .bg1 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 66px;
   height: 66px;
@@ -316,17 +184,6 @@ async function loginRequest() {
 }
 
 .bg2 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   opacity: 0.2;
@@ -340,17 +197,6 @@ async function loginRequest() {
 }
 
 .bg3 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 103px;
   height: 103px;
@@ -363,17 +209,6 @@ async function loginRequest() {
 }
 
 .bg4 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   transform: rotate(315deg);
@@ -386,15 +221,6 @@ async function loginRequest() {
 }
 
 .content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   background-color: #fff;
   min-height: 240px;
   height: 300px;
@@ -403,31 +229,10 @@ async function loginRequest() {
 }
 
 .el-form--label-left {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
 }
 
 .is-required {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
   margin: 0 0 36px;
   padding: 0;
   /*按钮之间的高度*/
@@ -436,16 +241,6 @@ async function loginRequest() {
 }
 
 .el-form-item__content {
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   /*输入栏和按钮之间的高度*/
   line-height: 40px;
@@ -454,16 +249,6 @@ async function loginRequest() {
 }
 
 .el-input-group--prepend {
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   position: relative;
   font-size: 14px;
@@ -480,7 +265,6 @@ async function loginRequest() {
   border-radius: 0;
   width: 90px;
   padding: 0 8px;
-  box-sizing: border-box;
   background: #f7f7f7;
   border: 1px solid #dcdfe6;
   border-right: 0;
@@ -489,40 +273,22 @@ async function loginRequest() {
   display: table-cell;
   position: relative;
   white-space: nowrap;
-  margin: 0;
-  user-select: none;
   line-height: normal;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-text-size-adjust: 100%;
 }
 
 .el-input__inner {
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
   border-collapse: separate;
   border-spacing: 0;
-  user-select: none;
   font-family: sans-serif;
-  margin: 0;
   -webkit-appearance: none;
   appearance: none;
   background-color: #fff;
   background-image: none;
   border: 1px solid #e1e1e1;
   border-radius: 0 4px 4px 0;
-  box-sizing: border-box;
   color: #606266;
   font-size: inherit;
   height: 40px;
@@ -537,14 +303,6 @@ async function loginRequest() {
 }
 
 .loginBtn {
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   text-align: center;
   width: 100%;
@@ -571,16 +329,6 @@ async function loginRequest() {
 }
 
 .forgetPass {
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   font-size: 14px;
   color: #08138d;

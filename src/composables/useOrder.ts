@@ -36,7 +36,6 @@ export function useOrder() {
   const createOrder = async (data: OrderFormData): Promise<boolean> => {
     try {
       const response = await createOrderApi(data)
-      console.log('创建订单响应:', response)
 
       if (response.code === 200) {
         return true
@@ -126,17 +125,11 @@ export function useOrder() {
     }
   }
 
-  const getOrderName = (orderId: number): string | undefined => {
-    const order = orderList.value.find((o) => o.id === orderId)
-    return order?.name
-  }
-
   return {
     orderList,
     createOrder,
     fetchOrders,
     deleteOrder,
     submitOrder,
-    getOrderName,
   }
 }

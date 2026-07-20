@@ -17,6 +17,7 @@
             <el-input
               v-else
               v-model="scope.row.equipmentName"
+              aria-label="设备名称"
               @keydown.enter.prevent="handleCellEnter"
             />
           </template>
@@ -27,6 +28,7 @@
             <el-input
               v-else
               v-model="scope.row.equipmentModel"
+              aria-label="设备型号"
               @keydown.enter.prevent="handleCellEnter"
             />
           </template>
@@ -37,6 +39,7 @@
             <el-input
               v-else
               v-model="scope.row.manufacturer"
+              aria-label="生产厂家"
               @keydown.enter.prevent="handleCellEnter"
             />
           </template>
@@ -47,6 +50,7 @@
             <el-input
               v-else
               v-model="scope.row.quantity"
+              aria-label="数量"
               @keydown.enter.prevent="handleCellEnter"
             />
           </template>
@@ -57,6 +61,7 @@
             <el-input
               v-else
               v-model="scope.row.unitPrice"
+              aria-label="单价"
               @keydown.enter.prevent="handleTotalEnter"
             />
           </template>
@@ -109,7 +114,6 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 const isAdding = ref(false)
 const editRows = ref<EditableDetailData[]>([])
-const isProjectIdValid = ref(true)
 const orderStatus = ref('')
 
 // 订单状态是否锁定（已确认，无法修改）
@@ -139,11 +143,10 @@ interface EditableDetailData {
   quantity: string | number
   unitPrice: string | number
   total: string | number
-  isEditing: boolean
 }
 
 const displayData = computed(() => {
-  const baseData = detailList.value.map((item) => ({ ...item, isEditing: false }))
+  const baseData = detailList.value.map((item) => ({ ...item }))
   return [...baseData, ...editRows.value]
 })
 
@@ -177,7 +180,6 @@ const addEditRow = () => {
     quantity: '',
     unitPrice: '',
     total: '',
-    isEditing: true,
   }
   editRows.value.push(newRow)
 
@@ -289,14 +291,14 @@ const handleConfirm = async () => {
       ElMessage.warning('单价必须为正数')
       return
     }
-    await submitEditRow(row, -1)
+    await submitEditRow(row)
   }
 
   editRows.value = []
   isAdding.value = false
 }
 
-const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
+const submitEditRow = async (row: EditableDetailData) => {
   const orderIdValue = parseProjectId(route.params.id)
 
   if (orderIdValue === 0) {
@@ -316,9 +318,6 @@ const submitEditRow = async (row: EditableDetailData, editIndex: number) => {
   const success = await createDetail(submitData)
   if (success) {
     await fetchDetails(orderIdValue)
-    if (editIndex >= 0) {
-      editRows.value.splice(editIndex, 1)
-    }
     ElMessage.success('创建设备成功')
 
     if (isAdding.value && editRows.value.length === 0) {
@@ -333,7 +332,6 @@ onMounted(async () => {
   const id = parseProjectId(route.params.id)
 
   if (id === 0) {
-    isProjectIdValid.value = false
     ElMessage.error('无效的订单ID')
     return
   }

@@ -2,6 +2,18 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 
+// 扩展 axios 类型：skipToken 为顶层自定义字段，
+// 用于标记请求是否需要携带 token（如登录接口无需 token）。
+// 通过模块增强声明合并，使 TS 在调用处与拦截器中均能识别该字段。
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    skipToken?: boolean
+  }
+  interface InternalAxiosRequestConfig {
+    skipToken?: boolean
+  }
+}
+
 // 创建 axios 实例
 const request = axios.create({
   baseURL: '/api', // 通过 Vite 代理转发到后端
@@ -14,7 +26,7 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    if (config.headers?.skipToken !== true) {
+    if (config.skipToken !== true) {
       const token = Cookies.get('token')
       if (token) {
         config.headers.token = token

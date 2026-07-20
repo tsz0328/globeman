@@ -3,17 +3,12 @@
 
 <template>
   <div
-    data-v-c9becc0e=""
-    data-v-35ec83d2=""
-    data-v-216c7ec1=""
-    class="box card-radius"
+                class="box card-radius idx-base"
     style="width: 100%; padding: 25px 30px 24px"
   >
     <div data-v-35ec83d2="" data-v-c9becc0e="" class="title">
       <img
-        data-v-35ec83d2=""
-        data-v-c9becc0e=""
-        src="/logo.png"
+                        src="/logo.png"
         alt="湖南全球人logo"
         />
       <div data-v-35ec83d2="" data-v-c9becc0e="" class="title-text">
@@ -30,17 +25,6 @@
 
 <style scoped>
 .card-radius{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   overflow: hidden;
   border-radius: 5px 5px 0 0;
   height: 399px;
@@ -51,16 +35,6 @@
 }
 
 .title{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
   margin: 0 0 14px;
   padding: 0;
   display: flex;
@@ -68,14 +42,6 @@
 }
 
 img{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
   border: 0;
   width: auto;
   height: 20px;
@@ -84,17 +50,6 @@ img{
 }
 
 .title-text{
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   color: #231916;
   font-size: 20px;
@@ -102,16 +57,6 @@ img{
 }
 
 .content{
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 385px;
   height: 320px;

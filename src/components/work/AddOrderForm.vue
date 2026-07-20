@@ -1,9 +1,8 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="140px">
-      <el-form-item prop="name">
-        <template #label>订单名称（必填）</template>
-        <el-input
+      <el-form-item prop="name" label="订单名称（必填）">
+  <el-input
           v-model="form.name"
           placeholder="请输入订单名称"
           @keyup.enter.prevent="handleEnter($event)"
@@ -11,9 +10,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="type">
-        <template #label>订单类型（必填）</template>
-        <el-select
+      <el-form-item prop="type" label="订单类型（必填）">
+  <el-select
           v-model="form.type"
           placeholder="请选择订单类型"
           @keyup.enter.prevent="handleEnter($event)"
@@ -25,9 +23,8 @@
           <el-option label="维修订单" value="维修订单" />
         </el-select>
       </el-form-item>
-      <el-form-item prop="leaderAccount">
-        <template #label>负责人（必填）</template>
-        <el-select
+      <el-form-item prop="leaderAccount" label="负责人（必填）">
+  <el-select
           v-model="leaderName"
           placeholder="请选择负责人"
           @change="handleLeaderChange"
@@ -43,9 +40,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item prop="customer">
-        <template #label>客户（必填）</template>
-        <el-autocomplete
+      <el-form-item prop="customer" label="客户（必填）">
+  <el-autocomplete
           v-model="customerName"
           :fetch-suggestions="queryCustomerSearch"
           placeholder="请输入客户名称"
@@ -57,9 +53,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="contact">
-        <template #label>客户联系人（必填）</template>
-        <el-autocomplete
+      <el-form-item prop="contact" label="客户联系人（必填）">
+  <el-autocomplete
           v-model="contactName"
           :fetch-suggestions="queryContactSearch"
           placeholder="请输入联系人"
@@ -71,9 +66,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="contactPhone">
-        <template #label>联系人电话</template>
-        <el-input
+      <el-form-item prop="contactPhone" label="联系人电话">
+  <el-input
           v-model="form.contactPhone"
           placeholder="请输入联系人电话（选填）"
           @keyup.enter.prevent="handleEnter($event)"
@@ -81,9 +75,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="province">
-        <template #label>执行省份</template>
-        <el-input
+      <el-form-item prop="province" label="执行省份">
+  <el-input
           v-model="form.province"
           placeholder="请输入执行省份"
           @keyup.enter.prevent="handleEnter($event)"
@@ -91,9 +84,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="city">
-        <template #label>执行市</template>
-        <el-input
+      <el-form-item prop="city" label="执行市">
+  <el-input
           v-model="form.city"
           placeholder="请输入执行市"
           @keyup.enter.prevent="handleEnter($event)"
@@ -101,9 +93,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="district">
-        <template #label>执行区</template>
-        <el-input
+      <el-form-item prop="district" label="执行区">
+  <el-input
           v-model="form.district"
           placeholder="请输入执行区"
           @keyup.enter.prevent="handleEnter($event)"
@@ -111,9 +102,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="address">
-        <template #label>送修地址</template>
-        <el-input
+      <el-form-item prop="address" label="送修地址">
+  <el-input
           v-model="form.address"
           placeholder="请输入送修地址"
           @keyup.enter.prevent="handleSubmit"
@@ -409,6 +399,4 @@ export interface OrderFormData {
   district: string
   address: string
 }
-
-export default {}
 </script>

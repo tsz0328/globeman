@@ -22,6 +22,7 @@ export async function loginApi(loginForm: LoginForm): Promise<LoginResponse> {
     url: '/login',
     method: 'post',
     data: loginForm,
+    skipToken: true,
     headers: {
       account: loginForm.account
     }

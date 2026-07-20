@@ -1,7 +1,7 @@
 <template>
-  <div class="outbound-management">
+  <div class="inventory-management">
     <div class="page-header">
-      <h2 class="title">首页</h2>
+      <h2 class="title">库存管理</h2>
     </div>
     <div class="content-card">
       <el-empty />
@@ -12,7 +12,7 @@
 <script setup lang="ts"></script>
 
 <style scoped>
-.outbound-management {
+.inventory-management {
   padding: 20px;
   display: flex;
   flex-direction: column;

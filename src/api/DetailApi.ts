@@ -160,3 +160,103 @@ export async function uploadRepairImagesApi(files: File[], id: number): Promise<
     },
   })
 }
+
+// 测试实拍照片专用接口（与维修图片接口分离）
+export async function getTestImagesApi(
+  id: number,
+): Promise<ApiResponse<{ [key: string]: RepairImageData }>> {
+  return request({
+    url: '/take/getImgTest',
+    method: 'get',
+    params: { id },
+  })
+}
+
+export async function deleteTestImageApi(id: number): Promise<ApiResponse<void>> {
+  return request({
+    url: '/take/delectImgTest',
+    method: 'put',
+    params: { id },
+  })
+}
+
+export async function uploadTestImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
+  const formData = new FormData()
+  files.forEach((file) => {
+    formData.append('files', file)
+  })
+  formData.append('id', id.toString())
+
+  return request({
+    url: '/take/uploadImgsTest',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+}
+
+export interface SubmitRepairData {
+  id: number
+  reason: string
+  solve: string
+  result: string
+  test: string
+}
+
+export async function submitRepairApi(data: SubmitRepairData): Promise<ApiResponse<void>> {
+  return request({
+    url: '/take/submit',
+    method: 'put',
+    data,
+  })
+}
+
+export async function saveRepairApi(id: number): Promise<ApiResponse<void>> {
+  return request({
+    url: '/take/save',
+    method: 'put',
+    params: { id },
+  })
+}
+
+export async function repairTakeApi(sn: string): Promise<ApiResponse<void>> {
+  return request({
+    url: '/repair/take',
+    method: 'put',
+    params: { sn },
+  })
+}
+
+export interface RepairDetailData {
+  repairman: string
+  reason: string
+  test: string
+  repairman_account: string
+  project_name: string
+  manufacturer: string
+  order_name: string
+  result: string
+  details_id: number
+  project_id: number
+  solve: string
+  name: string
+  company: string
+  model: string
+  id: number
+  sn: string
+  time: string
+  take_time: string
+  order_id: number
+  status: string
+  done_time: string
+}
+
+export async function getRepairByIdApi(id: number): Promise<ApiResponse<RepairDetailData>> {
+  return request({
+    url: '/take/getById',
+    method: 'get',
+    params: { id },
+  })
+}

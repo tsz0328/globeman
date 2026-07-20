@@ -15,8 +15,8 @@
     <!-- 筛选区域 -->
     <div class="filter-section">
       <div class="filter-item">
-        <label>公司：</label>
-        <el-select v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
+        <label for="company">公司：</label>
+        <el-select id="company" aria-label="公司" v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
           <el-option label="全部公司" value="" />
           <el-option
             v-for="company in companyList"
@@ -27,8 +27,8 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>角色：</label>
-        <el-select v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
+        <label for="role">角色：</label>
+        <el-select id="role" aria-label="角色" v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
           <el-option label="全部角色" value="" />
           <el-option
             v-for="role in roleList"
@@ -39,8 +39,10 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>创建时间：</label>
+        <label for="createTime">创建时间：</label>
         <el-date-picker
+          id="createTime"
+          aria-label="创建时间"
           v-model="filterForm.createTime"
           type="date"
           placeholder="选择日期"
@@ -332,40 +334,5 @@ const handleReset = () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-}
-
-.total {
-  font-size: 14px;
-  color: #666;
-}
-
-.pagination {
-  display: flex;
-  gap: 5px;
-}
-
-.page-btn {
-  padding: 4px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.page-btn.active {
-  background-color: #1890ff;
-  color: white;
-  border-color: #1890ff;
-}
-
-.page-btn:disabled {
-  cursor: not-allowed;
-  color: #ccc;
 }
 </style>

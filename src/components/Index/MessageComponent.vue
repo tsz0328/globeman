@@ -2,17 +2,17 @@
 </script>
 
 <template>
-  <div class="background">
+  <div class="background idx-base">
     <div class="login-title">
-      <div data-v-5a922248="" class="bg-box">
-        <div data-v-5a922248="" class="bg1"></div>
-        <div data-v-5a922248="" class="bg2"></div>
-        <div data-v-5a922248="" class="bg3"></div>
-        <div data-v-5a922248="" class="bg4"></div>
+      <div  class="bg-box">
+        <div  class="bg1"></div>
+        <div  class="bg2"></div>
+        <div  class="bg3"></div>
+        <div  class="bg4"></div>
       </div>
-      <div data-v-5a922248="" class="login-content">
-        <div data-v-4022d12a="" data-v-5a922248="" class="title-box">
-          <span data-v-4022d12a="" data-v-5a922248="" class="text">通知</span>
+      <div  class="login-content">
+        <div   class="title-box">
+          <span   class="text">通知</span>
         </div>
       </div>
     </div>
@@ -36,34 +36,12 @@
   justify-content: space-between;
   -webkit-box-align: baseline;
   align-items: baseline;
-  margin: 0;
-  user-select: none;
-  box-sizing: border-box;
   color: #fff;
   font-size: 18px;
   font-weight: 500;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
 }
 
 .login-content {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   position: absolute;
   width: 100%;
@@ -78,17 +56,6 @@
 }
 
 .bg-box {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
@@ -97,15 +64,6 @@
 }
 
 .login-title {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 100%;
   background: linear-gradient(90deg, #0C1390, #eeeeff);
@@ -115,17 +73,6 @@
 }
 
 .bg1 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 66px;
   height: 66px;
@@ -139,17 +86,6 @@
 }
 
 .bg2 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   opacity: 0.2;
@@ -163,17 +99,6 @@
 }
 
 .bg3 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   width: 103px;
   height: 103px;
@@ -186,17 +111,6 @@
 }
 
 .bg4 {
-  line-height: 1.15;
-  -webkit-text-size-adjust: 100%;
-  --minWidth: 1320px;
-  --maxWidth: 1576px;
-  --autoWidth: calc(80% - 2px);
-  --loginNavFontSize: 14px;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-  user-select: none;
-  margin: 0;
   padding: 0;
   border-radius: 2px 2px 2px 2px;
   transform: rotate(315deg);
@@ -209,7 +123,7 @@
 }
 
 .content{
-  height: 1215px;
+  min-height: 1215px;
   background-color: white;
 }
 </style>

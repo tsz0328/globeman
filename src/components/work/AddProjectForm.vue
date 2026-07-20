@@ -1,9 +1,8 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-      <el-form-item prop="name">
-        <template #label>项目名称</template>
-        <el-input
+      <el-form-item prop="name" label="项目名称">
+  <el-input
           v-model="form.name"
           placeholder="请输入项目名称"
           @keyup.enter.prevent="handleEnter($event)"
@@ -11,9 +10,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="type">
-        <template #label>项目类型</template>
-        <el-select
+      <el-form-item prop="type" label="项目类型">
+  <el-select
           v-model="form.type"
           placeholder="请选择项目类型"
           @keyup.enter.prevent="handleEnter($event)"
@@ -25,9 +23,8 @@
           <el-option label="采购项目" value="采购" />
         </el-select>
       </el-form-item>
-      <el-form-item prop="leaderAccount">
-        <template #label>负责人</template>
-        <el-select
+      <el-form-item prop="leaderAccount" label="负责人">
+  <el-select
           v-model="leaderName"
           placeholder="请选择负责人"
           @change="handleLeaderChange"
@@ -43,9 +40,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item prop="customer">
-        <template #label>客户</template>
-        <el-autocomplete
+      <el-form-item prop="customer" label="客户">
+  <el-autocomplete
           v-model="customerName"
           :fetch-suggestions="queryCustomerSearch"
           placeholder="请输入客户名称"
@@ -57,9 +53,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="contact">
-        <template #label>客户联系人</template>
-        <el-autocomplete
+      <el-form-item prop="contact" label="客户联系人">
+  <el-autocomplete
           v-model="contactName"
           :fetch-suggestions="queryContactSearch"
           placeholder="请输入联系人"
@@ -337,6 +332,4 @@ export interface ProjectFormData {
   contact: string
   time?: string
 }
-
-export default {}
 </script>

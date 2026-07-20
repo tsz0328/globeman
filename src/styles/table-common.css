@@ -1,0 +1,23 @@
+/*
+ * 全局表格样式规范（Element Plus el-table）
+ * 需求：所有表格字体统一 12px；表头黑体加粗（加粗字重 + 黑色文字）。
+ * 集中在此处统一管理，避免散落到各业务组件中重复覆盖。
+ */
+
+/* 表格正文（含表头、单元格）基础字号统一为 12px */
+.el-table {
+  font-size: 12px;
+}
+
+/* 表头：黑体加粗 —— 加粗字重 + 黑色文字 */
+.el-table .el-table__header-wrapper th.el-table__cell,
+.el-table .el-table__header th.el-table__cell,
+.el-table th.el-table__cell {
+  font-weight: 700;
+  color: #000;
+}
+
+/* 表内按钮跟随表格字号（12px），避免按钮默认 14px 破坏表格整体观感 */
+.el-table .el-button {
+  font-size: 12px;
+}

@@ -1,7 +1,7 @@
 <template>
   <div class="outbound-management">
     <div class="page-header">
-      <h2 class="title">首页</h2>
+      <h2 class="title">出库管理</h2>
     </div>
     <div class="content-card">
       <el-empty />

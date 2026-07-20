@@ -5,10 +5,43 @@ import {
   deleteDetailApi,
   getRepairDetailApi,
   addRepairSnApi,
+  uploadRepairImagesApi,
+  getRepairImagesApi,
+  deleteRepairImageApi,
+  getTestImagesApi,
+  uploadTestImagesApi,
+  deleteTestImageApi,
+  submitRepairApi,
+  saveRepairApi,
+  getRepairByIdApi,
+  getTakenDetailsApi,
   type DetailFormData,
   type DetailData,
   type DetailResponseData,
+  type RepairDetailData,
+  type TakenDetailData,
+  type RepairImageData,
+  type SubmitRepairData,
 } from '@/api/DetailApi'
+
+export interface TakenDetail {
+  id: number
+  detailsId: number
+  projectId: number
+  orderId: number
+  name: string
+  model: string
+  manufacturer: string
+  sn: string
+  status: string
+  repairman: string
+  repairmanAccount: string
+}
+
+export interface RepairImageItem {
+  id: number
+  address: string
+}
 
 const loading = ref(false)
 const detailList = ref<DetailData[]>([])
@@ -129,6 +162,136 @@ export function useDetail() {
     }
   }
 
+  const getRepairById = async (id: number): Promise<RepairDetailData | null> => {
+    try {
+      const res = await getRepairByIdApi(id)
+      if (res.code === 200 && res.data) {
+        return res.data
+      }
+      return null
+    } catch (error) {
+      console.error('获取维修工单失败:', error)
+      return null
+    }
+  }
+
+  const getRepairImages = async (id: number): Promise<RepairImageItem[]> => {
+    try {
+      const res = await getRepairImagesApi(id)
+      if (res.code === 200 && res.data) {
+        return Object.values(res.data).map((item: RepairImageData) => ({
+          id: item.id,
+          address: item.address,
+        }))
+      }
+      return []
+    } catch (error) {
+      console.error('获取维修图片失败:', error)
+      return []
+    }
+  }
+
+  const uploadRepairImages = async (files: File[], id: number): Promise<boolean> => {
+    try {
+      const res = await uploadRepairImagesApi(files, id)
+      return res.code === 200
+    } catch (error) {
+      console.error('上传维修图片失败:', error)
+      return false
+    }
+  }
+
+  const deleteRepairImage = async (id: number): Promise<boolean> => {
+    try {
+      const res = await deleteRepairImageApi(id)
+      return res.code === 200
+    } catch (error) {
+      console.error('删除维修图片失败:', error)
+      return false
+    }
+  }
+
+  const getTestImages = async (id: number): Promise<RepairImageItem[]> => {
+    try {
+      const res = await getTestImagesApi(id)
+      if (res.code === 200 && res.data) {
+        return Object.values(res.data).map((item: RepairImageData) => ({
+          id: item.id,
+          address: item.address,
+        }))
+      }
+      return []
+    } catch (error) {
+      console.error('获取测试图片失败:', error)
+      return []
+    }
+  }
+
+  const uploadTestImages = async (files: File[], id: number): Promise<boolean> => {
+    try {
+      const res = await uploadTestImagesApi(files, id)
+      return res.code === 200
+    } catch (error) {
+      console.error('上传测试图片失败:', error)
+      return false
+    }
+  }
+
+  const deleteTestImage = async (id: number): Promise<boolean> => {
+    try {
+      const res = await deleteTestImageApi(id)
+      return res.code === 200
+    } catch (error) {
+      console.error('删除测试图片失败:', error)
+      return false
+    }
+  }
+
+  const submitRepair = async (data: SubmitRepairData): Promise<boolean> => {
+    try {
+      const res = await submitRepairApi(data)
+      return res.code === 200
+    } catch (error) {
+      console.error('提交维修工单失败:', error)
+      return false
+    }
+  }
+
+  const saveRepair = async (id: number): Promise<boolean> => {
+    try {
+      const res = await saveRepairApi(id)
+      return res.code === 200
+    } catch (error) {
+      console.error('保存维修工单失败:', error)
+      return false
+    }
+  }
+
+  const getTakenDetails = async (): Promise<TakenDetail[]> => {
+    try {
+      const res = await getTakenDetailsApi()
+      if (res.code === 200 && res.data && typeof res.data === 'object') {
+        return Object.values(res.data).map((item: TakenDetailData) => ({
+          id: item.id,
+          detailsId: item.details_id,
+          projectId: item.project_id,
+          orderId: item.order_id,
+          name: item.name,
+          model: item.model,
+          manufacturer: item.manufacturer,
+          sn: item.sn,
+          status: item.status,
+          repairman: item.repairman,
+          repairmanAccount: item.repairman_account,
+        }))
+      }
+      return []
+    } catch (error) {
+      console.error('获取接单列表失败:', error)
+      return []
+    }
+  }
+
   return {
     loading,
     detailList,
@@ -138,5 +301,15 @@ export function useDetail() {
     getRepairDetail,
     addRepairSn,
     acceptRepair,
+    getRepairById,
+    getRepairImages,
+    uploadRepairImages,
+    deleteRepairImage,
+    getTestImages,
+    uploadTestImages,
+    deleteTestImage,
+    submitRepair,
+    saveRepair,
+    getTakenDetails,
   }
 }

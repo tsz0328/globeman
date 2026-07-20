@@ -12,16 +12,16 @@
 
     <div class="filter-section" v-if="isFilterVisible">
       <div class="filter-item">
-        <label>订单状态：</label>
-        <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+        <label for="orderStatus">订单状态：</label>
+        <el-select id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="编辑中" value="编辑中" />
           <el-option label="已确认" value="已确认" />
         </el-select>
       </div>
       <div class="filter-item">
-        <label>订单类型：</label>
-        <el-select v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
+        <label for="orderType">订单类型：</label>
+        <el-select id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
           <el-option label="全部类型" value="" />
           <el-option label="销售订单" value="销售" />
           <el-option label="采购订单" value="采购" />
@@ -29,16 +29,16 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>订单名称：</label>
-        <el-input
+        <label for="orderName">订单名称：</label>
+        <el-input id="orderName" aria-label="订单名称"
           v-model="filterForm.orderName"
           placeholder="请输入订单名称"
           style="width: 150px"
         />
       </div>
       <div class="filter-item">
-        <label>负责人：</label>
-        <el-select v-model="filterForm.leaderAccount" placeholder="全部负责人" style="width: 150px">
+        <label for="leader">负责人：</label>
+        <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人" style="width: 150px">
           <el-option label="全部负责人" value="" />
           <el-option
             v-for="user in userList"
@@ -49,8 +49,8 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>客户：</label>
-        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
+        <label for="customer">客户：</label>
+        <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
           <el-option
             v-for="customer in customerList"
@@ -61,8 +61,8 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>创建时间:</label>
-        <el-date-picker
+        <label for="createTime">创建时间:</label>
+        <el-date-picker id="createTime" aria-label="创建时间"
           v-model="filterForm.createTime"
           type="date"
           placeholder="选择日期"

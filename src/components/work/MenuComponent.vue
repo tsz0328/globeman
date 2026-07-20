@@ -1,135 +1,93 @@
 <template>
-  <div class="menu-container">
-    <div class="menu-header">系统菜单</div>
-    <div class="menu-items">
-      <router-link to="/work/user" class="menu-item" active-class="active">
-        <span class="menu-icon">👤</span>
-        <span class="menu-text">用户管理</span>
-      </router-link>
-      <router-link to="/work/project" class="menu-item" active-class="active">
-        <span class="menu-icon">📋</span>
-        <span class="menu-text">项目管理</span>
-      </router-link>
-      <router-link to="/work/customer" class="menu-item" active-class="active">
-        <span class="menu-icon">👥</span>
-        <span class="menu-text">客户管理</span>
-      </router-link>
-      <router-link to="/work/company" class="menu-item" active-class="active">
-        <span class="menu-icon">🏢</span>
-        <span class="menu-text">公司管理</span>
-      </router-link>
-      <div class="menu-item sub-menu-header" @click="toggleRepairMenu">
-        <span class="menu-icon">🔧</span>
-        <span class="menu-text">维修</span>
-        <span class="menu-arrow">{{ isRepairMenuOpen ? '▼' : '▶' }}</span>
-      </div>
-      <div class="sub-menu-items" v-show="isRepairMenuOpen">
-        <router-link to="/work/repair-management" class="sub-menu-item" active-class="active">
-          <span class="menu-text">维修管理</span>
-        </router-link>
-        <router-link to="/work/repair-accept" class="sub-menu-item" active-class="active">
-          <span class="menu-text">维修接单</span>
-        </router-link>
-      </div>
-    </div>
+  <div class="menu-wrapper">
+    <el-menu
+      :default-active="activePath"
+      router
+      class="menu"
+      background-color="#ffffff"
+      text-color="#303133"
+      active-text-color="#1ab394"
+    >
+      <el-menu-item index="/work/home">
+        <el-icon><HomeFilled /></el-icon>
+        <span>首页</span>
+      </el-menu-item>
+      <el-menu-item index="/work/user">
+        <el-icon><User /></el-icon>
+        <span>用户管理</span>
+      </el-menu-item>
+      <el-menu-item index="/work/project">
+        <el-icon><Document /></el-icon>
+        <span>项目管理</span>
+      </el-menu-item>
+      <el-menu-item index="/work/customer">
+        <el-icon><UserFilled /></el-icon>
+        <span>客户管理</span>
+      </el-menu-item>
+      <el-menu-item index="/work/company">
+        <el-icon><OfficeBuilding /></el-icon>
+        <span>公司管理</span>
+      </el-menu-item>
+      <el-sub-menu index="repair">
+        <template #title>
+          <el-icon><Tools /></el-icon>
+          <span>维修</span>
+        </template>
+        <el-menu-item index="/work/repair-management">维修管理</el-menu-item>
+        <el-menu-item index="/work/repair-accept">维修接单</el-menu-item>
+      </el-sub-menu>
+      <el-sub-menu index="warehouse">
+        <template #title>
+          <el-icon><Box /></el-icon>
+          <span>仓库管理</span>
+        </template>
+        <el-menu-item index="/work/outbound">出库管理</el-menu-item>
+        <el-menu-item index="/work/inbound">入库管理</el-menu-item>
+        <el-menu-item index="/work/inventory">库存管理</el-menu-item>
+      </el-sub-menu>
+    </el-menu>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const isRepairMenuOpen = ref(false)
-
-const toggleRepairMenu = () => {
-  isRepairMenuOpen.value = !isRepairMenuOpen.value
-}
+const route = useRoute()
+const activePath = computed(() => route.path)
 </script>
 
 <style scoped>
-.menu-container {
-  width: 180px;
-  background-color: #2f4050;
-  min-height: 100vh;
-  padding-top: 20px;
-}
-
-.menu-header {
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  padding: 15px;
-  background-color: #1f2d3d;
-  margin-bottom: 10px;
-}
-
-.menu-items {
+.menu-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 0 10px;
+  padding: 30px 0px;
 }
 
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 15px;
-  color: #a7b1c2;
-  text-decoration: none;
-  border-radius: 4px;
-  transition: all 0.3s ease;
+.menu {
+  flex: 1;
+  border-right: none;
 }
 
-.menu-item:hover {
-  background-color: #1ab394;
-  color: white;
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+  justify-content: center;
 }
 
-.menu-item.active {
-  background-color: #1ab394;
-  color: white;
+:deep(.el-menu-item.is-active) {
+  background-color: rgba(26, 179, 148, 0.1);
 }
 
-.menu-icon {
+:deep(.el-menu-item:not(.is-active):hover) {
+  background-color: rgba(26, 179, 148, 0.06);
+}
+
+:deep(.el-sub-menu .el-sub-menu__title:hover) {
+  background-color: rgba(26, 179, 148, 0.06);
+}
+
+:deep(.el-menu-item .el-icon),
+:deep(.el-sub-menu__title .el-icon) {
   font-size: 18px;
-}
-
-.menu-text {
-  font-size: 14px;
-}
-
-.sub-menu-header {
-  cursor: pointer;
-}
-
-.menu-arrow {
-  margin-left: auto;
-  font-size: 12px;
-}
-
-.sub-menu-items {
-  padding-left: 20px;
-}
-
-.sub-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
-  color: #a7b1c2;
-  text-decoration: none;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-.sub-menu-item:hover {
-  background-color: #1ab394;
-  color: white;
-}
-
-.sub-menu-item.active {
-  background-color: #1ab394;
-  color: white;
 }
 </style>

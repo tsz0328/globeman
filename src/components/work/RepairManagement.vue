@@ -9,18 +9,14 @@
     </div>
     <div class="filter-section">
       <div class="filter-item">
-        <label>维修类型：</label>
-        <el-select v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
-          <el-option label="全部类型" value="" />
-          <el-option label="设备维修" value="设备维修" />
-          <el-option label="电路维修" value="电路维修" />
-          <el-option label="管道维修" value="管道维修" />
-          <el-option label="其他维修" value="其他" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label>维修状态：</label>
-        <el-select v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+        <label for="repairStatus">维修状态：</label>
+        <el-select
+          id="repairStatus"
+          aria-label="维修状态"
+          v-model="filterForm.status"
+          placeholder="全部状态"
+          style="width: 100px"
+        >
           <el-option label="全部状态" value="" />
           <el-option label="编辑中" value="编辑中" />
           <el-option label="已完成" value="已完成" />
@@ -28,8 +24,14 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>客户：</label>
-        <el-select v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+        <label for="customer">客户：</label>
+        <el-select
+          id="customer"
+          aria-label="客户"
+          v-model="filterForm.customer"
+          placeholder="全部客户"
+          style="width: 150px"
+        >
           <el-option label="全部客户" value="" />
           <el-option
             v-for="customer in customerList"
@@ -40,8 +42,14 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>客户联系人：</label>
-        <el-select v-model="filterForm.contactPerson" placeholder="全部联系人" style="width: 150px">
+        <label for="customerContact">客户联系人：</label>
+        <el-select
+          id="customerContact"
+          aria-label="客户联系人"
+          v-model="filterForm.contactPerson"
+          placeholder="全部联系人"
+          style="width: 150px"
+        >
           <el-option label="全部联系人" value="" />
           <el-option
             v-for="customer in customerList"
@@ -52,8 +60,10 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>维修负责人：</label>
+        <label for="repairLeader">负责人：</label>
         <el-select
+          id="repairLeader"
+          aria-label="负责人"
           v-model="filterForm.projectManager"
           placeholder="全部负责人"
           style="width: 150px"
@@ -68,18 +78,37 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label>创建时间:</label>
+        <label for="createTime">创建时间：</label>
         <el-date-picker
+          id="createTime"
+          aria-label="创建时间"
           v-model="filterForm.createTime"
           type="date"
           placeholder="选择日期"
           style="width: 150px"
         />
+      </div>
+      <div class="filter-item">
         <el-button type="primary" @click="handleSearch">查询</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
     </div>
 
+    <!-- 快速接单 -->
+    <div class="quick-order">
+      <div class="quick-order-title">快速接单：</div>
+      <div class="quick-order-content">
+        <el-input
+          v-model="snCode"
+          placeholder="请输入SN码"
+          style="width: 250px"
+          @keyup.enter="handleTakeOrder"
+        />
+        <el-button type="primary" @click="handleTakeOrder">接单</el-button>
+      </div>
+    </div>
+
+    <!-- 表格区域 -->
     <div class="table-section">
       <el-table
         :data="paginatedData"
@@ -89,11 +118,10 @@
         :row-key="getRowKey"
       >
         <el-table-column type="selection" width="50" />
-        <el-table-column prop="projectName" label="维修名称" />
-        <el-table-column prop="customer" label="客户" width="120" />
+        <el-table-column prop="projectName" label="维修项目" />
+        <el-table-column prop="customer" label="客户" />
         <el-table-column prop="contactPerson" label="客户联系人" width="100" />
         <el-table-column prop="projectManager" label="负责人" width="100" />
-        <el-table-column prop="creator" label="创建人" width="100" />
         <el-table-column prop="projectType" label="维修类型" width="100" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
@@ -103,7 +131,6 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column prop="cooperativeUnit" label="归属公司" />
         <el-table-column label="操作" width="73">
           <template #default="scope">
             <div class="action-buttons">
@@ -130,6 +157,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useProject, type Project } from '@/composables/useProject'
 import { useUser } from '@/composables/useUser'
 import { useCustomer } from '@/composables/useCustomer'
+import { repairTakeApi } from '@/api/DetailApi'
+import { ElMessage } from 'element-plus'
 
 const { projectList: repairList, fetchProjects: fetchRepairs } = useProject()
 const { userList, fetchUsers } = useUser()
@@ -138,6 +167,7 @@ const { customerList, fetchCustomers } = useCustomer()
 const currentPage = ref(1)
 const pageSize = ref(8)
 const selectedRows = ref<Project[]>([])
+const snCode = ref('')
 
 onMounted(() => {
   fetchRepairs()
@@ -170,9 +200,6 @@ const handleSelectionChange = (val: Project[]) => {
 
 const filteredData = computed(() => {
   return repairList.value.filter((item) => {
-    if (filterForm.value.projectType && !item.projectType.includes(filterForm.value.projectType)) {
-      return false
-    }
     if (filterForm.value.status && item.status !== filterForm.value.status) {
       return false
     }
@@ -206,7 +233,6 @@ const paginatedData = computed(() => {
 })
 
 const filterForm = ref({
-  projectType: '',
   status: '',
   customer: '',
   contactPerson: '',
@@ -220,7 +246,6 @@ const handleSearch = () => {
 
 const handleReset = () => {
   filterForm.value = {
-    projectType: '',
     status: '',
     customer: '',
     contactPerson: '',
@@ -228,6 +253,26 @@ const handleReset = () => {
     createTime: null,
   }
   currentPage.value = 1
+}
+
+const handleTakeOrder = async () => {
+  const sn = snCode.value.trim()
+  if (!sn) {
+    ElMessage.warning('请输入SN码')
+    return
+  }
+  try {
+    const res = await repairTakeApi(sn)
+    if (res.code === 200) {
+      ElMessage.success('接单成功')
+      snCode.value = ''
+      fetchRepairs()
+    } else {
+      ElMessage.error(res.msg || '接单失败')
+    }
+  } catch {
+    ElMessage.error('接单失败')
+  }
 }
 </script>
 
@@ -257,23 +302,45 @@ const handleReset = () => {
 }
 
 .filter-section {
-  background-color: white;
-  padding: 20px;
+  padding: 20px 10px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
 }
 
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+
+.filter-item label {
+  font-size: 12px;
+}
+
+.quick-order {
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.quick-order-title {
+  font-weight: bold;
+  color: #333;
+}
+
+.quick-order-content {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .table-section {
-  background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }

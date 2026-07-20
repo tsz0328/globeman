@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import {
   getCustomersApi,
   createCustomerApi,
+  updateCustomerApi,
   deleteCustomerApi,
   batchDeleteCustomersApi,
   type CustomerData,
@@ -139,6 +140,55 @@ export function useCustomer() {
     }
   }
 
+  const updateCustomer = async (data: CustomerData): Promise<boolean> => {
+    loading.value = true
+    try {
+      const res = await updateCustomerApi(data)
+      if (res.code === 200) {
+        const dataRecord = (res.data as unknown as Record<string, unknown>) || {}
+        const getString = (keys: string[]) => {
+          for (const key of keys) {
+            const value = dataRecord[key]
+            if (typeof value === 'string') {
+              return value
+            }
+            if (typeof value === 'number') {
+              return String(value)
+            }
+          }
+          return ''
+        }
+
+        const id = typeof dataRecord.id === 'number' ? dataRecord.id : data.id
+        if (id == null) {
+          return true
+        }
+        const existing = customerList.value.find((c) => c.id === id)
+        const updated: Customer = {
+          id,
+          name: getString(['name']) || data.name,
+          company: getString(['company']) || data.company,
+          contact: getString(['contact']) || data.contact,
+          phone: getString(['phone']) || data.phone,
+          createTime: getString(['time']) || existing?.createTime || '',
+        }
+        const idx = customerList.value.findIndex((c) => c.id === id)
+        if (idx !== -1) {
+          customerList.value[idx] = updated
+        } else {
+          customerList.value.unshift(updated)
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('更新客户失败:', error)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   const deleteCustomer = async (id: number): Promise<boolean> => {
     loading.value = true
     try {
@@ -178,6 +228,7 @@ export function useCustomer() {
     loading,
     fetchCustomers,
     createCustomer,
+    updateCustomer,
     deleteCustomer,
     batchDeleteCustomers,
   }

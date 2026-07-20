@@ -1,9 +1,8 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" @submit.prevent>
-      <el-form-item prop="name">
-        <template #label>客户名称</template>
-        <el-input
+      <el-form-item prop="name" label="客户名称">
+  <el-input
           v-model="form.name"
           placeholder="请输入客户名称"
           @keyup.enter.prevent="handleEnter($event)"
@@ -11,9 +10,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="company">
-        <template #label>公司名称</template>
-        <el-select
+      <el-form-item prop="company" label="公司名称">
+  <el-select
           v-model="form.company"
           placeholder="请选择公司"
           style="width: 100%"
@@ -29,9 +27,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item prop="contact">
-        <template #label>联系人</template>
-        <el-input
+      <el-form-item prop="contact" label="联系人">
+  <el-input
           v-model="form.contact"
           placeholder="请输入联系人"
           @keyup.enter.prevent="handleEnter($event)"
@@ -39,9 +36,8 @@
           @keydown.down.prevent="handleKeydown($event)"
         />
       </el-form-item>
-      <el-form-item prop="phone">
-        <template #label>联系电话</template>
-        <el-input
+      <el-form-item prop="phone" label="联系电话">
+  <el-input
           v-model="form.phone"
           placeholder="请输入联系电话"
           @keyup.enter.prevent="handleSubmit"
