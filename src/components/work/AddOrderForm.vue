@@ -2,114 +2,55 @@
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="140px">
       <el-form-item prop="name" label="订单名称（必填）">
-  <el-input
-          v-model="form.name"
-          placeholder="请输入订单名称"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-input v-model="form.name" placeholder="请输入订单名称" @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="type" label="订单类型（必填）">
-  <el-select
-          v-model="form.type"
-          placeholder="请选择订单类型"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        >
+        <el-select v-model="form.type" placeholder="请选择订单类型" @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)">
           <el-option label="销售订单" value="销售订单" />
           <el-option label="采购订单" value="采购订单" />
           <el-option label="维修订单" value="维修订单" />
         </el-select>
       </el-form-item>
       <el-form-item prop="leaderAccount" label="负责人（必填）">
-  <el-select
-          v-model="leaderName"
-          placeholder="请选择负责人"
-          @change="handleLeaderChange"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        >
-          <el-option
-            v-for="user in props.userList"
-            :key="user.account"
-            :label="user.name"
-            :value="user.name"
-          />
+        <el-select v-model="leaderName" placeholder="请选择负责人" @change="handleLeaderChange"
+          @keyup.enter.prevent="handleEnter($event)" @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)">
+          <el-option v-for="user in props.userList" :key="user.account" :label="user.name" :value="user.name" />
         </el-select>
       </el-form-item>
       <el-form-item prop="customer" label="客户（必填）">
-  <el-autocomplete
-          v-model="customerName"
-          :fetch-suggestions="queryCustomerSearch"
-          placeholder="请输入客户名称"
-          :trigger-on-focus="false"
-          @select="handleCustomerSelect"
-          @blur="handleCustomerBlur"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-autocomplete v-model="customerName" :fetch-suggestions="queryCustomerSearch" placeholder="请输入客户名称"
+          :trigger-on-focus="false" @select="handleCustomerSelect" @blur="handleCustomerBlur"
+          @keyup.enter.prevent="handleEnter($event)" @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="contact" label="客户联系人（必填）">
-  <el-autocomplete
-          v-model="contactName"
-          :fetch-suggestions="queryContactSearch"
-          placeholder="请输入联系人"
-          :trigger-on-focus="false"
-          @select="handleContactSelect"
-          @blur="handleContactBlur"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-autocomplete v-model="contactName" :fetch-suggestions="queryContactSearch" placeholder="请输入联系人"
+          :trigger-on-focus="false" @select="handleContactSelect" @blur="handleContactBlur"
+          @keyup.enter.prevent="handleEnter($event)" @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="contactPhone" label="联系人电话">
-  <el-input
-          v-model="form.contactPhone"
-          placeholder="请输入联系人电话（选填）"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-input v-model="form.contactPhone" placeholder="请输入联系人电话（选填）" @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="province" label="执行省份">
-  <el-input
-          v-model="form.province"
-          placeholder="请输入执行省份"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-input v-model="form.province" placeholder="请输入执行省份" @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="city" label="执行市">
-  <el-input
-          v-model="form.city"
-          placeholder="请输入执行市"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-input v-model="form.city" placeholder="请输入执行市" @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="district" label="执行区">
-  <el-input
-          v-model="form.district"
-          placeholder="请输入执行区"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-input v-model="form.district" placeholder="请输入执行区" @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
       <el-form-item prop="address" label="送修地址">
-  <el-input
-          v-model="form.address"
-          placeholder="请输入送修地址"
-          @keyup.enter.prevent="handleSubmit"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        />
+        <el-input v-model="form.address" placeholder="请输入送修地址" @keyup.enter.prevent="handleSubmit"
+          @keydown.up.prevent="handleKeydown($event)" @keydown.down.prevent="handleKeydown($event)" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -248,21 +189,21 @@ const queryCustomerSearch = (
   const customers = props.customerList
   const results = queryString
     ? customers
-        .filter((customer: Customer) =>
-          customer.name.toLowerCase().includes(queryString.toLowerCase()),
-        )
-        .map((customer: Customer) => ({
-          value: customer.name,
-          label: customer.name,
-          contact: customer.contact,
-          phone: customer.phone,
-        }))
-    : customers.map((customer: Customer) => ({
+      .filter((customer: Customer) =>
+        customer.name.toLowerCase().includes(queryString.toLowerCase()),
+      )
+      .map((customer: Customer) => ({
         value: customer.name,
         label: customer.name,
         contact: customer.contact,
         phone: customer.phone,
       }))
+    : customers.map((customer: Customer) => ({
+      value: customer.name,
+      label: customer.name,
+      contact: customer.contact,
+      phone: customer.phone,
+    }))
   cb(results)
 }
 
@@ -286,21 +227,21 @@ const queryContactSearch = (
   const customers = props.customerList
   const results = queryString
     ? customers
-        .filter((customer: Customer) =>
-          customer.contact.toLowerCase().includes(queryString.toLowerCase()),
-        )
-        .map((customer: Customer) => ({
-          value: customer.contact,
-          label: `${customer.contact} (${customer.name})`,
-          customer: customer.name,
-          phone: customer.phone,
-        }))
-    : customers.map((customer: Customer) => ({
+      .filter((customer: Customer) =>
+        customer.contact.toLowerCase().includes(queryString.toLowerCase()),
+      )
+      .map((customer: Customer) => ({
         value: customer.contact,
         label: `${customer.contact} (${customer.name})`,
         customer: customer.name,
         phone: customer.phone,
       }))
+    : customers.map((customer: Customer) => ({
+      value: customer.contact,
+      label: `${customer.contact} (${customer.name})`,
+      customer: customer.name,
+      phone: customer.phone,
+    }))
   cb(results)
 }
 
@@ -366,7 +307,7 @@ const handleSubmit = () => {
   }
 
   if (errors.length > 0) {
-    ;(document.activeElement as HTMLElement | null)?.blur()
+    ; (document.activeElement as HTMLElement | null)?.blur()
     isModalVisible.value = true
 
     ElMessageBox.alert(`请填写以下必填项：\n${errors.join('、')}`, '提示', {

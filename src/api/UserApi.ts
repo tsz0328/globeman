@@ -32,11 +32,12 @@ export interface ApiResponse<T = unknown> {
 
 export async function createUserApi(data: UserForm): Promise<ApiResponse<UserData>> {
   return request({
-    url: '/user/create',
+    url: '/register',
     method: 'post',
     data,
   })
 }
+
 
 export async function getUsersApi(): Promise<ApiResponse<UserData[]>> {
   return request({

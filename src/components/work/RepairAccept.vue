@@ -230,18 +230,12 @@ const handleReset = () => {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
-  gap: 20px;
+  justify-content: space-between;
 }
 
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.filter-item:last-child {
-  flex: 1;
-  justify-content: flex-end;
 }
 
 .table-section {

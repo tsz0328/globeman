@@ -307,16 +307,11 @@ const handleTakeOrder = async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
 }
 
 .filter-item {
   display: flex;
   align-items: center;
-}
-
-.filter-item label {
-  font-size: 12px;
 }
 
 .quick-order {
@@ -352,38 +347,4 @@ const handleTakeOrder = async () => {
   padding: 15px 20px;
 }
 
-.total {
-  font-size: 14px;
-  color: #666;
-}
-
-.pagination {
-  display: flex;
-  gap: 5px;
-}
-
-.page-btn {
-  padding: 4px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.page-btn.active {
-  background-color: #1890ff;
-  color: white;
-  border-color: #1890ff;
-}
-
-.page-btn:disabled {
-  cursor: not-allowed;
-  color: #ccc;
-}
 </style>

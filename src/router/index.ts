@@ -11,7 +11,7 @@ import CustomerManagementComponent from '@/components/work/CustomerManagement.vu
 import CompanyManagementComponent from '@/components/work/CompanyManagement.vue'
 import OrderDetailComponent from '@/components/work/ProjectOrderDetail.vue'
 import RepairOrderDetailComponent from '@/components/work/RepairOrderDetail.vue'
-import OrderManagementComponent from '@/components/work/ProjectOrderManagement.vue'
+import ProjectOrderManagementComponent from '@/components/work/ProjectOrderManagement.vue'
 import RepairManagementComponent from '@/components/work/RepairManagement.vue'
 import RepairOrderManagementComponent from '@/components/work/RepairOrderManagement.vue'
 import RepairAcceptComponent from '@/components/work/RepairAccept.vue'
@@ -19,6 +19,7 @@ import EquipmentRepairInformationComponent from '@/components/work/EquipmentRepa
 import OutboundManagementComponent from '@/components/work/OutboundManagement.vue'
 import InboundManagementComponent from '@/components/work/InboundManagement.vue'
 import InventoryManagementComponent from '@/components/work/InventoryManagement.vue'
+import OrderManagementComponent from '@/components/work/OrderManagement.vue'
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -58,11 +59,6 @@ const router = createRouter({
           component: HomeComponent,
         },
         {
-          path: 'project',
-          name: 'Project',
-          component: ProjectManagementComponent,
-        },
-        {
           path: 'user',
           name: 'User',
           component: UserManagementComponent,
@@ -71,6 +67,16 @@ const router = createRouter({
           path: 'customer',
           name: 'Customer',
           component: CustomerManagementComponent,
+        },
+        {
+          path: 'project',
+          name: 'Project',
+          component: ProjectManagementComponent,
+        },
+        {
+          path: 'order',
+          name: 'Order',
+          component: OrderManagementComponent,
         },
         {
           path: 'company',
@@ -105,9 +111,9 @@ const router = createRouter({
       ],
     },
     {
-      path: '/order/:id',
-      name: 'OrderManagement',
-      component: OrderManagementComponent,
+      path: '/project-order/:id',
+      name: 'ProjectOrderManagement',
+      component: ProjectOrderManagementComponent,
     },
     {
       path: '/repair-order/:id',

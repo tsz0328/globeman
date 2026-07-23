@@ -357,9 +357,4 @@ onMounted(() => {
   padding: 15px 20px;
 }
 
-.footer-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 15px 0;
-}
 </style>

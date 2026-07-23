@@ -7,16 +7,15 @@
         <el-button type="primary" @click="addProject">新建项目</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
-          >批量删除</el-button
-        >
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
       </div>
     </div>
     <!-- 筛选区域 -->
     <div class="filter-section">
       <div class="filter-item">
         <label for="projectType">项目类型：</label>
-        <el-select id="projectType" aria-label="项目类型" v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
+        <el-select id="projectType" aria-label="项目类型" v-model="filterForm.projectType" placeholder="全部类型"
+          style="width: 150px">
           <el-option label="全部类型" value="" />
           <el-option label="维修项目" value="维修" />
           <el-option label="销售项目" value="销售" />
@@ -24,62 +23,34 @@
         </el-select>
       </div>
       <div class="filter-item">
-        <label for="projectStatus">项目状态：</label>
-        <el-select id="projectStatus" aria-label="项目状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
-          <el-option label="全部状态" value="" />
-          <el-option label="编辑中" value="编辑中" />
-          <el-option label="已完成" value="已完成" />
-          <el-option label="已取消" value="已取消" />
-        </el-select>
-      </div>
-      <div class="filter-item">
         <label for="customer">客户：</label>
         <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
           <el-option label="全部客户" value="" />
-          <el-option
-            v-for="customer in customerList"
-            :key="customer.name"
-            :label="customer.name"
-            :value="customer.name"
-          />
+          <el-option v-for="customer in customerList" :key="customer.name" :label="customer.name"
+            :value="customer.name" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="customerContact">客户联系人：</label>
-        <el-select id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人" style="width: 150px">
+        <el-select id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
+          style="width: 150px">
           <el-option label="全部联系人" value="" />
-          <el-option
-            v-for="customer in customerList"
-            :key="customer.contact"
-            :label="customer.contact"
-            :value="customer.contact"
-          />
+          <el-option v-for="customer in customerList" :key="customer.contact" :label="customer.contact"
+            :value="customer.contact" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="projectLeader">项目负责人：</label>
-        <el-select id="projectLeader" aria-label="项目负责人"
-          v-model="filterForm.projectManager"
-          placeholder="全部负责人"
-          style="width: 150px"
-        >
+        <el-select id="projectLeader" aria-label="项目负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
+          style="width: 150px">
           <el-option label="全部负责人" value="" />
-          <el-option
-            v-for="user in userList"
-            :key="user.account"
-            :label="user.name"
-            :value="user.name"
-          />
+          <el-option v-for="user in userList" :key="user.account" :label="user.name" :value="user.name" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="createTime">创建时间:</label>
-        <el-date-picker id="createTime" aria-label="创建时间"
-          v-model="filterForm.createTime"
-          type="date"
-          placeholder="选择日期"
-          style="width: 150px"
-        />
+        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
+          style="width: 150px" />
         <el-button type="primary" @click="handleSearch">查询</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
@@ -87,13 +58,8 @@
 
     <!-- 表格区域 -->
     <div class="table-section">
-      <el-table
-        :data="paginatedData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :row-key="getRowKey"
-      >
+      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+        @row-dblclick="handleRowDblclick" :row-key="getRowKey">
         <el-table-column type="selection" width="50" />
         <el-table-column prop="projectName" label="项目名称" />
         <el-table-column prop="customer" label="客户" width="120" />
@@ -113,12 +79,8 @@
         <el-table-column label="操作" width="133">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewProject(scope.row)"
-                >查看</el-button
-              >
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
-                >删除</el-button
-              >
+              <el-button type="primary" size="small" @click="viewProject(scope.row)">查看</el-button>
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
             </div>
           </template>
         </el-table-column>
@@ -126,22 +88,14 @@
 
       <!-- 分页 -->
       <div class="pagination-section">
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          layout="total, prev, pager, next, jumper"
-          :total="filteredData.length"
-        />
+        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
+          layout="total, prev, pager, next, jumper" :total="filteredData.length" />
       </div>
     </div>
 
     <!-- 新建项目弹窗 -->
-    <ProjectForm
-      v-model:visible="projectFormVisible"
-      @submit="handleProjectSubmit"
-      :user-list="userList"
-      :customer-list="customerList"
-    />
+    <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="userList"
+      :customer-list="customerList" />
   </div>
 </template>
 
@@ -178,7 +132,12 @@ const addProject = () => {
 
 // 查看项目详情（先跳转到订单管理）
 const viewProject = (row: Project) => {
-  window.open(`/order/${row.id}`, '_blank')
+  window.open(`/project-order/${row.id}`, '_blank')
+}
+
+// 双击当前行 = 点击「查看」按钮
+const handleRowDblclick = (row: Project) => {
+  viewProject(row)
 }
 
 // 项目表单提交
@@ -378,9 +337,8 @@ const handleReset = () => {
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 20px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .filter-item {
@@ -391,7 +349,6 @@ const handleReset = () => {
 
 /* 表格区域 */
 .table-section {
-  background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -402,40 +359,5 @@ const handleReset = () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-}
-
-.total {
-  font-size: 14px;
-  color: #666;
-}
-
-.pagination {
-  display: flex;
-  gap: 5px;
-}
-
-.page-btn {
-  padding: 4px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.page-btn.active {
-  background-color: #1890ff;
-  color: white;
-  border-color: #1890ff;
-}
-
-.page-btn:disabled {
-  cursor: not-allowed;
-  color: #ccc;
 }
 </style>
