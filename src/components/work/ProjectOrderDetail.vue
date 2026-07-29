@@ -108,7 +108,7 @@ const route = useRoute()
 const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()
 const { fetchOrders, orderList } = useOrder()
 
-const orderId = ref(0)
+const orderId = ref('')
 const orderName = ref('')
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -125,17 +125,15 @@ const isLocked = computed(() => {
   return lockedStatuses.includes(orderStatus.value)
 })
 
-const parseProjectId = (id: unknown): number => {
-  if (typeof id === 'string') {
-    const parsed = parseInt(id, 10)
-    return !isNaN(parsed) && parsed > 0 ? parsed : 0
-  }
-  return 0
+const parseProjectId = (id: unknown): string => {
+  if (typeof id === 'string') return id
+  if (typeof id === 'number') return String(id)
+  return ''
 }
 
 interface EditableDetailData {
   id: number
-  projectId: number
+  projectId: string
   belongProject: string
   equipmentName: string
   equipmentModel: string
@@ -301,7 +299,7 @@ const handleConfirm = async () => {
 const submitEditRow = async (row: EditableDetailData) => {
   const orderIdValue = parseProjectId(route.params.id)
 
-  if (orderIdValue === 0) {
+  if (!orderIdValue) {
     ElMessage.error('无效的订单ID')
     return
   }
@@ -331,7 +329,7 @@ const submitEditRow = async (row: EditableDetailData) => {
 onMounted(async () => {
   const id = parseProjectId(route.params.id)
 
-  if (id === 0) {
+  if (!id) {
     ElMessage.error('无效的订单ID')
     return
   }
@@ -345,17 +343,14 @@ onMounted(async () => {
 
   const projectIdParam = route.query.projectId as string
   if (projectIdParam) {
-    const projectId = parseInt(projectIdParam, 10)
-    if (!isNaN(projectId)) {
-      await fetchOrders(projectId)
-      const order = orderList.value.find((o) => o.id === id)
+    await fetchOrders(projectIdParam)
+    const order = orderList.value.find((o) => o.id === id)
       if (order) {
         orderStatus.value = order.status
         if (!orderName.value) {
           orderName.value = order.name
         }
       }
-    }
   }
 
   fetchDetails(id)

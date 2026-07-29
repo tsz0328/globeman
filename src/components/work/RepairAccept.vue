@@ -83,8 +83,8 @@ import { getTakenDetailsApi, type TakenDetailData } from '@/api/DetailApi'
 interface TakenDetail {
   id: number
   detailsId: number
-  projectId: number
-  orderId: number
+  projectId: string
+  orderId: string
   name: string
   model: string
   manufacturer: string

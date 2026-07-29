@@ -5,10 +5,12 @@ import {
   deleteProjectApi,
   batchDeleteProjectsApi,
 } from '@/api/ProjectApi'
-import { sortByCreateTimeDesc } from '@/utils/sort'
+import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
+import { generateTypedId } from '@/utils/idGenerator'
 
+// 项目接口
 export interface Project {
-  id: number
+  id: string
   projectName: string
   projectType: string
   projectManager: string
@@ -22,7 +24,7 @@ export interface Project {
 
 // 项目表单数据接口
 export interface ProjectFormData {
-  id?: number
+  id?: string
   name: string
   type: string
   leaderAccount: string
@@ -34,6 +36,49 @@ export interface ProjectFormData {
 const projectList = ref<Project[]>([])
 const loading = ref(false)
 
+// 从记录中按候选 key 顺序读取字符串（兼容字符串/数字）
+const getString = (record: Record<string, unknown>, keys: string[]): string => {
+  for (const key of keys) {
+    const value = record[key]
+    if (typeof value === 'string') {
+      return value
+    }
+    if (typeof value === 'number') {
+      return String(value)
+    }
+  }
+  return ''
+}
+
+// 将后端记录（/project/get 列表项或 /project/create 返回值）映射为前端 Project
+// 字段名兼容多种命名：name/projectName、type/projectType、leader/leaderAccount/leader_account、
+// company/cooperativeUnit、contact、creator/creator_account、customer、time/createTime、status/state
+const mapRecordToProject = (record: Record<string, unknown>, _index: number): Project => {
+  return {
+    id:
+      typeof record.id === 'string'
+        ? record.id
+        : typeof record.id === 'number'
+          ? String(record.id)
+          : '',
+    projectName: getString(record, ['name', 'projectName']),
+    projectType: getString(record, ['type', 'projectType']),
+    projectManager: getString(record, [
+      'leader',
+      'leaderAccount',
+      'leader_account',
+      'projectManager',
+    ]),
+    createTime: formatDateTime(getString(record, ['time', 'createTime'])),
+    cooperativeUnit: getString(record, ['company', 'cooperativeUnit']),
+    contactPerson: getString(record, ['contact', 'contactPerson', 'contactName', 'Contact']),
+    status: getString(record, ['state', 'status']) || '编辑中',
+    creator: getString(record, ['creator', 'creatorName', 'creator_account']),
+    customer: getString(record, ['customer', 'customerName']),
+  }
+}
+
+// 按创建时间降序排序（最新在前）
 export function useProject() {
   const fetchProjects = async () => {
     loading.value = true
@@ -67,45 +112,13 @@ export function useProject() {
         // 归一化项目记录数组
         const projectArray = normalizeRecords(res.data)
 
-        // 映射项目记录为 Project 类型
-        // 处理 id、name、type、creator、time、customer、contact 等字段
+        // 映射项目记录为 Project 类型（复用共享映射，兼容多种字段命名）
         // 支持嵌套对象和数组
-        projectList.value = projectArray.map((item, index) => {
-          const record = item as Record<string, unknown>
-          const getString = (keys: string[]) => {
-            for (const key of keys) {
-              const value = record[key]
-              if (typeof value === 'string') {
-                return value
-              }
-              if (typeof value === 'number') {
-                return String(value)
-              }
-            }
-            return ''
-          }
-
-          const project: Project = {
-            id:
-              typeof record.id === 'number'
-                ? record.id
-                : typeof record.id === 'string'
-                  ? parseInt(record.id, 10) || index + 1
-                  : index + 1,
-            projectName: getString(['name', 'projectName']),
-            projectType: getString(['type', 'projectType']),
-            projectManager: getString(['leader', 'leaderAccount', 'projectManager']),
-            createTime: getString(['time', 'createTime']),
-            cooperativeUnit: getString(['company', 'cooperativeUnit']),
-            contactPerson: getString(['contact', 'contactPerson', 'contactName', 'Contact']),
-            status: getString(['state', 'status']) || '编辑中',
-            creator: getString(['creator', 'creatorName']),
-            customer: getString(['customer', 'customerName']),
-          }
-          return project
-        })
-        // 按创建时间降序（最新在前）
-        projectList.value = sortByCreateTimeDesc(projectList.value)
+        projectList.value = sortByCreateTimeDesc(
+          projectArray.map((item, index) =>
+            mapRecordToProject(item as Record<string, unknown>, index),
+          ),
+        )
       } else {
         console.warn('获取项目列表返回异常:', res.msg)
       }
@@ -120,7 +133,10 @@ export function useProject() {
   const createProject = async (data: ProjectFormData): Promise<boolean> => {
     loading.value = true
     try {
+      // 生成项目 id：2位 项目类型首字母 + 17位 时间(YYYYMMDDHHmmssSSS) + 5 位随机字母数字
+      const projectId = generateTypedId(data.type)
       const res = await createProjectApi({
+        id: projectId,
         name: data.name,
         type: data.type,
         leaderAccount: data.leaderAccount,
@@ -128,8 +144,13 @@ export function useProject() {
         contact: data.contact,
       })
       if (res.code === 200) {
-        // 创建成功后重新获取项目列表，确保获取到后端返回的真实 id
-        await fetchProjects()
+        // 直接用后端返回的新建记录，避免再请求 /project/get 全量刷新
+        const newProject = mapRecordToProject(
+          res.data as unknown as Record<string, unknown>,
+          -1,
+        )
+        // 插入到列表头部，并按创建时间降序保持时间顺序（最新在前）
+        projectList.value = sortByCreateTimeDesc([newProject, ...projectList.value])
         return true
       }
       return false
@@ -142,7 +163,7 @@ export function useProject() {
   }
 
   // 删除项目
-  const deleteProject = async (id: number): Promise<boolean> => {
+  const deleteProject = async (id: string): Promise<boolean> => {
     loading.value = true
     try {
       const res = await deleteProjectApi(id)
@@ -160,7 +181,7 @@ export function useProject() {
   }
 
   // 批量删除项目
-  const batchDeleteProjects = async (ids: number[]): Promise<boolean> => {
+  const batchDeleteProjects = async (ids: string[]): Promise<boolean> => {
     loading.value = true
     try {
       const res = await batchDeleteProjectsApi(ids)

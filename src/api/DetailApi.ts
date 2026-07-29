@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 export interface DetailFormData {
-  orderId: number
+  orderId: string
   name: string
   model: string
   manufacturer: string
@@ -11,12 +11,12 @@ export interface DetailFormData {
 
 export interface DetailResponseData {
   id: number
-  project_id: number
+  project_id: string
   name: string
   model: string
   manufacturer: string
   sn: string
-  order_id: number
+  order_id: string
   details_id: number
   status: string
   number: string
@@ -26,7 +26,7 @@ export interface DetailResponseData {
 
 export interface DetailData {
   id: number
-  projectId: number
+  projectId: string
   belongProject: string
   equipmentName: string
   equipmentModel: string
@@ -54,7 +54,7 @@ export async function createDetailApi(data: DetailFormData): Promise<ApiResponse
 }
 
 export async function getDetailsApi(
-  id: number,
+  id: string,
 ): Promise<ApiResponse<DetailResponseData[] | { [key: string]: DetailResponseData }>> {
   return request({
     url: '/details/get',
@@ -101,8 +101,8 @@ export async function acceptRepairApi(sn: string, account: string): Promise<ApiR
 export interface TakenDetailData {
   id: number
   details_id: number
-  project_id: number
-  order_id: number
+  project_id: string
+  order_id: string
   name: string
   model: string
   manufacturer: string
@@ -239,7 +239,7 @@ export interface RepairDetailData {
   order_name: string
   result: string
   details_id: number
-  project_id: number
+  project_id: string
   solve: string
   name: string
   company: string
@@ -248,7 +248,7 @@ export interface RepairDetailData {
   sn: string
   time: string
   take_time: string
-  order_id: number
+  order_id: string
   status: string
   done_time: string
 }

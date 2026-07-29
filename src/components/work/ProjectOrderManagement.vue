@@ -7,22 +7,19 @@
         <el-button type="primary" @click="addOrder">新建订单</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
-          >批量删除</el-button
-        >
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
         <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
       </div>
     </div>
-
+    <!-- 筛选栏 -->
     <div class="filter-section" v-if="isFilterVisible">
+
       <div class="filter-item">
-        <label for="orderStatus">订单状态：</label>
-        <el-select id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
-          <el-option label="全部状态" value="" />
-          <el-option label="编辑中" value="编辑中" />
-          <el-option label="已确认" value="已确认" />
-        </el-select>
+        <label for="orderName">订单名称：</label>
+        <el-input id="orderName" aria-label="订单名称" v-model="filterForm.orderName" placeholder="请输入订单名称"
+          style="width: 150px" />
       </div>
+
       <div class="filter-item">
         <label for="orderType">订单类型：</label>
         <el-select id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
@@ -32,59 +29,47 @@
           <el-option label="维修订单" value="维修" />
         </el-select>
       </div>
+
       <div class="filter-item">
-        <label for="orderName">订单名称：</label>
-        <el-input id="orderName" aria-label="订单名称"
-          v-model="filterForm.orderName"
-          placeholder="请输入订单名称"
-          style="width: 150px"
-        />
-      </div>
-      <div class="filter-item">
-        <label for="leader">负责人：</label>
-        <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人" style="width: 150px">
-          <el-option label="全部负责人" value="" />
-          <el-option
-            v-for="user in userList"
-            :key="user.account"
-            :label="user.name"
-            :value="user.account"
-          />
+        <label for="orderStatus">订单状态：</label>
+        <el-select id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态"
+          style="width: 150px">
+          <el-option label="全部状态" value="" />
+          <el-option label="编辑中" value="编辑中" />
+          <el-option label="已确认" value="已确认" />
         </el-select>
       </div>
+
+      <div class="filter-item">
+        <label for="leader">负责人：</label>
+        <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人"
+          style="width: 150px">
+          <el-option label="全部负责人" value="" />
+          <el-option v-for="user in userList" :key="user.account" :label="user.name" :value="user.account" />
+        </el-select>
+      </div>
+
       <div class="filter-item">
         <label for="customer">客户：</label>
         <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
-          <el-option
-            v-for="customer in customerList"
-            :key="customer.name"
-            :label="customer.name"
-            :value="customer.name"
-          />
+          <el-option v-for="customer in customerList" :key="customer.name" :label="customer.name"
+            :value="customer.name" />
         </el-select>
       </div>
+
       <div class="filter-item">
         <label for="createTime">创建时间:</label>
-        <el-date-picker id="createTime" aria-label="创建时间"
-          v-model="filterForm.createTime"
-          type="date"
-          placeholder="选择日期"
-          style="width: 150px"
-        />
+        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
+          style="width: 150px" />
         <el-button type="primary" @click="handleSearch">查询</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
     </div>
 
     <div class="table-section">
-      <el-table
-        :data="paginatedData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :row-key="getRowKey"
-      >
+      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+        :row-key="getRowKey">
         <el-table-column type="selection" width="39" :selectable="isRowSelectable" />
         <el-table-column prop="name" label="订单名称" />
         <el-table-column prop="type" label="订单类型" width="81" />
@@ -104,51 +89,31 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="193">
+        <el-table-column label="操作" width="300">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button
-                type="primary"
-                size="small"
-                @click="goToDetail(scope.row.id, scope.row.name)"
-                >查看</el-button
-              >
-              <el-button
-                type="success"
-                size="small"
-                @click="handleSubmitBtn(scope.row)"
-                :disabled="scope.row.status === '已确认'"
-                >提交</el-button
-              >
-              <el-button
-                type="danger"
-                size="small"
-                @click="handleDeleteBtn(scope.row)"
-                :disabled="scope.row.status === '已确认'"
-                >删除</el-button
-              >
+              <el-button type="primary" size="small" @click="goToDetail(scope.row.id)">查看</el-button>
+              <el-button size="small" @click="goToOrderDetailPage(scope.row)">详情</el-button>
+              <el-button type="success" size="small" @click="handleSubmitBtn(scope.row)"
+                :disabled="scope.row.status === '已确认'">提交</el-button>
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+                :disabled="scope.row.status === '已确认'">删除</el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
 
       <div class="pagination-section">
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          layout="total, prev, pager, next, jumper"
-          :total="filteredData.length"
-        />
+        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
+          layout="total, prev, pager, next, jumper" :total="filteredData.length" />
       </div>
     </div>
 
-    <OrderForm
-      v-model:visible="orderFormVisible"
-      :project-id="projectId"
-      :user-list="userList"
-      :customer-list="customerList"
-      @submit="handleOrderSubmit"
-    />
+    <OrderForm v-model:visible="orderFormVisible" :project-id="projectId" :user-list="userList"
+      :customer-list="customerList" @submit="handleOrderSubmit" />
+
+    <!-- 订单详情弹窗 -->
+    <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder" />
   </div>
 </template>
 
@@ -161,7 +126,8 @@ import { useUser } from '@/composables/useUser'
 import { useCustomer } from '@/composables/useCustomer'
 import { useOrder, type Order } from '@/composables/useOrder'
 import OrderForm from './AddOrderForm.vue'
-import type { OrderFormData } from './AddOrderForm.vue'
+import OrderDetailDialog from './OrderDetailDialog.vue'
+import type { OrderSubmitPayload } from './AddOrderForm.vue'
 
 const route = useRoute()
 const { fetchProjects } = useProject()
@@ -171,18 +137,19 @@ const { orderList, createOrder, fetchOrders, deleteOrder, submitOrder } = useOrd
 
 const currentPage = ref(1)
 const pageSize = ref(8)
-const projectId = ref(0)
+const projectId = ref('')
 const orderFormVisible = ref(false)
 const selectedRows = ref<Order[]>([])
 const isProjectIdValid = ref(true)
 const isFilterVisible = ref(true)
+const detailDialogVisible = ref(false)
+const currentOrder = ref<Order | null>(null)
 
-const parseProjectId = (id: unknown): number => {
+const parseProjectId = (id: unknown): string => {
   if (typeof id === 'string') {
-    const parsed = parseInt(id, 10)
-    return !isNaN(parsed) && parsed > 0 ? parsed : 0
+    return id
   }
-  return 0
+  return ''
 }
 
 const filterForm = ref({
@@ -254,14 +221,29 @@ const toggleFilter = () => {
   isFilterVisible.value = !isFilterVisible.value
 }
 
-// 跳转订单详情页
-const goToDetail = (orderId: number, orderName: string) => {
-  if (!orderId || orderId === 0) {
-    ElMessage.warning('无效的订单ID，无法跳转到订单详情')
+// 打开订单详情弹窗
+const goToDetail = (orderId: string) => {
+  if (!orderId) {
+    ElMessage.warning('无效的订单ID，无法查看订单详情')
     return
   }
-  const encodedName = encodeURIComponent(orderName)
-  window.open(`/order-detail/${orderId}?name=${encodedName}&projectId=${projectId.value}`, '_blank')
+  const order = orderList.value.find((o) => o.id === orderId)
+  if (!order) {
+    ElMessage.warning('未找到订单信息')
+    return
+  }
+  currentOrder.value = order
+  detailDialogVisible.value = true
+}
+
+// 跳转到项目订单详情页（ProjectOrderDetail.vue），新标签页打开
+const goToOrderDetailPage = (row: Order) => {
+  if (!row.id) {
+    ElMessage.warning('无效的订单ID，无法跳转到订单详情页')
+    return
+  }
+  const encodedName = encodeURIComponent(row.name || '')
+  window.open(`/order-detail/${row.id}?name=${encodedName}&projectId=${projectId.value}`, '_blank')
 }
 
 const addOrder = () => {
@@ -366,9 +348,11 @@ const handleReset = () => {
   currentPage.value = 1
 }
 
-const handleOrderSubmit = async (data: OrderFormData) => {
+const handleOrderSubmit = async (data: OrderSubmitPayload) => {
   try {
-    const success = await createOrder(data)
+    // 拆分出订单数据与设备明细，避免把 details 字段误传进订单创建接口
+    const { details, ...orderData } = data
+    const success = await createOrder(orderData, details)
     if (success) {
       orderFormVisible.value = false
       ElMessage.success('创建订单成功')
@@ -388,7 +372,7 @@ const handleOrderSubmit = async (data: OrderFormData) => {
 onMounted(() => {
   projectId.value = parseProjectId(route.params.id)
 
-  if (projectId.value === 0) {
+  if (!projectId.value) {
     isProjectIdValid.value = false
     ElMessage.error('无效的项目ID')
     return
@@ -430,8 +414,7 @@ onMounted(() => {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  justify-content: space-between;
 }
 
 .filter-item {
@@ -452,5 +435,4 @@ onMounted(() => {
   align-items: center;
   padding: 15px 20px;
 }
-
 </style>

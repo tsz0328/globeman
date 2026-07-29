@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 // 项目数据
 export interface ProjectData {
-  id: number // 项目ID
+  id: string // 项目ID
   name: string // 项目名称
   type: string // 项目类型
   status: string // 项目状态
@@ -28,7 +28,9 @@ export async function getProjectsApi(): Promise<ApiResponse<Record<string, Proje
   })
 }
 
+// 创建项目参数
 export interface CreateProjectData {
+  id: string
   name: string
   type: string
   leaderAccount: string
@@ -36,6 +38,7 @@ export interface CreateProjectData {
   contact: string
 }
 
+// 创建项目
 export async function createProjectApi(data: CreateProjectData): Promise<ApiResponse<ProjectData>> {
   return request({
     url: '/project/create',
@@ -46,7 +49,7 @@ export async function createProjectApi(data: CreateProjectData): Promise<ApiResp
 
 // 更新项目
 export async function updateProjectApi(
-  id: number,
+  id: string,
   data: Partial<ProjectData>,
 ): Promise<ApiResponse<ProjectData>> {
   return request({
@@ -57,7 +60,7 @@ export async function updateProjectApi(
 }
 
 // 删除项目
-export async function deleteProjectApi(id: number): Promise<ApiResponse<void>> {
+export async function deleteProjectApi(id: string): Promise<ApiResponse<void>> {
   return request({
     url: '/project/delete',
     method: 'delete',
@@ -66,7 +69,7 @@ export async function deleteProjectApi(id: number): Promise<ApiResponse<void>> {
 }
 
 // 批量删除项目
-export async function batchDeleteProjectsApi(ids: number[]): Promise<ApiResponse<void>> {
+export async function batchDeleteProjectsApi(ids: string[]): Promise<ApiResponse<void>> {
   return request({
     url: '/project/batchDelete',
     method: 'delete',

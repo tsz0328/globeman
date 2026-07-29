@@ -162,7 +162,7 @@ const handleAccept = async (row: EditableDetailData) => {
   }
 }
 
-const orderId = ref(0)
+const orderId = ref('')
 const orderName = ref('')
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -174,12 +174,10 @@ const detailPageSize = ref(10)
 const currentDetailParentId = ref(0)
 
 // 解析项目ID
-const parseProjectId = (id: unknown): number => {
-  if (typeof id === 'string') {
-    const parsed = parseInt(id, 10)
-    return !isNaN(parsed) && parsed > 0 ? parsed : 0
-  }
-  return 0
+const parseProjectId = (id: unknown): string => {
+  if (typeof id === 'string') return id
+  if (typeof id === 'number') return String(id)
+  return ''
 }
 
 // 设备详情数据接口
@@ -393,7 +391,7 @@ const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => 
 onMounted(() => {
   const id = parseProjectId(route.params.id)
 
-  if (id === 0) {
+  if (!id) {
     ElMessage.error('无效的订单ID')
     return
   }

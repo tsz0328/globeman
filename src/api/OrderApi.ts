@@ -1,8 +1,8 @@
 import request from '@/utils/request'
 
 export interface OrderData {
-  id: number
-  project_id: number
+  id: string
+  project_id: string
   name: string
   type: string
   leader_account: string
@@ -29,7 +29,8 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface CreateOrderData {
-  projectId: string
+  id: string
+  projectId?: string
   name: string
   type: string
   leaderAccount: string
@@ -42,7 +43,7 @@ export interface CreateOrderData {
   address: string
 }
 
-export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse<{ id: number }>> {
+export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse<{ id: string }>> {
   return request({
     url: '/order/create',
     method: 'post',
@@ -50,7 +51,7 @@ export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse
   })
 }
 
-export async function getOrdersApi(id?: number): Promise<ApiResponse<Record<string, OrderData>>> {
+export async function getOrdersApi(id?: string): Promise<ApiResponse<Record<string, OrderData>>> {
   return request({
     url: '/order/get',
     method: 'get',
@@ -58,7 +59,7 @@ export async function getOrdersApi(id?: number): Promise<ApiResponse<Record<stri
   })
 }
 
-export async function deleteOrderApi(id: number): Promise<ApiResponse<void>> {
+export async function deleteOrderApi(id: string): Promise<ApiResponse<void>> {
   return request({
     url: '/order/delete',
     method: 'delete',
@@ -66,7 +67,7 @@ export async function deleteOrderApi(id: number): Promise<ApiResponse<void>> {
   })
 }
 
-export async function submitOrderApi(id: number): Promise<ApiResponse<void>> {
+export async function submitOrderApi(id: string): Promise<ApiResponse<void>> {
   return request({
     url: '/order/done',
     method: 'put',

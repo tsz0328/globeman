@@ -130,7 +130,7 @@ const addProject = () => {
   projectFormVisible.value = true
 }
 
-// 查看项目详情（先跳转到订单管理）
+// 查看项目详情
 const viewProject = (row: Project) => {
   window.open(`/project-order/${row.id}`, '_blank')
 }
@@ -146,6 +146,8 @@ const handleProjectSubmit = async (data: ProjectFormData) => {
     const success = await createProject(data)
     if (success) {
       projectFormVisible.value = false
+      // 清空筛选并回到首页，确保新建项目（已置顶）立即可见
+      handleReset()
       ElMessage.success('创建成功')
     }
   } catch (error) {

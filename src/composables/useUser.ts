@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { createUserApi, getUsersApi, deleteUserApi } from '@/api/UserApi'
-import { sortByCreateTimeDesc } from '@/utils/sort'
+import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
 export interface User {
   id: number
@@ -88,7 +88,9 @@ export function useUser() {
             name: getString(['name', 'fullName']),
             company: getString(['company', 'companyName', 'organization', 'org']),
             role: getString(['role', 'userRole']),
-            createTime: getString(['createTime', 'create_time', 'createdAt', 'created_at', 'time']),
+            createTime: formatDateTime(
+              getString(['createTime', 'create_time', 'createdAt', 'created_at', 'time']),
+            ),
           }
           return user
         })
@@ -134,9 +136,9 @@ export function useUser() {
           name: getString(['name', 'fullName']) || data.name,
           company: getString(['company', 'companyName']) || data.company,
           role: getString(['role', 'userRole']) || data.role,
-          createTime:
-            getString(['createTime', 'create_time', 'createdAt', 'created_at']) ||
-            new Date().toLocaleString('zh-CN'),
+          createTime: formatDateTime(
+            getString(['createTime', 'create_time', 'createdAt', 'created_at']) || new Date(),
+          ),
         }
         userList.value.unshift(newUser)
         return true

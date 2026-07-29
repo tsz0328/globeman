@@ -23,14 +23,12 @@
   display: flex;
   align-items: center;
   border-bottom: 1px solid black;
-  padding-bottom: 16px;
 }
 
 .title {
   font-size: 20px;
   font-weight: bold;
   color: #333;
-  margin: 0;
 }
 
 .content-card {

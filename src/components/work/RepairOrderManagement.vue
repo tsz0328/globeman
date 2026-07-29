@@ -158,18 +158,17 @@ const {
 
 const currentPage = ref(1)
 const pageSize = ref(8)
-const repairId = ref(0)
+const repairId = ref('')
 const orderFormVisible = ref(false)
 const isRepairIdValid = ref(true)
 const isFilterVisible = ref(true)
 const selectedRows = ref<{ id: number }[]>([])
 
-const parseRepairId = (id: unknown): number => {
+const parseRepairId = (id: unknown): string => {
   if (typeof id === 'string') {
-    const parsed = parseInt(id, 10)
-    return !isNaN(parsed) && parsed > 0 ? parsed : 0
+    return id
   }
-  return 0
+  return ''
 }
 
 const filterForm = ref({
@@ -292,7 +291,7 @@ const handleOrderSubmit = async (data: OrderFormData) => {
 onMounted(() => {
   repairId.value = parseRepairId(route.params.id)
 
-  if (repairId.value === 0) {
+  if (!repairId.value) {
     isRepairIdValid.value = false
     ElMessage.error('无效的维修ID')
     return

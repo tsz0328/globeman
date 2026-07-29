@@ -208,6 +208,7 @@ import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus'
 import { useDetail, type RepairImageItem } from '@/composables/useDetail'
 import type { RepairDetailData } from '@/api/DetailApi'
+import { formatDateTime } from '@/utils/sort'
 
 const {
   getRepairById,
@@ -238,7 +239,7 @@ const repairDetail = reactive<RepairDetailData>({
   order_name: '',
   result: '',
   details_id: 0,
-  project_id: 0,
+  project_id: '',
   solve: '',
   name: '',
   company: '',
@@ -247,7 +248,7 @@ const repairDetail = reactive<RepairDetailData>({
   sn: '',
   time: '',
   take_time: '',
-  order_id: 0,
+  order_id: '',
   status: '',
   done_time: '',
 })
@@ -288,6 +289,10 @@ const fetchRepairById = async () => {
   const data = await getRepairById(repairId.value)
   if (data) {
     Object.assign(repairDetail, data)
+    // 时间字段统一格式化为 "YYYY-MM-DD HH:mm:ss"（后端可能返回 ISO 带 T 格式）
+    repairDetail.time = formatDateTime(data.time)
+    repairDetail.take_time = formatDateTime(data.take_time)
+    repairDetail.done_time = formatDateTime(data.done_time)
     form.faultReason = data.reason
     form.handleMethod = data.solve
     form.repairResult = data.result

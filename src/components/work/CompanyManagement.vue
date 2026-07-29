@@ -1,6 +1,5 @@
 <template>
   <div class="company-management">
-
     <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="title">公司管理</h2>
@@ -8,73 +7,53 @@
         <el-button type="primary" @click="addCompany">新建公司</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
-          >批量删除</el-button
-        >
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
       </div>
     </div>
 
     <!-- 筛选栏 -->
     <div class="filter-section">
-        <div class="filter-item">
+      <div class="filter-item">
         <label for="companyName">公司名称:</label>
-        <el-input id="companyName" aria-label="公司名称" v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" @keyup.enter.prevent="handleSearch" />
-        </div>
-        <div class="filter-item">
+        <el-input id="companyName" aria-label="公司名称" v-model="filterForm.name" placeholder="请输入公司名称"
+          style="width: 200px" @keyup.enter.prevent="handleSearch" />
+      </div>
+      <div class="filter-item">
         <label for="createTime">创建时间:</label>
-        <el-date-picker
-          id="createTime"
-          aria-label="创建时间"
-          v-model="filterForm.createTime"
-          type="date"
-          placeholder="选择日期"
-          style="width: 150px"
-        />
-          </div>
-          <div class="filter-item">
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </div>
+        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
+          style="width: 150px" />
+      </div>
+      <div class="filter-item">
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
     </div>
 
     <!-- 表格 -->
     <div class="table-section">
-      <el-table
-        :data="paginatedData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :row-key="getRowKey"
-      >
+      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+        :row-key="getRowKey">
         <el-table-column type="selection" width="50"></el-table-column>
         <el-table-column prop="name" label="公司名称"></el-table-column>
         <el-table-column prop="time" label="创建时间" width="180"></el-table-column>
         <el-table-column label="操作" width="133">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewCompany(scope.row)"
-                >编辑</el-button
-              >
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
-                >删除</el-button
-              >
+              <el-button type="primary" size="small" @click="viewCompany(scope.row)">编辑</el-button>
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
-
+      <!-- 分页 -->
       <div class="pagination-section">
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            layout="total, prev, pager, next, jumper"
-            :total="filteredData.length"
-          ></el-pagination>
-        </div>
+        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
+          layout="total, prev, pager, next, jumper" :total="filteredData.length"></el-pagination>
       </div>
     </div>
+  </div>
 
-    <CompanyForm v-model:visible="companyFormVisible" @submit="handleCompanySubmit" />
+  <CompanyForm v-model:visible="companyFormVisible" @submit="handleCompanySubmit" />
 </template>
 
 <script setup lang="ts">
@@ -93,6 +72,7 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 const selectedRows = ref<CompanyData[]>([])
 
+// 过滤表单
 const filterForm = ref({
   name: '',
   createTime: null,

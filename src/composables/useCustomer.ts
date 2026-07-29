@@ -7,7 +7,7 @@ import {
   batchDeleteCustomersApi,
   type CustomerData,
 } from '@/api/CustomerApi'
-import { sortByCreateTimeDesc } from '@/utils/sort'
+import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
 // 客户接口
 export interface Customer {
@@ -84,7 +84,7 @@ export function useCustomer() {
             company: getString(['company']),
             contact: getString(['contact']),
             phone: getString(['phone']),
-            createTime: getString(['time']),
+            createTime: formatDateTime(getString(['time'])),
           }
           return customer
         })
@@ -125,8 +125,7 @@ export function useCustomer() {
           company: getString(['company']) || data.company,
           contact: getString(['contact']) || data.contact,
           phone: getString(['phone']) || data.phone,
-          createTime:
-            getString(['time']) || new Date().toISOString().slice(0, 19).replace('T', ' '),
+          createTime: formatDateTime(getString(['time']) || new Date()),
         }
         customerList.value.unshift(newCustomer)
         return true
@@ -170,7 +169,7 @@ export function useCustomer() {
           company: getString(['company']) || data.company,
           contact: getString(['contact']) || data.contact,
           phone: getString(['phone']) || data.phone,
-          createTime: getString(['time']) || existing?.createTime || '',
+          createTime: formatDateTime(getString(['time'])) || existing?.createTime || '',
         }
         const idx = customerList.value.findIndex((c) => c.id === id)
         if (idx !== -1) {

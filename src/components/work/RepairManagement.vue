@@ -115,6 +115,7 @@
         border
         style="width: 100%"
         @selection-change="handleSelectionChange"
+        @row-dblclick="handleRowDblclick"
         :row-key="getRowKey"
       >
         <el-table-column type="selection" width="50" />
@@ -177,6 +178,10 @@ onMounted(() => {
 
 const viewRepair = (row: Project) => {
   window.open(`/repair-order/${row.id}`, '_blank')
+}
+
+const handleRowDblclick = (row: Project) => {
+  viewRepair(row)
 }
 
 const getRowKey = (row: Project) => row.id

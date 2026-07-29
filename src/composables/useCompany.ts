@@ -7,6 +7,17 @@ import {
   type CompanyData,
   type CompanyFormData,
 } from '@/api/CompanyApi'
+import { toTimeStamp, formatDateTime } from '@/utils/sort'
+
+// 公司列表按创建时间降序（最新在前）；时间字段为 time，时间相同或无效时用 id 兜底
+const sortCompaniesByTimeDesc = (list: CompanyData[]): CompanyData[] => {
+  return [...list].sort((a, b) => {
+    const ta = toTimeStamp(a.time)
+    const tb = toTimeStamp(b.time)
+    if (ta !== tb) return tb - ta
+    return (b.id || 0) - (a.id || 0)
+  })
+}
 
 export function useCompany() {
   const companyList = ref<CompanyData[]>([])
@@ -18,7 +29,11 @@ export function useCompany() {
       const res = await getCompaniesApi()
       if (res.code === 200 && res.data) {
         const companies = Array.isArray(res.data) ? res.data : Object.values(res.data)
-        companyList.value = companies as CompanyData[]
+        // 先按原始 time 排序，再统一格式化为 "YYYY-MM-DD HH:mm:ss" 展示
+        companyList.value = sortCompaniesByTimeDesc(companies as CompanyData[]).map((c) => ({
+          ...c,
+          time: formatDateTime(c.time),
+        }))
       }
     } catch (error) {
       console.error('获取公司列表失败:', error)

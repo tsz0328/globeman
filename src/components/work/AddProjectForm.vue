@@ -324,7 +324,7 @@ const handleSubmit = () => {
 </script>
 <script lang="ts">
 export interface ProjectFormData {
-  id?: number
+  id?: string
   name: string
   type: string
   leaderAccount: string
