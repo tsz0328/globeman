@@ -38,10 +38,10 @@
           @keydown.down.prevent="handleKeydown($event)"
         >
           <el-option
-            v-for="company in companyList"
-            :key="company.name"
-            :label="company.name"
-            :value="company.name"
+            v-for="name in companyNames"
+            :key="name"
+            :label="name"
+            :value="name"
           />
         </el-select>
       </el-form-item>
@@ -88,16 +88,11 @@ export interface Role {
   role: string
 }
 
-export interface Company {
-  id?: number
-  name: string
-}
-
 const props = defineProps<{
   visible: boolean
   editData?: UserFormData | null
   roleList: Role[]
-  companyList: Company[]
+  companyNames: string[]
 }>()
 
 const emit = defineEmits<{

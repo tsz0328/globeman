@@ -19,10 +19,10 @@
         <el-select id="company" aria-label="公司" v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
           <el-option label="全部公司" value="" />
           <el-option
-            v-for="company in companyList"
-            :key="company.id"
-            :label="company.name"
-            :value="company.name"
+            v-for="name in companyNames"
+            :key="name"
+            :label="name"
+            :value="name"
           />
         </el-select>
       </div>
@@ -32,7 +32,7 @@
           <el-option label="全部角色" value="" />
           <el-option
             v-for="role in roleList"
-            :key="role.id"
+            :key="role.role"
             :label="role.name"
             :value="role.role"
           />
@@ -65,16 +65,16 @@
         :row-key="getRowKey"
       >
         <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
-        <el-table-column prop="account" label="账号" width="120" />
-        <el-table-column prop="name" label="姓名" width="100" />
-        <el-table-column prop="company" label="公司" />
-        <el-table-column prop="role" label="角色" width="100" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="account" label="账号" />
+        <el-table-column prop="name" label="姓名" />
+        <el-table-column v-if="!notAdminRole" prop="company" label="公司" />
+        <el-table-column prop="role" label="角色" :width="notAdminRole ? 'auto' : 120" />
+        <el-table-column prop="createTime" label="创建时间" :width="notAdminRole ? 'auto' : 180" />
         <el-table-column label="操作" width="193">
           <template #default="scope">
             <div class="action-buttons">
-              <el-button type="primary" size="small">查看</el-button>
-              <el-button type="warning" size="small">编辑</el-button>
+              <el-button type="primary" size="small" @click="viewUser(scope.row)">查看</el-button>
+              <el-button type="info" size="small">禁用</el-button>
               <el-button
                 type="danger"
                 size="small"
@@ -102,7 +102,7 @@
     <UserForm
       v-model:visible="userFormVisible"
       :role-list="roleList"
-      :company-list="companyList"
+      :company-names="companyNames"
       @submit="handleUserSubmit"
     />
   </div>
@@ -111,6 +111,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import Cookies from 'js-cookie'
 import UserForm from './AddUserForm.vue'
 import type { UserFormData } from './AddUserForm.vue'
 import { useUser, type User } from '@/composables/useUser'
@@ -119,18 +120,25 @@ import { useCompany } from '@/composables/useCompany'
 
 const { userList, createUser, fetchUsers, deleteUser, batchDeleteUsers } = useUser()
 const { roleList, fetchRoles } = useRole()
-const { companyList, fetchCompanies } = useCompany()
+const { companyNames, fetchCompanyNames } = useCompany()
 
 const currentPage = ref(1)
 const pageSize = ref(10)
 const userFormVisible = ref(false)
 const selectedRows = ref<User[]>([])
 
+const notAdminRole = computed(() => Cookies.get('role') !== 'admin')
+
+// 查看用户详情（跳转到新页面，与项目管理/订单管理一致）
+const viewUser = (row: User) => {
+  window.open(`/user-detail/${row.id}`, '_blank')
+}
+
 // 组件挂载时获取用户列表
 onMounted(() => {
   fetchUsers()
   fetchRoles()
-  fetchCompanies()
+  fetchCompanyNames()
 })
 
 // 新增用户
@@ -225,14 +233,27 @@ const handleBatchDelete = async () => {
   }
 }
 
+// 角色 code -> 中文名 映射，兼容「用户列表 role 为中文名」的情况
+const roleCodeMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  roleList.value.forEach((r) => {
+    map[r.role] = r.name
+  })
+  return map
+})
+
 // 筛选后的数据
 const filteredData = computed(() => {
   return userList.value.filter((item: User) => {
     if (filterForm.value.company && !item.company.includes(filterForm.value.company)) {
       return false
     }
-    if (filterForm.value.role && item.role !== filterForm.value.role) {
-      return false
+    const selRole = filterForm.value.role
+    if (selRole) {
+      // 兼容：用户列表 role 可能是 code（admin）或中文名（超级管理员），二者任一匹配即保留
+      if (item.role !== selRole && roleCodeMap.value[selRole] !== item.role) {
+        return false
+      }
     }
     if (filterForm.value.createTime) {
       const filterDate = new Date(filterForm.value.createTime)

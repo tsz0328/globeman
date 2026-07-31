@@ -86,7 +86,7 @@
     <CustomerForm
       v-model:visible="customerFormVisible"
       :editData="editData"
-      :companyList="companyList"
+      :company-names="companyNames"
       @submit="handleCustomerSubmit"
     />
   </div>
@@ -102,7 +102,7 @@ import { useCompany } from '@/composables/useCompany'
 
 const { customerList, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, batchDeleteCustomers } =
   useCustomer()
-const { companyList, fetchCompanies } = useCompany()
+const { companyNames, fetchCompanyNames } = useCompany()
 
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -113,7 +113,7 @@ const selectedRows = ref<Customer[]>([])
 // 组件挂载时获取客户列表和公司列表
 onMounted(() => {
   fetchCustomers()
-  fetchCompanies()
+  fetchCompanyNames()
 })
 
 // 新增客户

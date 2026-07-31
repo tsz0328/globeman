@@ -53,7 +53,6 @@ function handleIndex() {
   display: flex;
   align-items: center;
   flex-direction: row;
-  background-color: white;
 }
 
 .body {
@@ -113,12 +112,10 @@ function handleIndex() {
 .sidebar {
   width: 180px;
   height: calc(100vh - 60px);
-  background-color: white;
 }
 
 .work {
   width: 100%;
   height: calc(100vh - 60px);
-  background-color: white;
 }
 </style>

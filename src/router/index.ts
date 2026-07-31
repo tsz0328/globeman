@@ -20,6 +20,7 @@ import OutboundManagementComponent from '@/components/work/OutboundManagement.vu
 import InboundManagementComponent from '@/components/work/InboundManagement.vue'
 import InventoryManagementComponent from '@/components/work/InventoryManagement.vue'
 import OrderManagementComponent from '@/components/work/OrderManagement.vue'
+import UserDetailComponent from '@/components/work/UserDetail.vue'
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -134,6 +135,11 @@ const router = createRouter({
       path: '/equipment-repair-information/:id',
       name: 'EquipmentRepairInformation',
       component: EquipmentRepairInformationComponent,
+    },
+    {
+      path: '/user-detail/:id',
+      name: 'UserDetail',
+      component: UserDetailComponent,
     },
   ],
 })

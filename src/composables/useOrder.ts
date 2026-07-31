@@ -150,10 +150,6 @@ export function useOrder() {
       const response = await submitOrderApi(id)
 
       if (response.code === 200) {
-        const order = orderList.value.find((o) => o.id === id)
-        if (order) {
-          order.status = '已提交'
-        }
         return true
       }
       return false

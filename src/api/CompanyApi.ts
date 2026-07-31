@@ -15,11 +15,20 @@ export interface ApiResponse<T = unknown> {
 
 export async function getCompaniesApi(): Promise<ApiResponse<CompanyData[]>> {
   return request({
-    url: '/company/get',
+    url: '/client/company/get',
     method: 'get',
   })
 }
 
+// 专门用于获取公司名称列表的 API（仅返回名称字符串数组）
+export async function getInfoCompanyApi(): Promise<ApiResponse<string[]>> {
+  return request({
+    url: '/client/user/getInfoCompany',
+    method: 'get',
+  })
+}
+
+// 删除公司
 export async function deleteCompanyApi(id: number): Promise<ApiResponse<unknown>> {
   return request({
     url: '/company/delete',
@@ -28,6 +37,7 @@ export async function deleteCompanyApi(id: number): Promise<ApiResponse<unknown>
   })
 }
 
+// 批量删除公司
 export async function batchDeleteCompaniesApi(ids: number[]): Promise<ApiResponse<unknown>> {
   return request({
     url: '/company/batchDelete',
@@ -36,10 +46,12 @@ export async function batchDeleteCompaniesApi(ids: number[]): Promise<ApiRespons
   })
 }
 
+// 创建公司
 export interface CompanyFormData {
   name: string
 }
 
+// 创建公司 API
 export async function createCompanyApi(data: CompanyFormData): Promise<ApiResponse<CompanyData>> {
   return request({
     url: '/company/create',

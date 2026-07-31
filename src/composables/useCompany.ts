@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import {
   getCompaniesApi,
+  getInfoCompanyApi,
   deleteCompanyApi,
   batchDeleteCompaniesApi,
   createCompanyApi,
@@ -21,6 +22,7 @@ const sortCompaniesByTimeDesc = (list: CompanyData[]): CompanyData[] => {
 
 export function useCompany() {
   const companyList = ref<CompanyData[]>([])
+  const companyNames = ref<string[]>([])
   const loading = ref(false)
   // 获取公司列表
   const fetchCompanies = async () => {
@@ -37,6 +39,21 @@ export function useCompany() {
       }
     } catch (error) {
       console.error('获取公司列表失败:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 获取公司名称列表（仅名称，用于用户管理等页面的「公司」筛选/下拉选项）
+  const fetchCompanyNames = async () => {
+    loading.value = true
+    try {
+      const res = await getInfoCompanyApi()
+      if (res.code === 200 && Array.isArray(res.data)) {
+        companyNames.value = res.data
+      }
+    } catch (error) {
+      console.error('获取公司名称列表失败:', error)
     } finally {
       loading.value = false
     }
@@ -78,6 +95,7 @@ export function useCompany() {
     }
   }
 
+  // 创建公司
   const createCompany = async (data: CompanyFormData): Promise<boolean> => {
     loading.value = true
     try {
@@ -97,8 +115,10 @@ export function useCompany() {
 
   return {
     companyList,
+    companyNames,
     loading,
     fetchCompanies,
+    fetchCompanyNames,
     deleteCompany,
     batchDeleteCompanies,
     createCompany,

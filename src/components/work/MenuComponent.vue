@@ -8,35 +8,42 @@
         </el-icon>
         <span>首页</span>
       </el-menu-item>
+
       <el-menu-item index="/work/user">
         <el-icon>
           <User />
         </el-icon>
         <span>用户管理</span>
-      </el-menu-item><el-menu-item index="/work/customer">
+      </el-menu-item>
+
+      <el-menu-item index="/work/customer">
         <el-icon>
           <UserFilled />
         </el-icon>
         <span>客户管理</span>
       </el-menu-item>
-      <el-menu-item index="/work/project">
-        <el-icon>
-          <Document />
-        </el-icon>
-        <span>项目管理</span>
-      </el-menu-item>
-      <el-menu-item index="/work/order">
-        <el-icon>
-          <Document />
-        </el-icon>
-        <span>订单管理</span>
-      </el-menu-item>
+
       <el-menu-item index="/work/company">
         <el-icon>
           <OfficeBuilding />
         </el-icon>
         <span>公司管理</span>
       </el-menu-item>
+
+      <el-menu-item index="/work/project">
+        <el-icon>
+          <Document />
+        </el-icon>
+        <span>项目管理</span>
+      </el-menu-item>
+
+      <el-menu-item index="/work/order">
+        <el-icon>
+          <Document />
+        </el-icon>
+        <span>订单管理</span>
+      </el-menu-item>
+
       <el-sub-menu index="repair">
         <template #title>
           <el-icon>
@@ -47,6 +54,7 @@
         <el-menu-item index="/work/repair-management">维修管理</el-menu-item>
         <el-menu-item index="/work/repair-accept">维修接单</el-menu-item>
       </el-sub-menu>
+
       <el-sub-menu index="warehouse">
         <template #title>
           <el-icon>

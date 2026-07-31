@@ -107,40 +107,14 @@ export function useUser() {
   }
 
   // 创建用户
-  // 支持创建新用户并更新用户列表
+  // 成功后重新拉取用户列表，以接口返回的真实数据渲染表格（不使用表单填写的数据拼接）
   const createUser = async (data: UserFormData): Promise<boolean> => {
     loading.value = true
     try {
       const res = await createUserApi(data)
       if (res.code === 200) {
-        const dataRecord = (res.data as unknown as Record<string, unknown>) || {}
-        const getString = (keys: string[]) => {
-          for (const key of keys) {
-            const value = dataRecord[key]
-            if (typeof value === 'string') {
-              return value
-            }
-            if (typeof value === 'number') {
-              return String(value)
-            }
-          }
-          return ''
-        }
-
-        // 映射新用户记录为 User 类型
-        // 处理 id、userId、account、name、company、role、createTime 等字段
-        // 支持嵌套对象和数组
-        const newUser: User = {
-          id: typeof dataRecord.id === 'number' ? dataRecord.id : Date.now(),
-          account: getString(['account', 'username']) || data.account,
-          name: getString(['name', 'fullName']) || data.name,
-          company: getString(['company', 'companyName']) || data.company,
-          role: getString(['role', 'userRole']) || data.role,
-          createTime: formatDateTime(
-            getString(['createTime', 'create_time', 'createdAt', 'created_at']) || new Date(),
-          ),
-        }
-        userList.value.unshift(newUser)
+        // 新建成功后强制重新拉取，保证表格展示后端实际落库的数据
+        await fetchUsers(true)
         return true
       }
       return false

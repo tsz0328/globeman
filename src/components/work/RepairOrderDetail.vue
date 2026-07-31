@@ -431,7 +431,6 @@ onMounted(() => {
 }
 
 .equipment-section {
-  background-color: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -444,7 +443,6 @@ onMounted(() => {
   gap: 24px;
   margin-bottom: 18px;
   padding: 12px 16px;
-  background: #fafafa;
   border: 1px solid #e8e8e8;
   border-radius: 6px;
 }

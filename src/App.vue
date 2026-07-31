@@ -12,7 +12,6 @@ body {
   padding: 0; /* 清除浏览器默认的内边距，避免多余空白 */
   overflow-x: hidden; /* 隐藏水平方向的滚动条，防止页面左右滑动 */
   width: 100%; /* 让 html 和 body 宽度占满整个浏览器窗口 */
-  background-color: #f6f6f6;
 }
 
 html ::-webkit-scrollbar {

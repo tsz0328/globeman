@@ -286,6 +286,8 @@ const handleSubmitBtn = async (row: Order) => {
     const success = await submitOrder(row.id)
     if (success) {
       ElMessage.success('提交成功')
+      // 重新获取后端订单列表，刷新真实状态（如 已确认），使提交/删除按钮按状态正确禁用
+      await fetchOrders(projectId.value)
     } else {
       ElMessage.error('提交失败')
     }
@@ -424,7 +426,6 @@ onMounted(() => {
 }
 
 .table-section {
-  background-color: white;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }

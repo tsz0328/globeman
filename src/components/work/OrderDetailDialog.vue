@@ -48,23 +48,61 @@
         </div>
       </div>
       <!-- 表格 -->
-      <el-table :data="detailTableData" border class="detail-table" max-height="400">
+      <!-- 列宽策略（与 RepairOrderDetail 成功模式一致）：
+           fit 默认开启，除「备注」外每列都设固定 width，隐藏的展开列显式 width=0，
+           于是只有「备注」作为唯一弹性列吸收剩余空间、铺满整行，不会出现多余空白列 -->
+      <el-table :data="detailTableData" border class="detail-table" max-height="400" row-key="id"
+        :expand-row-keys="expandedKeys" @expand-change="onExpandChange" :row-class-name="rowClassName"
+        @row-click="onRowClick">
+        <el-table-column type="expand" width="0">
+          <template #default="scope">
+            <div v-if="!scope.row.isNew && scope.row.id" class="sn-panel">
+              <div class="sn-panel-title">
+                序列号（共 {{ (snChildrenMap[scope.row.id ?? 0] || []).length }} 条）
+              </div>
+              <el-table :data="snChildrenMap[scope.row.id ?? 0] || []" border size="small" class="sn-sub-table">
+                <el-table-column label="序号" type="index" width="50" align="center" />
+                <el-table-column label="SN码" min-width="220">
+                  <template #default="snScope">
+                    <el-input v-model="snScope.row.sn" size="small" placeholder="编辑SN，回车提交" aria-label="SN码"
+                      :readonly="snScope.row.status === '维修中' || snScope.row.status === '待维修'"
+                      @keyup.enter.prevent="handleSnSubmit(snScope.row)" @blur="handleSnSubmit(snScope.row)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="状态" width="90" align="center">
+                  <template #default="snScope">
+                    <el-tag :type="getSnStatusType(snScope.row.status)" size="small">
+                      {{ snScope.row.status || '-' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column label="品名" min-width="120">
+        <el-table-column label="品名" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.equipmentName" aria-label="品名" size="small"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
             <span v-else>{{ scope.row.equipmentName }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="型号" min-width="120">
+        <el-table-column label="型号" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.equipmentModel" aria-label="型号" size="small"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
             <span v-else>{{ scope.row.equipmentModel }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="序列号" min-width="120">
+        <el-table-column label="厂商" width="100">
+          <template #default="scope">
+            <el-input v-if="scope.row.isNew" v-model="scope.row.manufacturer" aria-label="厂商" size="small"
+              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+            <span v-else>{{ scope.row.manufacturer }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="序列号" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.serialNo" aria-label="序列号" size="small"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
@@ -100,7 +138,9 @@
             <span v-else>{{ scope.row.total }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="备注" min-width="120">
+        <!-- 备注列：不设 width，作为唯一弹性列吸收剩余空间（fit 默认开启），
+             其余列均为固定 width，故不会出现多余空白列，表格精确铺满 -->
+        <el-table-column label="备注">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.remark" aria-label="备注" size="small"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
@@ -108,7 +148,7 @@
           </template>
         </el-table-column>
       </el-table>
-<!-- 表单底部 -->
+      <!-- 表单底部 -->
       <div class="form-footer">
         <div class="footer-row">
           <div class="footer-item">
@@ -147,12 +187,14 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
 
-const { fetchDetails, detailList, createDetail } = useDetail()
+const { fetchDetails, detailList, createDetail, getRepairDetail, addRepairSn } = useDetail()
 
 interface DetailTableRow {
+  id?: number
   isNew?: boolean
   equipmentName: string
   equipmentModel: string
+  manufacturer: string
   serialNo: string
   unit: string
   quantity: number | string
@@ -161,11 +203,23 @@ interface DetailTableRow {
   remark: string
 }
 
+// SN 子记录（每条序列号一行，对应后端 repair 子表）
+interface SnRow {
+  id: number
+  parentId: number
+  sn: string
+  status: string
+  lastSn?: string
+  submitting?: boolean
+}
+
 //创建一个空白行对象
 const createBlankRow = (): DetailTableRow => ({
+  id: -1,
   isNew: true,
   equipmentName: '',
   equipmentModel: '',
+  manufacturer: '',
   serialNo: '',
   unit: '',
   quantity: '',
@@ -180,8 +234,10 @@ const newRow = ref<DetailTableRow>(createBlankRow())
 const detailTableData = computed<DetailTableRow[]>(() => {
   return [
     ...detailList.value.map((item) => ({
+      id: item.id,
       equipmentName: item.equipmentName,
       equipmentModel: item.equipmentModel,
+      manufacturer: item.manufacturer || '',
       serialNo: item.sn || '',
       unit: '台',
       quantity: item.quantity,
@@ -192,6 +248,95 @@ const detailTableData = computed<DetailTableRow[]>(() => {
     newRow.value,
   ]
 })
+
+// 每个设备行展开后的 SN 子记录（key = 设备明细 id）
+const snChildrenMap = ref<Record<number, SnRow[]>>({})
+// 当前已展开的设备行 id 列表（受控展开，便于新增后自动展开）
+const expandedKeys = ref<number[]>([])
+
+// 拉取某设备明细下的 N 条序列号子记录（N = 数量）
+const loadSnChildren = async (detailId: number, force = false) => {
+  if (!detailId || detailId <= 0) return
+  if (!force && snChildrenMap.value[detailId]) return
+  const res = await getRepairDetail(detailId)
+  if (res && res.code === 200) {
+    const dataValues = Object.values(res.data || {}) as unknown as Record<string, unknown>[]
+    snChildrenMap.value[detailId] = dataValues.map((d) => ({
+      id: (d.id as number) || 0,
+      parentId: detailId,
+      sn: (d.sn as string) || '',
+      status: (d.status as string) || '',
+      lastSn: (d.sn as string) || '',
+    }))
+  } else {
+    snChildrenMap.value[detailId] = []
+  }
+}
+
+// 提交单条 SN（回车/失焦触发），复用 addRepairSn，并做重复提交防护
+const handleSnSubmit = async (row: SnRow) => {
+  if (row.submitting) return
+  if (!row.id) {
+    ElMessage.error('无效的数据ID')
+    return
+  }
+  const trimmed = String(row.sn || '').trim()
+  // 空值静默跳过，避免点进输入框又点出时误报
+  if (!trimmed) return
+  // 与已提交 SN 一致时跳过，避免多次失焦重复提交
+  if (row.lastSn === trimmed) return
+
+  row.submitting = true
+  try {
+    const success = await addRepairSn(trimmed, row.id)
+    if (success) {
+      row.lastSn = trimmed
+      ElMessage.success('SN提交成功')
+      // 重新拉取，使状态与后端同步
+      await loadSnChildren(row.parentId, true)
+    } else {
+      ElMessage.error('SN提交失败')
+    }
+  } finally {
+    row.submitting = false
+  }
+}
+
+// SN 状态标签颜色
+const getSnStatusType = (
+  status: string,
+): '' | 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
+  if (status === '待维修') return 'primary'
+  if (status === '维修中') return 'warning'
+  return 'info'
+}
+
+// 展开/收起时同步已展开列表，并在展开时拉取 SN 子记录
+const onExpandChange = (row: DetailTableRow, expandedRows: DetailTableRow[]) => {
+  expandedKeys.value = expandedRows
+    .map((r) => r.id)
+    .filter((id): id is number => typeof id === 'number' && id > 0)
+  if (!row.isNew && row.id && row.id > 0 && expandedRows.includes(row)) {
+    loadSnChildren(row.id)
+  }
+}
+
+// 整行点击切换展开/收起（与展开箭头效果一致）；隐藏展开列后作为唯一入口
+const onRowClick = (row: DetailTableRow) => {
+  // 新增行没有明细 id，不触发展开
+  if (row.isNew || !row.id || row.id <= 0) return
+  if (expandedKeys.value.includes(row.id)) {
+    expandedKeys.value = expandedKeys.value.filter((id) => id !== row.id)
+  } else {
+    expandedKeys.value = [...expandedKeys.value, row.id]
+    loadSnChildren(row.id)
+  }
+}
+
+// 给已有明细行添加可点击样式（光标变手型）
+const rowClassName = ({ row }: { row: DetailTableRow }): string => {
+  return !row.isNew && row.id && row.id > 0 ? 'clickable-row' : ''
+}
 
 // 处理新行保存逻辑
 const handleNewRowSave = async (row: DetailTableRow) => {
@@ -230,14 +375,22 @@ const handleNewRowSave = async (row: DetailTableRow) => {
     orderId: props.order.id,
     name: row.equipmentName,
     model: row.equipmentModel,
-    manufacturer: props.order.company || '',
+    manufacturer: row.manufacturer || '',
     number: String(quantity),
     price: String(unitPrice),
   })
   if (success) {
     ElMessage.success('添加设备成功')
+    // 记录已有明细 id，用于找出刚新增的那条
+    const beforeIds = new Set(detailList.value.map((d) => d.id))
     newRow.value = createBlankRow()
     await fetchDetails(props.order.id)
+    // 自动展开刚添加的设备，让其数量对应的 N 条 SN 空白行直接出现在下方
+    const newId = detailList.value.find((d) => !beforeIds.has(d.id))?.id
+    if (newId != null) {
+      expandedKeys.value = [...expandedKeys.value, newId]
+      await loadSnChildren(newId)
+    }
   } else {
     ElMessage.error('添加设备失败')
   }
@@ -259,6 +412,9 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen && props.order) {
+      // 清空上一次展开的 SN 子记录，避免跨订单残留
+      snChildrenMap.value = {}
+      expandedKeys.value = []
       fetchDetails(props.order.id)
     }
   },
@@ -321,6 +477,42 @@ watch(
 
 .detail-table {
   margin: 16px 0;
+}
+
+/* 隐藏展开箭头列（整行点击已替代其功能） */
+.detail-table :deep(.el-table__expand-column) {
+  display: none !important;
+}
+/* 展开列的 <col> 宽度归零（width 对 <col> 生效，display:none 对 <col> 不生效），
+   确保 fit 不会把展开列当成弹性列去吸收剩余空间（否则会生成"备注后空白列"） */
+.detail-table :deep(colgroup col.el-table__expand-column),
+.detail-table :deep(colgroup col[name="__expand__"]) {
+  width: 0 !important;
+}
+
+/* 表格强制撑满容器宽度；列宽分配交给 fit 默认行为（仅「备注」一列无 width = 弹性列） */
+.detail-table {
+  width: 100%;
+}
+.detail-table :deep(.el-table),
+.detail-table :deep(.el-table__inner-wrapper),
+.detail-table :deep(table) {
+  width: 100% !important;
+}
+
+/* 已有明细行可点击，光标变手型 */
+.detail-table :deep(.clickable-row) {
+  cursor: pointer;
+}
+
+.sn-panel {
+  padding: 10px 16px;
+}
+
+.sn-panel-title {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 8px;
 }
 
 .detail-table :deep(.el-table__header-wrapper th) {

@@ -56,7 +56,7 @@
         <label for="company">归属公司：</label>
         <el-select id="company" aria-label="归属公司" v-model="filterForm.company" placeholder="全部公司" style="width: 200px">
           <el-option label="全部公司" value="" />
-          <el-option v-for="company in companyList" :key="company.id" :label="company.name" :value="company.name" />
+          <el-option v-for="name in companyNames" :key="name" :label="name" :value="name" />
         </el-select>
       </div>
       <div class="filter-item">
@@ -137,7 +137,7 @@ import type { OrderSubmitPayload } from './AddOrderForm.vue'
 const { userList, fetchUsers } = useUser()
 const { customerList, fetchCustomers } = useCustomer()
 const { projectList, fetchProjects } = useProject()
-const { companyList, fetchCompanies } = useCompany()
+const { companyNames, fetchCompanyNames } = useCompany()
 const { orderList, createOrder, fetchOrders, deleteOrder } = useOrder()
 
 const currentPage = ref(1)
@@ -318,7 +318,7 @@ const handleReset = () => {
 }
 
 onMounted(() => {
-  Promise.all([fetchUsers(), fetchCustomers(), fetchProjects(), fetchCompanies(), fetchOrders()])
+  Promise.all([fetchUsers(), fetchCustomers(), fetchProjects(), fetchCompanyNames(), fetchOrders()])
 })
 </script>
 

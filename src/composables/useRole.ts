@@ -1,12 +1,12 @@
 import { ref } from 'vue'
-import { getRolesApi, type RoleData } from '@/api/UserApi'
+import { getRoleInfoApi, type RoleData } from '@/api/UserApi'
 
 export function useRole() {
   const roleList = ref<RoleData[]>([])
 
   const fetchRoles = async () => {
     try {
-      const res = await getRolesApi()
+      const res = await getRoleInfoApi()
       if (res.code === 200 && res.data) {
         const roles = Array.isArray(res.data) ? res.data : Object.values(res.data)
         roleList.value = roles as RoleData[]
