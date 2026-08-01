@@ -45,6 +45,23 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item prop="department" label="部门">
+        <el-select
+          v-model="form.department"
+          placeholder="请选择部门"
+          clearable
+          @keyup.enter.prevent="handleEnter($event)"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        >
+          <el-option
+            v-for="name in departmentNames"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item prop="role" label="角色">
   <el-select
           v-model="form.role"
@@ -79,6 +96,7 @@ export interface UserFormData {
   password: string
   name: string
   company: string
+  department: string
   role: string
 }
 
@@ -93,6 +111,7 @@ const props = defineProps<{
   editData?: UserFormData | null
   roleList: Role[]
   companyNames: string[]
+  departmentNames: string[]
 }>()
 
 const emit = defineEmits<{
@@ -111,6 +130,7 @@ const form = ref<UserFormData>({
   password: '',
   name: '',
   company: '',
+  department: '',
   role: '',
 })
 
@@ -121,7 +141,7 @@ const visibleValue = computed({
 })
 
 const resetForm = () => {
-  form.value = { account: '', password: '', name: '', company: '', role: '' }
+  form.value = { account: '', password: '', name: '', company: '', department: '', role: '' }
   formRef.value?.clearValidate()
 }
 

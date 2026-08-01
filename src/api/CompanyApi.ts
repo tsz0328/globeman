@@ -13,6 +13,7 @@ export interface ApiResponse<T = unknown> {
   data: T
 }
 
+// 获取公司列表
 export async function getCompaniesApi(): Promise<ApiResponse<CompanyData[]>> {
   return request({
     url: '/client/company/get',
@@ -24,6 +25,14 @@ export async function getCompaniesApi(): Promise<ApiResponse<CompanyData[]>> {
 export async function getInfoCompanyApi(): Promise<ApiResponse<string[]>> {
   return request({
     url: '/client/user/getInfoCompany',
+    method: 'get',
+  })
+}
+
+// 专门用于获取部门名称列表的 API（仅返回名称字符串数组）
+export async function getDepartmentInfoApi(): Promise<ApiResponse<string[]>> {
+  return request({
+    url: '/client/user/getInfoDepartment',
     method: 'get',
   })
 }

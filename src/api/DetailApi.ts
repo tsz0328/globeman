@@ -138,7 +138,7 @@ export async function getRepairImagesApi(
 
 export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void>> {
   return request({
-    url: '/take/delectImg',
+    url: '/take/deleteImg',
     method: 'put',
     params: { id },
   })
@@ -174,7 +174,7 @@ export async function getTestImagesApi(
 
 export async function deleteTestImageApi(id: number): Promise<ApiResponse<void>> {
   return request({
-    url: '/take/delectImgTest',
+    url: '/take/deleteImgTest',
     method: 'put',
     params: { id },
   })

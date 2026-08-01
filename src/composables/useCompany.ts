@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import {
   getCompaniesApi,
   getInfoCompanyApi,
+  getDepartmentInfoApi,
   deleteCompanyApi,
   batchDeleteCompaniesApi,
   createCompanyApi,
@@ -23,6 +24,7 @@ const sortCompaniesByTimeDesc = (list: CompanyData[]): CompanyData[] => {
 export function useCompany() {
   const companyList = ref<CompanyData[]>([])
   const companyNames = ref<string[]>([])
+  const departmentNames = ref<string[]>([])
   const loading = ref(false)
   // 获取公司列表
   const fetchCompanies = async () => {
@@ -54,6 +56,21 @@ export function useCompany() {
       }
     } catch (error) {
       console.error('获取公司名称列表失败:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 获取部门名称列表（仅名称，用于用户管理等页面的「部门」筛选/下拉选项）
+  const fetchDepartmentNames = async () => {
+    loading.value = true
+    try {
+      const res = await getDepartmentInfoApi()
+      if (res.code === 200 && Array.isArray(res.data)) {
+        departmentNames.value = res.data
+      }
+    } catch (error) {
+      console.error('获取部门名称列表失败:', error)
     } finally {
       loading.value = false
     }
@@ -116,9 +133,11 @@ export function useCompany() {
   return {
     companyList,
     companyNames,
+    departmentNames,
     loading,
     fetchCompanies,
     fetchCompanyNames,
+    fetchDepartmentNames,
     deleteCompany,
     batchDeleteCompanies,
     createCompany,

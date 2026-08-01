@@ -7,9 +7,7 @@
         <el-button type="primary" @click="addUser">新建用户</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
-          >批量删除</el-button
-        >
+        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
       </div>
     </div>
     <!-- 筛选区域 -->
@@ -18,36 +16,28 @@
         <label for="company">公司：</label>
         <el-select id="company" aria-label="公司" v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
           <el-option label="全部公司" value="" />
-          <el-option
-            v-for="name in companyNames"
-            :key="name"
-            :label="name"
-            :value="name"
-          />
+          <el-option v-for="name in companyNames" :key="name" :label="name" :value="name" />
+        </el-select>
+      </div>
+      <div class="filter-item">
+        <label for="department">部门：</label>
+        <el-select id="department" aria-label="部门" v-model="filterForm.department" placeholder="全部部门"
+          style="width: 150px">
+          <el-option label="全部部门" value="" />
+          <el-option v-for="name in departmentNames" :key="name" :label="name" :value="name" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="role">角色：</label>
         <el-select id="role" aria-label="角色" v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
           <el-option label="全部角色" value="" />
-          <el-option
-            v-for="role in roleList"
-            :key="role.role"
-            :label="role.name"
-            :value="role.role"
-          />
+          <el-option v-for="role in roleList" :key="role.role" :label="role.name" :value="role.role" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="createTime">创建时间：</label>
-        <el-date-picker
-          id="createTime"
-          aria-label="创建时间"
-          v-model="filterForm.createTime"
-          type="date"
-          placeholder="选择日期"
-          style="width: 150px"
-        />
+        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
+          style="width: 150px" />
       </div>
       <div class="filter-item">
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -57,31 +47,31 @@
 
     <!-- 表格区域 -->
     <div class="table-section">
-      <el-table
-        :data="paginatedData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :row-key="getRowKey"
-      >
+      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+        :row-key="getRowKey">
         <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
         <el-table-column prop="account" label="账号" />
         <el-table-column prop="name" label="姓名" />
         <el-table-column v-if="!notAdminRole" prop="company" label="公司" />
+        <el-table-column v-if="!notAdminRole" prop="department" label="部门" />
         <el-table-column prop="role" label="角色" :width="notAdminRole ? 'auto' : 120" />
+        <el-table-column label="状态" width="69">
+          <template #default="scope">
+            <el-tag v-if="scope.row.status === 0" type="danger">禁用</el-tag>
+            <el-tag v-else type="success">正常</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="创建时间" :width="notAdminRole ? 'auto' : 180" />
         <el-table-column label="操作" width="193">
           <template #default="scope">
             <div class="action-buttons">
               <el-button type="primary" size="small" @click="viewUser(scope.row)">查看</el-button>
-              <el-button type="info" size="small">禁用</el-button>
-              <el-button
-                type="danger"
-                size="small"
-                @click="handleDeleteBtn(scope.row)"
-                :disabled="scope.row.role === 'admin'"
-                >删除</el-button
-              >
+              <el-button :type="scope.row.status === 0 ? 'success' : 'warning'" size="small"
+                @click="handleToggleStatus(scope.row)" :disabled="scope.row.role === 'admin'">
+                {{ scope.row.status === 0 ? '启用' : '禁用' }}
+              </el-button>
+              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+                :disabled="scope.row.role === 'admin'">删除</el-button>
             </div>
           </template>
         </el-table-column>
@@ -89,22 +79,14 @@
 
       <!-- 分页 -->
       <div class="pagination-section">
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          layout="total, prev, pager, next, jumper"
-          :total="filteredData.length"
-        />
+        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
+          layout="total, prev, pager, next, jumper" :total="filteredData.length" />
       </div>
     </div>
 
     <!-- 新增用户弹窗 -->
-    <UserForm
-      v-model:visible="userFormVisible"
-      :role-list="roleList"
-      :company-names="companyNames"
-      @submit="handleUserSubmit"
-    />
+    <UserForm v-model:visible="userFormVisible" :role-list="roleList" :company-names="companyNames"
+      :department-names="departmentNames" @submit="handleUserSubmit" />
   </div>
 </template>
 
@@ -118,9 +100,10 @@ import { useUser, type User } from '@/composables/useUser'
 import { useRole } from '@/composables/useRole'
 import { useCompany } from '@/composables/useCompany'
 
-const { userList, createUser, fetchUsers, deleteUser, batchDeleteUsers } = useUser()
+const { userList, createUser, fetchUsers, deleteUser, batchDeleteUsers, updateUserStatus } =
+  useUser()
 const { roleList, fetchRoles } = useRole()
-const { companyNames, fetchCompanyNames } = useCompany()
+const { companyNames, departmentNames, fetchCompanyNames, fetchDepartmentNames } = useCompany()
 
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -131,7 +114,7 @@ const notAdminRole = computed(() => Cookies.get('role') !== 'admin')
 
 // 查看用户详情（跳转到新页面，与项目管理/订单管理一致）
 const viewUser = (row: User) => {
-  window.open(`/user-detail/${row.id}`, '_blank')
+  window.open(`/user-detail/${encodeURIComponent(row.account)}`, '_blank')
 }
 
 // 组件挂载时获取用户列表
@@ -139,6 +122,7 @@ onMounted(() => {
   fetchUsers()
   fetchRoles()
   fetchCompanyNames()
+  fetchDepartmentNames()
 })
 
 // 新增用户
@@ -191,6 +175,21 @@ const isRowSelectable = (row: User) => {
 // 删除按钮点击（用于模板调用，避免类型错误）
 const handleDeleteBtn = (row: unknown) => {
   handleDelete(row as User)
+}
+
+// 状态切换：禁用 <-> 启用 共用同一接口（只传 account，后端翻转状态并返回最新状态）
+const handleToggleStatus = async (row: User) => {
+  try {
+    const ok = await updateUserStatus(row.account)
+    if (ok) {
+      // 本地状态已由 updateUserStatus 根据后端返回值更新（row 与列表项为同一引用）
+      ElMessage.success(row.status === 0 ? '已禁用该用户' : '该用户已恢复为正常')
+    } else {
+      ElMessage.error('操作失败，请重试')
+    }
+  } catch {
+    ElMessage.error('操作失败，请重试')
+  }
 }
 
 // 多选事件
@@ -248,6 +247,9 @@ const filteredData = computed(() => {
     if (filterForm.value.company && !item.company.includes(filterForm.value.company)) {
       return false
     }
+    if (filterForm.value.department && !item.department.includes(filterForm.value.department)) {
+      return false
+    }
     const selRole = filterForm.value.role
     if (selRole) {
       // 兼容：用户列表 role 可能是 code（admin）或中文名（超级管理员），二者任一匹配即保留
@@ -276,6 +278,7 @@ const paginatedData = computed(() => {
 // 筛选表单数据
 const filterForm = ref({
   company: '',
+  department: '',
   role: '',
   createTime: null,
 })
@@ -289,6 +292,7 @@ const handleSearch = () => {
 const handleReset = () => {
   filterForm.value = {
     company: '',
+    department: '',
     role: '',
     createTime: null,
   }

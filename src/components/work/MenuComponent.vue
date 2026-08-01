@@ -23,7 +23,7 @@
         <span>客户管理</span>
       </el-menu-item>
 
-      <el-menu-item index="/work/company">
+      <el-menu-item v-if="isAdmin" index="/work/company">
         <el-icon>
           <OfficeBuilding />
         </el-icon>
@@ -73,9 +73,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import Cookies from 'js-cookie'
 
 const route = useRoute()
 const activePath = computed(() => route.path)
+const isAdmin = computed(() => (Cookies.get('role') || '').toLowerCase() === 'admin')
 </script>
 
 <style scoped>

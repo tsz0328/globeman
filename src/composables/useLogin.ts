@@ -2,7 +2,6 @@ import { ref } from 'vue'
 import { loginApi } from '@/api/LoginApi'
 import { getUserInfoApi } from '@/api/UserApi'
 import Cookies from 'js-cookie'
-import CryptoJS from 'crypto-js'
 
 export interface LoginForm {
   account: string
@@ -23,21 +22,13 @@ interface UserDetailData {
   admin?: UserDetailData
 }
 
-const SECRET_KEY = 'qqr13637332568.'
-
-const encrypt = (text: string): string => {
-  return CryptoJS.AES.encrypt(text, SECRET_KEY).toString()
-}
-
 const setUserInfo = (
   data: { role: string; token: string; company?: string; time?: string },
   account: string,
-  password: string,
 ) => {
   const { role, token, company, time } = data
   Cookies.set('token', token, { expires: 1 })
   Cookies.set('account', account, { expires: 7 })
-  Cookies.set('password', encrypt(password), { expires: 7 })
   if (company) {
     Cookies.set('company', company, { expires: 7 })
   }
@@ -83,7 +74,6 @@ export function useLogin() {
         setUserInfo(
           loginData as { role: string; token: string; company?: string; time?: string },
           loginForm.account,
-          loginForm.password,
         )
         try {
           const userInfoRes = await getUserInfoApi(loginForm.account)

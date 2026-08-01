@@ -1,5 +1,10 @@
 import { ref } from 'vue'
-import { createUserApi, getUsersApi, deleteUserApi } from '@/api/UserApi'
+import {
+  createUserApi,
+  getUsersApi,
+  deleteUserApi,
+  updateUserStatusApi,
+} from '@/api/UserApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
 export interface User {
@@ -7,7 +12,9 @@ export interface User {
   account: string
   name: string
   company: string
+  department: string
   role: string
+  status: number
   createTime: string
 }
 
@@ -16,6 +23,7 @@ export interface UserFormData {
   password: string
   name: string
   company: string
+  department: string
   role: string
 }
 
@@ -87,7 +95,14 @@ export function useUser() {
             account: getString(['account', 'username', 'loginName']),
             name: getString(['name', 'fullName']),
             company: getString(['company', 'companyName', 'organization', 'org']),
+            department: getString(['department', 'dept', 'deptName']),
             role: getString(['role', 'userRole']),
+            status:
+              typeof record.status === 'number'
+                ? record.status
+                : typeof record.status === 'string' && record.status.trim() !== ''
+                  ? Number(record.status)
+                  : 1,
             createTime: formatDateTime(
               getString(['createTime', 'create_time', 'createdAt', 'created_at', 'time']),
             ),
@@ -160,5 +175,46 @@ export function useUser() {
     }
   }
 
-  return { userList, loading, fetchUsers, createUser, deleteUser, batchDeleteUsers }
+  // 更新用户状态：仅传 account，后端返回最新 status（0=禁用, 1=正常）
+  // 前端从响应中取出 status 并回写到本地列表
+  const updateUserStatus = async (account: string): Promise<boolean> => {
+    loading.value = true
+    try {
+      const res = await updateUserStatusApi(account)
+      if (res.code === 200) {
+        // 从后端返回中提取 status：可能是 number，也可能是 { status } 对象
+        const extractStatus = (data: unknown): number => {
+          if (typeof data === 'number') return data
+          if (data && typeof data === 'object') {
+            const s = (data as Record<string, unknown>).status
+            if (typeof s === 'number') return s
+            if (typeof s === 'string' && s.trim() !== '') return Number(s)
+          }
+          return 0
+        }
+        const newStatus = extractStatus(res.data)
+        const target = userList.value.find((u) => u.account === account)
+        if (target) {
+          target.status = newStatus
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('更新用户状态失败:', error)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    userList,
+    loading,
+    fetchUsers,
+    createUser,
+    deleteUser,
+    batchDeleteUsers,
+    updateUserStatus,
+  }
 }
