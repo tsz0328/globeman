@@ -8,6 +8,7 @@ import FootComponent from '@/components/Index/FootComponent.vue'
 import CarouselComponent from '@/components/Index/CarouselComponent.vue'
 import Cookies from 'js-cookie'
 import router from '@/router'
+import { Promotion } from '@element-plus/icons-vue'
 
 const time = ref('')
 const pad = (n: number):string => n.toString().padStart(2, '0')
@@ -26,7 +27,7 @@ onMounted(() => {
   } else {
     router.replace({ name: 'Login' })
   }
-  
+
   // 更新时间
   update()
   const t = setInterval(update, 1000)
@@ -74,10 +75,9 @@ onMounted(() => {
       <div class="notice idx-base">
         <div class="new">
           <h4>
-            <img
-                            src="/trumpet.png"
-              alt=""
-            />
+            <el-icon class="notice-bell">
+              <Promotion />
+            </el-icon>
             最新公告
           </h4>
         </div>
@@ -252,14 +252,12 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.new img {
-  font-size: 14px;
+.new .notice-bell {
+  font-size: 17px;
   color: #0C1390;
   font-weight: 500;
-  border: 0;
-  width: 17px;
-  height: 17px;
-  vertical-align: -5px;
+  vertical-align: -3px;
+  margin-right: 2px;
 }
 
 .notice-content {

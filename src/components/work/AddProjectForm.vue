@@ -78,15 +78,14 @@
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
-import type { User } from '@/composables/useUser'
-import type { Customer } from '@/composables/useCustomer'
+import type { OrderManager, OrderCustomer } from '@/api/OrderApi'
 
 // 项目表单属性接口
 const props = defineProps<{
   visible: boolean
   editData?: ProjectFormData | null
-  userList: User[]
-  customerList: Customer[]
+  userList: OrderManager[]
+  customerList: OrderCustomer[]
 }>()
 
 // 项目表单提交事件
@@ -201,15 +200,15 @@ const queryCustomerSearch = (
   const customers = props.customerList
   const results = queryString
     ? customers
-        .filter((customer: Customer) =>
+        .filter((customer: OrderCustomer) =>
           customer.name.toLowerCase().includes(queryString.toLowerCase()),
         )
-        .map((customer: Customer) => ({
+        .map((customer: OrderCustomer) => ({
           value: customer.name,
           label: customer.name,
           contact: customer.contact,
         }))
-    : customers.map((customer: Customer) => ({
+    : customers.map((customer: OrderCustomer) => ({
         value: customer.name,
         label: customer.name,
         contact: customer.contact,
@@ -231,15 +230,15 @@ const queryContactSearch = (
   const customers = props.customerList
   const results = queryString
     ? customers
-        .filter((customer: Customer) =>
+        .filter((customer: OrderCustomer) =>
           customer.contact.toLowerCase().includes(queryString.toLowerCase()),
         )
-        .map((customer: Customer) => ({
+        .map((customer: OrderCustomer) => ({
           value: customer.contact,
           label: `${customer.contact} (${customer.name})`,
           customer: customer.name,
         }))
-    : customers.map((customer: Customer) => ({
+    : customers.map((customer: OrderCustomer) => ({
         value: customer.contact,
         label: `${customer.contact} (${customer.name})`,
         customer: customer.name,

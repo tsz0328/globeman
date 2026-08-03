@@ -209,6 +209,7 @@ import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus'
 import { useDetail, type RepairImageItem } from '@/composables/useDetail'
 import type { RepairDetailData } from '@/api/DetailApi'
 import { formatDateTime } from '@/utils/sort'
+import { checkImageSize } from '@/utils/imageUpload'
 
 const {
   getRepairById,
@@ -318,6 +319,14 @@ onMounted(() => {
 
 const handleFileChange = (file: UploadFile, fileList: UploadFile[], type: string) => {
   if (file.status === 'ready' && file.raw) {
+    if (!checkImageSize(file)) {
+      if (type === 'repair') {
+        repairUploadRef.value?.handleRemove(file)
+      } else {
+        testUploadRef.value?.handleRemove(file)
+      }
+      return
+    }
     if (type === 'repair') {
       repairFiles.value.push(file.raw as File)
     } else {

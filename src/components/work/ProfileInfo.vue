@@ -163,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules, UploadFile } from 'element-plus'
 import {
@@ -172,6 +172,7 @@ import {
 } from '@element-plus/icons-vue'
 import type { PersonData } from '@/api/UserApi'
 import { getPersonApi, updateAvatarApi, updatePasswordApi } from '@/api/UserApi'
+import { useAvatar } from '@/composables/useAvatar'
 
 const loading = ref(false)
 const person = ref<PersonData>({})
@@ -242,14 +243,26 @@ const getAvatarUrl = (avatar: string): string => {
   return `/api/${avatar}`
 }
 
+const { setAvatar } = useAvatar()
+
+const MAX_AVATAR_SIZE = 1 * 1024 * 1024 // 1MB
+
 const handleAvatarChange = async (file: UploadFile) => {
   if (file.status !== 'ready' || !file.raw) return
+  if (file.raw.size > MAX_AVATAR_SIZE) {
+    ElMessage.error('头像图片大小不能超过 1MB')
+    return
+  }
   loading.value = true
   try {
     const res = await updateAvatarApi(file.raw)
     if (res.code === 200) {
       ElMessage.success('头像上传成功')
       await fetchPerson()
+      // 同步更新页头小头像（cookie + 全局响应式状态）
+      if (person.value.avatar) {
+        setAvatar(person.value.avatar)
+      }
     } else {
       ElMessage.error(res.msg || '头像上传失败')
     }

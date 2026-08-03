@@ -26,7 +26,7 @@
         <label for="customer">客户：</label>
         <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
           <el-option label="全部客户" value="" />
-          <el-option v-for="customer in customerList" :key="customer.name" :label="customer.name"
+          <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
             :value="customer.name" />
         </el-select>
       </div>
@@ -35,7 +35,7 @@
         <el-select id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
           style="width: 150px">
           <el-option label="全部联系人" value="" />
-          <el-option v-for="customer in customerList" :key="customer.contact" :label="customer.contact"
+          <el-option v-for="customer in orderCustomers" :key="customer.contact" :label="customer.contact"
             :value="customer.contact" />
         </el-select>
       </div>
@@ -44,7 +44,7 @@
         <el-select id="projectLeader" aria-label="项目负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
           style="width: 150px">
           <el-option label="全部负责人" value="" />
-          <el-option v-for="user in userList" :key="user.account" :label="user.name" :value="user.name" />
+          <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.name" />
         </el-select>
       </div>
       <div class="filter-item">
@@ -94,8 +94,8 @@
     </div>
 
     <!-- 新建项目弹窗 -->
-    <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="userList"
-      :customer-list="customerList" />
+    <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="managers"
+      :customer-list="orderCustomers" />
   </div>
 </template>
 
@@ -105,13 +105,33 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import ProjectForm from './AddProjectForm.vue'
 import type { ProjectFormData } from './AddProjectForm.vue'
 import { useProject, type Project } from '@/composables/useProject'
-import { useUser } from '@/composables/useUser'
-import { useCustomer } from '@/composables/useCustomer'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
 
 const { projectList, fetchProjects, createProject, deleteProject, batchDeleteProjects } =
   useProject()
-const { userList, fetchUsers } = useUser()
-const { customerList, fetchCustomers } = useCustomer()
+const orderCustomers = ref<OrderCustomer[]>([])
+const fetchOrderCustomers = async () => {
+  try {
+    const res = await getOrderCustomersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      orderCustomers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取订单客户列表失败:', error)
+  }
+}
+
+const managers = ref<OrderManager[]>([])
+const fetchOrderManagers = async () => {
+  try {
+    const res = await getOrderManagersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      managers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取负责人列表失败:', error)
+  }
+}
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -120,9 +140,7 @@ const selectedRows = ref<Project[]>([])
 
 // 组件挂载时获取项目列表
 onMounted(() => {
-  fetchProjects()
-  fetchUsers()
-  fetchCustomers()
+  Promise.all([fetchProjects(), fetchOrderCustomers(), fetchOrderManagers()])
 })
 
 // 新增项目

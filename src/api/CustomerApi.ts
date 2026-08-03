@@ -26,6 +26,14 @@ export async function getCustomersApi(): Promise<ApiResponse<CustomerData[]>> {
   })
 }
 
+// 获取订单客户信息
+export async function getOrderCustomerApi(): Promise<ApiResponse<CustomerData>> {
+  return request({
+    url: '/client/order/getOrderCustomer',
+    method: 'get',
+  })
+}
+
 // 创建客户
 export async function createCustomerApi(
   data: Omit<CustomerData, 'id'>,

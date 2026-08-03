@@ -45,7 +45,7 @@
         <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人"
           style="width: 150px">
           <el-option label="全部负责人" value="" />
-          <el-option v-for="user in userList" :key="user.account" :label="user.name" :value="user.account" />
+          <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
         </el-select>
       </div>
 
@@ -53,7 +53,7 @@
         <label for="customer">客户：</label>
         <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
-          <el-option v-for="customer in customerList" :key="customer.name" :label="customer.name"
+          <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
             :value="customer.name" />
         </el-select>
       </div>
@@ -76,7 +76,7 @@
         <el-table-column prop="customer" label="客户" />
         <el-table-column prop="contact" label="客户联系人" />
         <el-table-column prop="contactPhone" label="联系人电话" width="111" />
-        <el-table-column prop="leader" label="负责人" />
+        <el-table-column prop="leaderAccount" label="负责人" />
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
@@ -109,8 +109,8 @@
       </div>
     </div>
 
-    <OrderForm v-model:visible="orderFormVisible" :project-id="projectId" :user-list="userList"
-      :customer-list="customerList" @submit="handleOrderSubmit" />
+    <OrderForm v-model:visible="orderFormVisible" :project-id="projectId" :user-list="managers"
+      :customer-list="orderCustomers" @submit="handleOrderSubmit" />
 
     <!-- 订单详情弹窗 -->
     <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder" />
@@ -122,18 +122,38 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/useProject'
-import { useUser } from '@/composables/useUser'
-import { useCustomer } from '@/composables/useCustomer'
 import { useOrder, type Order } from '@/composables/useOrder'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
 import OrderForm from './AddOrderForm.vue'
 import OrderDetailDialog from './OrderDetailDialog.vue'
 import type { OrderSubmitPayload } from './AddOrderForm.vue'
 
 const route = useRoute()
 const { fetchProjects } = useProject()
-const { userList, fetchUsers } = useUser()
-const { customerList, fetchCustomers } = useCustomer()
+const orderCustomers = ref<OrderCustomer[]>([])
+const fetchOrderCustomers = async () => {
+  try {
+    const res = await getOrderCustomersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      orderCustomers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取订单客户列表失败:', error)
+  }
+}
 const { orderList, createOrder, fetchOrders, deleteOrder, submitOrder } = useOrder()
+
+const managers = ref<OrderManager[]>([])
+const fetchOrderManagers = async () => {
+  try {
+    const res = await getOrderManagersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      managers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取负责人列表失败:', error)
+  }
+}
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -380,7 +400,7 @@ onMounted(() => {
     return
   }
 
-  Promise.all([fetchProjects(), fetchUsers(), fetchCustomers(), fetchOrders(projectId.value)])
+  Promise.all([fetchProjects(), fetchOrderCustomers(), fetchOrders(projectId.value), fetchOrderManagers()])
 })
 </script>
 

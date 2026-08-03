@@ -222,8 +222,7 @@ import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
-import type { User } from '@/composables/useUser'
-import type { Customer } from '@/composables/useCustomer'
+import type { OrderManager, OrderCustomer } from '@/api/OrderApi'
 interface DetailTableRow {
   equipmentName: string
   equipmentModel: string
@@ -254,8 +253,8 @@ const addDetailRow = () => {
 const props = defineProps<{
   visible: boolean
   projectId?: string
-  userList: User[]
-  customerList: Customer[]
+  userList: OrderManager[]
+  customerList: OrderCustomer[]
 }>()
 
 const emit = defineEmits<{
@@ -393,16 +392,16 @@ const queryCustomerSearch = (
   const customers = props.customerList
   const results = queryString
     ? customers
-        .filter((customer: Customer) =>
+        .filter((customer: OrderCustomer) =>
           customer.name.toLowerCase().includes(queryString.toLowerCase()),
         )
-        .map((customer: Customer) => ({
+        .map((customer: OrderCustomer) => ({
           value: customer.name,
           label: customer.name,
           contact: customer.contact,
           phone: customer.phone,
         }))
-    : customers.map((customer: Customer) => ({
+    : customers.map((customer: OrderCustomer) => ({
         value: customer.name,
         label: customer.name,
         contact: customer.contact,
@@ -431,16 +430,16 @@ const queryContactSearch = (
   const customers = props.customerList
   const results = queryString
     ? customers
-        .filter((customer: Customer) =>
+        .filter((customer: OrderCustomer) =>
           customer.contact.toLowerCase().includes(queryString.toLowerCase()),
         )
-        .map((customer: Customer) => ({
+        .map((customer: OrderCustomer) => ({
           value: customer.contact,
           label: `${customer.contact} (${customer.name})`,
           customer: customer.name,
           phone: customer.phone,
         }))
-    : customers.map((customer: Customer) => ({
+    : customers.map((customer: OrderCustomer) => ({
         value: customer.contact,
         label: `${customer.contact} (${customer.name})`,
         customer: customer.name,

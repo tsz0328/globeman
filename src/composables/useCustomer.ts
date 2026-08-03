@@ -99,6 +99,7 @@ export function useCustomer() {
     }
   }
 
+
   const createCustomer = async (data: CustomerData): Promise<boolean> => {
     loading.value = true
     try {

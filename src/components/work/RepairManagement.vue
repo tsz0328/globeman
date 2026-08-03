@@ -34,7 +34,7 @@
         >
           <el-option label="全部客户" value="" />
           <el-option
-            v-for="customer in customerList"
+            v-for="customer in orderCustomers"
             :key="customer.name"
             :label="customer.name"
             :value="customer.name"
@@ -52,7 +52,7 @@
         >
           <el-option label="全部联系人" value="" />
           <el-option
-            v-for="customer in customerList"
+            v-for="customer in orderCustomers"
             :key="customer.contact"
             :label="customer.contact"
             :value="customer.contact"
@@ -69,12 +69,7 @@
           style="width: 150px"
         >
           <el-option label="全部负责人" value="" />
-          <el-option
-            v-for="user in userList"
-            :key="user.account"
-            :label="user.name"
-            :value="user.name"
-          />
+          <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.name" />
         </el-select>
       </div>
       <div class="filter-item">
@@ -156,14 +151,34 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useProject, type Project } from '@/composables/useProject'
-import { useUser } from '@/composables/useUser'
-import { useCustomer } from '@/composables/useCustomer'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
 import { repairTakeApi } from '@/api/DetailApi'
 import { ElMessage } from 'element-plus'
 
 const { projectList: repairList, fetchProjects: fetchRepairs } = useProject()
-const { userList, fetchUsers } = useUser()
-const { customerList, fetchCustomers } = useCustomer()
+const orderCustomers = ref<OrderCustomer[]>([])
+const fetchOrderCustomers = async () => {
+  try {
+    const res = await getOrderCustomersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      orderCustomers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取订单客户列表失败:', error)
+  }
+}
+
+const managers = ref<OrderManager[]>([])
+const fetchOrderManagers = async () => {
+  try {
+    const res = await getOrderManagersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      managers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取负责人列表失败:', error)
+  }
+}
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -171,9 +186,7 @@ const selectedRows = ref<Project[]>([])
 const snCode = ref('')
 
 onMounted(() => {
-  fetchRepairs()
-  fetchUsers()
-  fetchCustomers()
+  Promise.all([fetchRepairs(), fetchOrderCustomers(), fetchOrderManagers()])
 })
 
 const viewRepair = (row: Project) => {

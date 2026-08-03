@@ -29,12 +29,10 @@ export interface Order {
   name: string
   type: string
   leaderAccount: string
-  leader: string
   creator: string
   creatorAccount: string
   customer: string
   contact: string
-  contactPhone: string
   province: string
   city: string
   district: string
@@ -96,19 +94,17 @@ export function useOrder() {
             projectId: item.project_id,
             name: item.name,
             type: item.type,
-            leaderAccount: item.manager ?? '',
-            leader: item.leader,
+            leaderAccount: item.manager,
             creator: item.creator,
             creatorAccount: item.creator_account,
             customer: item.customer,
             contact: item.contact,
-            contactPhone: item.contact_phone,
             province: item.province,
             city: item.city,
             district: item.district,
             address: item.address || '',
             company: item.company,
-            status: item.status || '',
+            status: item.status || '无状态',
             createTime: formatDateTime(item.time),
           }))
           // 按创建时间降序（最新在前）排序

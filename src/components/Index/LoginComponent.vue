@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useLogin } from '@/composables/useLogin'
 import router from '@/router'
+import { User, Lock } from '@element-plus/icons-vue'
 
 const { login } = useLogin()
 
@@ -64,14 +65,8 @@ async function loginRequest() {
           <div class="el-input el-input-group el-input-group--prepend">
             <div class="el-input-group__prepend">
               <div style="display: flex; align-items: center; color: rgb(37, 40, 59)">
-                <img
-                  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAA75JREFUWEftl09oFHcUx7/vt7MxLR56sFBBcKkz429pBQXBJLPCQgvmYGl6KFTooaWHChV6UGk8FBUCiehFNIgnPQgteLAlgRrIYQ87idAWeki7k50RVgiYg4ccpN1k1nl2NlmzWWbX+ePGKM5x973f9/O+7/eb3xvCFn9oi/PhDWDSDr3+DmZkXyZN4ht4dBQEFUAVjAUInnTJHa/88/tiEhcTOajL3EkGjwDobQNRBdOwPV+8HBcyNqAujVEGhkMJE4/YpZkfQ8W2BMUC3JM9PCTYu9O01hwzn68t90wryn/bhRAHWYhRAHI9hj6xreJkVMhYgJo0SuviPOVWe4YqlUK1WTyTyfem31qZBNNH9d8Zf9nz5oGuA6pZo48Ys2uiS8RprVwuPAoSVtVDu0hR/GK2+/+T52XL5VkrCmRkB3VpnGDgyqoI/WxbxWOdBHVp/MbA4GoMf21bMze7CqjKgXMEOlvHA8bKlnmmk6CWNa6BcXwt5rRtmZe6CqhJ4xSAi2Ed1GRuAuCjm+dggj3oEe+7X5qZ66qDyOcVbdH1N75/a4CZf3F29nyOQqG2QTifV/SH7gRTY/9hzrbMfVHg1rZR1BRAzw58wUw/NTIZ+EN4YnhlJfWn/5vSu3yIWIyBsP+lvAd9UVUaVwn4LlR5zBfs+Zlwt07LgpFfM835WnZgBEw/+Ka1Aa0y6LxjFcdCFRIQlAjQX0/X+yWn6DiYjjT2JQAHxFOe4Kv3/5514sLF3oNJBKPmJnYwqmDU+ESAmUz+nfTbtb38hFUCZ5iQrreF4TKoQily3H+V+UqlsBQVrBEfCdCfUJRtK0dI0CAYOQAfhhSeA6HIHt+tLfdMtU4+ndYIBbjng35VeOIkGF82JpOQYEFhj///NLjlgcfD3CodAXU9v8Mjd5QIX7V5lfgzoEPAAgOLDH6wevJoNwHvMbBr7WQHfRL4N88t8tKn241rHU/x+3uNg4Iw4QtttIEWmPkukferW902/bx21QfX3uWPmcWnRDQIsA/97PELA+Ezp2TeC7I70EEp+zI1pGab4fw7l4QYt0vF6QTthSpzebD3PRENNVEupejJAcu6V2ldOxBQk8YNoN5W1CsEHXOsYiEJWGuurudynuDb6yYED7+BgKo0HjYSmdDfzv6kwBs+H4BHtmW+G9ZBbgTalhnqpMeF1aTRUatdi18dwLjOxMkL6lY7B90OI1Qc7TA5Ndsy61dl89PukPjD6LebCFlj4LpjmSdCAYYpd7NiunpCX0QRbwCTurjlHXwKQhdnOMukgKEAAAAASUVORK5CYII="
-                  width="18px"
-                  height="18px"
-                  alt=""
-                  style="margin-right: 7px"
-                />
-                用户名
+            <el-icon style="margin-right: 7px; font-size: 18px"><User /></el-icon>
+            用户名
               </div>
             </div>
             <input
@@ -91,14 +86,8 @@ async function loginRequest() {
           <div class="el-input el-input-group el-input-group--prepend el-input--suffix">
             <div class="el-input-group__prepend">
               <div style="display: flex; align-items: center; color: rgb(37, 40, 59)">
-                <img
-                  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAxtJREFUWEftmE9IFGEYxp933C0rCA9BUoFr7ri7UbAHId1RHKkgCiFPBRFIdchj1KGgiCgoiMBbHYQKgk6hh0SIqNF2VsHADpKzf8rtUBgEGWFZuztvzeqa2Wz7zbpF0X6nYeZ5v+c3z873Zz/CX96oFHwej1rlWp3aCNNcB0l6m/7ofpVMatOl6HtZgF6fcpAInQBUAK5FQOlv9zQCbscM/dZyQIsCrKtr8pJbukNAQyFzBp5IpnkoFhs2CmntnjsG9AaURjIxAEKVTYezACp/us+YzjC1v4iFw04hHQF6vds3weUaJaB6kdEDk+lq5rNLSya1WY9HrXSvSjcT8wkGdud0DEy5kGkyjJGkE0hngL5QLxHtmzdIM6ErMaH35DP0BpSjxLiW+z6ZuS8RjXT8FsDNPqWhgjD6PRE6nTDClwuZyX7lJIArC3WEpsSEPlKoLvdcOMF6v3KJgVPzhYl4tTsATbNG66+bqrrkqdQYgK1ZIaM7HtWPFypzDCj7lDEQgnMmfDYejVwUNZF9oTMgujCvH48b+jbRWuEEtwSUdymeG7krQe3jRvieqEkwoOyZYfRbejfw4ZmhrxWtFQbsaWzJEJFkdUyEHYcjQw9FTW4orbtMk+/n9EeGh4R9hYV6ayvnDEyithZN00QBH6uqKjE/yumVwUFhX2FhGTDPz/HvJijLoSAk7GWyBh7QsabiXO4ln34xb06m+KXoN1jrpprgCsna9WRb70zmfPaCpE8Ms//5RGQ8X1+2CcqB5p1gHliyhRLlcapLk0ltsTwbCVvAer8ysHihd+roVM9MfYlo2HaNtk/QH5oEyDO3aqCbid9blxtctP51mt84BbDTE6gGyG52rabFDb3NXmdzV14EmEKmNulwiyTyAl5/s0pYmBvLgCKh/aApJ+g4siUF5QTLCc4nUHCiLs+D5ZWkyNFSnmaKDG6h7P9J0CQcIDanlpvY0nriiiCIu4vaD3r9inXEVvBwsoTQDveDPuUYKHts9mcaoyse1a8L76gtoewPdRJoP9udmJYOOw3G3Xxwlo3w/+LSMTnr6StoudQ4oz3lbAAAAABJRU5ErkJggg=="
-                  width="18px"
-                  height="18px"
-                  alt=""
-                  style="margin-right: 7px"
-                />
-                密码
+            <el-icon style="margin-right: 7px; font-size: 18px"><Lock /></el-icon>
+            密码
               </div>
             </div>
             <input

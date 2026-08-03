@@ -41,14 +41,14 @@
         <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人"
           style="width: 150px">
           <el-option label="全部负责人" value="" />
-          <el-option v-for="user in userList" :key="user.account" :label="user.name" :value="user.account" />
+          <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="customer">客户：</label>
         <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
-          <el-option v-for="customer in customerList" :key="customer.name" :label="customer.name"
+          <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
             :value="customer.name" />
         </el-select>
       </div>
@@ -75,16 +75,10 @@
         :row-key="getRowKey">
         <el-table-column type="selection" width="39"></el-table-column>
         <el-table-column prop="name" label="订单名称" />
-        <el-table-column label="归属项目">
-          <template #default="scope">
-            {{ getProjectName(scope.row) }}
-          </template>
-        </el-table-column>
         <el-table-column prop="type" label="订单类型" width="81" />
         <el-table-column prop="customer" label="客户" />
         <el-table-column prop="contact" label="客户联系人" />
-        <el-table-column prop="contactPhone" label="联系人电话" width="111" />
-        <el-table-column prop="leader" label="负责人" />
+        <el-table-column prop="leaderAccount" label="负责人" />
         <el-table-column prop="province" label="执行省份" />
         <el-table-column prop="city" label="执行市" />
         <el-table-column prop="district" label="执行区" />
@@ -114,7 +108,7 @@
     </div>
 
     <!-- 新建订单弹窗（独立订单管理，不传 projectId，直接创建订单） -->
-    <OrderForm v-model:visible="orderFormVisible" :user-list="userList" :customer-list="customerList"
+    <OrderForm v-model:visible="orderFormVisible" :user-list="managers" :customer-list="orderCustomers"
       @submit="handleOrderSubmit" />
 
     <!-- 订单详情弹窗 -->
@@ -125,20 +119,42 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useUser } from '@/composables/useUser'
-import { useCustomer } from '@/composables/useCustomer'
 import { useProject } from '@/composables/useProject'
 import { useCompany } from '@/composables/useCompany'
 import { useOrder, type Order } from '@/composables/useOrder'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
 import OrderForm from './AddOrderForm.vue'
 import OrderDetailDialog from './OrderDetailDialog.vue'
 import type { OrderSubmitPayload } from './AddOrderForm.vue'
 
-const { userList, fetchUsers } = useUser()
-const { customerList, fetchCustomers } = useCustomer()
-const { projectList, fetchProjects } = useProject()
+// 订单客户列表（从 /client/order/getInfoCustomer 获取，用于筛选栏下拉和表单自动补全）
+const orderCustomers = ref<OrderCustomer[]>([])
+const fetchOrderCustomers = async () => {
+  try {
+    const res = await getOrderCustomersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      orderCustomers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取订单客户列表失败:', error)
+  }
+}
+const { fetchProjects } = useProject()
 const { companyNames, fetchCompanyNames } = useCompany()
 const { orderList, createOrder, fetchOrders, deleteOrder } = useOrder()
+
+// 订单负责人列表（从 /client/order/getManager 获取，用于筛选栏下拉选项）
+const managers = ref<OrderManager[]>([])
+const fetchOrderManagers = async () => {
+  try {
+    const res = await getOrderManagersApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      managers.value = res.data
+    }
+  } catch (error) {
+    console.error('获取订单负责人列表失败:', error)
+  }
+}
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -200,13 +216,6 @@ const paginatedData = computed(() => {
 })
 
 const getRowKey = (row: Order) => row.id
-
-// 根据订单的 projectId 映射归属项目名称（独立订单无归属项目时显示 -）
-const getProjectName = (row: Order): string => {
-  if (!row.projectId) return '-'
-  const project = projectList.value.find((p) => p.id === row.projectId)
-  return project ? project.projectName : '-'
-}
 
 const getStatusType = (status: string) => {
   switch (status) {
@@ -318,7 +327,7 @@ const handleReset = () => {
 }
 
 onMounted(() => {
-  Promise.all([fetchUsers(), fetchCustomers(), fetchProjects(), fetchCompanyNames(), fetchOrders()])
+  Promise.all([fetchOrderCustomers(), fetchProjects(), fetchCompanyNames(), fetchOrders(), fetchOrderManagers()])
 })
 </script>
 

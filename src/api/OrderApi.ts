@@ -6,12 +6,10 @@ export interface OrderData {
   name: string
   type: string
   manager: string
-  leader: string
   creator: string
   creator_account: string
   customer: string
   contact: string
-  contact_phone: string
   province: string
   city: string
   district: string
@@ -61,6 +59,33 @@ export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse
     url: '/client/order/createOrder',
     method: 'post',
     data,
+  })
+}
+
+export interface OrderManager {
+  account: string
+  name: string
+}
+
+export interface OrderCustomer {
+  name: string
+  contact: string
+  phone: string
+}
+
+// 获取订单负责人列表
+export async function getOrderManagersApi(): Promise<ApiResponse<OrderManager[]>> {
+  return request({
+    url: '/client/order/getInfoManager',
+    method: 'get',
+  })
+}
+
+// 获取订单客户列表
+export async function getOrderCustomersApi(): Promise<ApiResponse<OrderCustomer[]>> {
+  return request({
+    url: '/client/order/getInfoCustomer',
+    method: 'get',
   })
 }
 

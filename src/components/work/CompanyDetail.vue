@@ -66,6 +66,7 @@ import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { UploadFile } from 'element-plus'
 import { uploadUsciApi, getUsciApi, deleteUsciApi } from '@/api/CompanyApi'
+import { checkImageSize } from '@/utils/imageUpload'
 
 const route = useRoute()
 
@@ -112,6 +113,10 @@ const handleSave = async () => {
 
 // 营业执照文件变更
 const handleUsciFileChange = (file: UploadFile) => {
+  if (!checkImageSize(file)) {
+    usciUploadRef.value?.handleRemove(file)
+    return
+  }
   // limit=1，始终只保留最新选择的一个文件
   usciFile.value = file.raw as File | null
   usciFileList.value = [file]

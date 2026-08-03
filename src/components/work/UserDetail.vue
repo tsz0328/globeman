@@ -75,6 +75,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus'
+import { checkImageSize } from '@/utils/imageUpload'
 import {
   getUserApi,
   getCertificateImagesApi,
@@ -134,6 +135,10 @@ const fetchCertificateImages = async (userAccount: string) => {
 // 处理证书图片上传
 const handleCertificateFileChange = (file: UploadFile) => {
   if (file.status === 'ready' && file.raw) {
+    if (!checkImageSize(file)) {
+      certificateUploadRef.value?.handleRemove(file)
+      return
+    }
     certificateFiles.value.push(file.raw as File)
   }
 }
