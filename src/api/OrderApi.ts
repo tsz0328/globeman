@@ -5,7 +5,7 @@ export interface OrderData {
   project_id: string
   name: string
   type: string
-  leader_account: string
+  manager: string
   leader: string
   creator: string
   creator_account: string
@@ -17,7 +17,7 @@ export interface OrderData {
   district: string
   address: string
   company: string
-  state: string
+  status: string
   time: string
 }
 
@@ -65,9 +65,9 @@ export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse
 }
 
 // 获取订单列表
-export async function getOrdersApi(id?: string): Promise<ApiResponse<Record<string, OrderData>>> {
+export async function getOrdersApi(id?: string): Promise<ApiResponse<OrderData[]>> {
   return request({
-    url: '/order/get',
+    url: '/client/order/getOrder',
     method: 'get',
     params: id ? { id } : {},
   })

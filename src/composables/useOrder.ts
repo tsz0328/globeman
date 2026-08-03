@@ -91,12 +91,12 @@ export function useOrder() {
       if (response.code === 200) {
         const data = response.data
         if (typeof data === 'object' && data !== null) {
-          const orders: Order[] = Object.values(data).map((item: OrderData) => ({
+          const orders: Order[] = data.map((item: OrderData) => ({
             id: item.id,
             projectId: item.project_id,
             name: item.name,
             type: item.type,
-            leaderAccount: item.leader_account ?? '',
+            leaderAccount: item.manager ?? '',
             leader: item.leader,
             creator: item.creator,
             creatorAccount: item.creator_account,
@@ -108,7 +108,7 @@ export function useOrder() {
             district: item.district,
             address: item.address || '',
             company: item.company,
-            status: item.state,
+            status: item.status || '',
             createTime: formatDateTime(item.time),
           }))
           // 按创建时间降序（最新在前）排序
