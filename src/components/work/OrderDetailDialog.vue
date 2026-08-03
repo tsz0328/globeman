@@ -48,9 +48,6 @@
         </div>
       </div>
       <!-- 表格 -->
-      <!-- 列宽策略（与 RepairOrderDetail 成功模式一致）：
-           fit 默认开启，除「备注」外每列都设固定 width，隐藏的展开列显式 width=0，
-           于是只有「备注」作为唯一弹性列吸收剩余空间、铺满整行，不会出现多余空白列 -->
       <el-table :data="detailTableData" border class="detail-table" max-height="400" row-key="id"
         :expand-row-keys="expandedKeys" @expand-change="onExpandChange" :row-class-name="rowClassName"
         @row-click="onRowClick">

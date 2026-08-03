@@ -181,7 +181,7 @@
           </el-upload>
           <el-button
             type="primary"
-            size="small"
+            size="large"
             style="margin-top: 10px"
             @click="submitTestImages"
             :disabled="testFiles.length === 0 || isReadOnly"
@@ -271,6 +271,7 @@ const goBack = () => {
   window.close()
 }
 
+// 获取图片的完整 URL
 const getImageUrl = (imgPath: string): string => {
   if (!imgPath) return ''
   if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
@@ -325,6 +326,7 @@ const handleFileChange = (file: UploadFile, fileList: UploadFile[], type: string
   }
 }
 
+// 处理文件移除
 const handleFileRemove = (file: UploadFile, fileList: UploadFile[], type: string) => {
   const rawFile = file.raw as File | undefined
   if (type === 'repair') {

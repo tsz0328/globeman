@@ -126,6 +126,7 @@ export interface RepairImageData {
   address: string
 }
 
+// 获取维修单图片 API：根据维修明细 ID 获取维修单的图片文件列表
 export async function getRepairImagesApi(
   id: number,
 ): Promise<ApiResponse<{ [key: string]: RepairImageData }>> {
@@ -136,6 +137,7 @@ export async function getRepairImagesApi(
   })
 }
 
+// 删除维修单图片 API：删除指定维修明细的图片文件
 export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/take/deleteImg',
@@ -144,6 +146,7 @@ export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void
   })
 }
 
+// 上传维修单图片 API：上传指定维修明细的图片文件
 export async function uploadRepairImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
   const formData = new FormData()
   files.forEach((file) => {
@@ -172,6 +175,7 @@ export async function getTestImagesApi(
   })
 }
 
+// 测试实拍照片专用接口（与维修图片接口分离）
 export async function deleteTestImageApi(id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/take/deleteImgTest',
@@ -180,6 +184,7 @@ export async function deleteTestImageApi(id: number): Promise<ApiResponse<void>>
   })
 }
 
+// 测试实拍照片专用接口（与维修图片接口分离）
 export async function uploadTestImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
   const formData = new FormData()
   files.forEach((file) => {
@@ -205,6 +210,7 @@ export interface SubmitRepairData {
   test: string
 }
 
+// 提交维修结果 API：将指定维修明细标记为已完成，并提交维修结果信息
 export async function submitRepairApi(data: SubmitRepairData): Promise<ApiResponse<void>> {
   return request({
     url: '/take/submit',
@@ -213,6 +219,7 @@ export async function submitRepairApi(data: SubmitRepairData): Promise<ApiRespon
   })
 }
 
+// 归档维修单 API：将指定维修明细标记为已归档
 export async function saveRepairApi(id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/take/save',
@@ -221,6 +228,7 @@ export async function saveRepairApi(id: number): Promise<ApiResponse<void>> {
   })
 }
 
+// 维修单接单 API：将指定维修明细标记为已接单
 export async function repairTakeApi(sn: string): Promise<ApiResponse<void>> {
   return request({
     url: '/repair/take',
@@ -253,6 +261,7 @@ export interface RepairDetailData {
   done_time: string
 }
 
+// 获取维修单详情 API：根据维修单 ID 获取维修单的详细信息
 export async function getRepairByIdApi(id: number): Promise<ApiResponse<RepairDetailData>> {
   return request({
     url: '/take/getById',

@@ -1,7 +1,7 @@
 <template>
-  <div class="home-management">
+  <div class="department-management">
     <div class="page-header">
-      <h2 class="title">首页</h2>
+      <h2 class="title">部门管理</h2>
     </div>
     <div class="content-card">
       <el-empty />
@@ -12,7 +12,7 @@
 <script setup lang="ts"></script>
 
 <style scoped>
-.home-management {
+.department-management {
   padding: 20px;
   display: flex;
   flex-direction: column;

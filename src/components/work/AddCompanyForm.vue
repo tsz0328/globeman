@@ -1,9 +1,38 @@
 <template>
   <el-dialog :title="title" v-model="visibleValue" width="500px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" @submit.prevent>
-      <el-form-item prop="name" label="公司名称">
-  <el-input
+      <el-form-item prop="account" label="账号">
+        <el-input
+          v-model="form.account"
+          placeholder="请输入账号"
+          @keyup.enter.prevent="handleSubmit"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        />
+      </el-form-item>
+      <el-form-item prop="password" label="密码">
+        <el-input
+          v-model="form.password"
+          type="password"
+          placeholder="请输入密码"
+          show-password
+          @keyup.enter.prevent="handleSubmit"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        />
+      </el-form-item>
+      <el-form-item prop="name" label="姓名">
+        <el-input
           v-model="form.name"
+          placeholder="请输入姓名"
+          @keyup.enter.prevent="handleSubmit"
+          @keydown.up.prevent="handleKeydown($event)"
+          @keydown.down.prevent="handleKeydown($event)"
+        />
+      </el-form-item>
+      <el-form-item prop="company" label="公司名称">
+        <el-input
+          v-model="form.company"
           placeholder="请输入公司名称"
           @keyup.enter.prevent="handleSubmit"
           @keydown.up.prevent="handleKeydown($event)"
@@ -21,7 +50,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
-import { ElMessageBox } from 'element-plus'
 import type { CompanyFormData } from '@/api/CompanyApi'
 
 const props = defineProps<{
@@ -34,12 +62,19 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
-const isModalVisible = ref(false)
 
-const rules = {}
+const rules = {
+  account: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  company: [{ required: true, message: '请输入公司名称', trigger: 'blur' }],
+}
 
 const form = ref<CompanyFormData>({
+  account: '',
+  password: '',
   name: '',
+  company: '',
 })
 
 const title = computed(() => '新建公司')
@@ -50,7 +85,7 @@ const visibleValue = computed({
 })
 
 const resetForm = () => {
-  form.value = { name: '' }
+  form.value = { account: '', password: '', name: '', company: '' }
   formRef.value?.clearValidate()
 }
 
@@ -89,31 +124,10 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 
 const handleSubmit = () => {
-  if (isModalVisible.value) return
-
-  const errors: string[] = []
-
-  if (!form.value.name.trim()) {
-    errors.push('公司名称')
-  }
-
-  if (errors.length > 0) {
-    ;(document.activeElement as HTMLElement | null)?.blur()
-    isModalVisible.value = true
-
-    ElMessageBox.alert(`请填写以下必填项：\n${errors.join('、')}`, '提示', {
-      confirmButtonText: '确定',
-    })
-      .then(() => {
-        isModalVisible.value = false
-      })
-      .catch(() => {
-        isModalVisible.value = false
-      })
-    return
-  }
-
-  emit('submit', { ...form.value })
-  emit('update:visible', false)
+  formRef.value?.validate((valid) => {
+    if (!valid) return
+    emit('submit', { ...form.value })
+    emit('update:visible', false)
+  })
 }
 </script>

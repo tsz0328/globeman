@@ -124,7 +124,9 @@ const handleCompanySubmit = async (data: CompanyFormData) => {
 }
 
 const viewCompany = (row: CompanyData) => {
-  ElMessage.info('编辑公司: ' + row.name)
+  const name = encodeURIComponent(row.name || '')
+  const time = encodeURIComponent(row.time || '')
+  window.open(`/company-detail/${row.id}?name=${name}&time=${time}`, '_blank')
 }
 
 const handleDelete = async (row: CompanyData) => {

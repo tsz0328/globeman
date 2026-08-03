@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import router from '@/router'
 import MenuComponent from '@/components/work/MenuComponent.vue'
+import { ElMessage } from 'element-plus'
 
 function handleIndex() {
   router.push('/index')
+}
+
+function handleProfile() {
+  router.push('/work/profile').then(() => {
+  }).catch(() => {
+    ElMessage.error('跳转失败')
+  })
 }
 </script>
 
 <template>
   <div class="head">
     <div class="head-left">
-      <img src="/logo.png" @click="handleIndex" alt="" />
+      <img src="/logo.jpg" @click="handleIndex" alt="" />
     </div>
     <div class="head-right">
       <div class="notice">
@@ -31,8 +39,8 @@ function handleIndex() {
           ></path>
         </svg>
       </div>
-      <div class="avatar">
-        <img src="/1.jpg" alt="">
+      <div class="avatar" @click="handleProfile">
+        <img src="/1.jpg" alt="" />
       </div>
     </div>
   </div>
@@ -101,6 +109,7 @@ function handleIndex() {
   margin-right: 30px;
   border-radius: 50%;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .avatar img {

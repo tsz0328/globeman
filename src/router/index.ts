@@ -21,6 +21,9 @@ import InboundManagementComponent from '@/components/work/InboundManagement.vue'
 import InventoryManagementComponent from '@/components/work/InventoryManagement.vue'
 import OrderManagementComponent from '@/components/work/OrderManagement.vue'
 import UserDetailComponent from '@/components/work/UserDetail.vue'
+import ProfileInfoComponent from '@/components/work/ProfileInfo.vue'
+import DepartmentManagementComponent from '@/components/work/DepartmentManagement.vue'
+import CompanyDetailComponent from '@/components/work/CompanyDetail.vue'
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -60,6 +63,11 @@ const router = createRouter({
           component: HomeComponent,
         },
         {
+          path: 'profile',
+          name: 'Profile',
+          component: ProfileInfoComponent,
+        },
+        {
           path: 'user',
           name: 'User',
           component: UserManagementComponent,
@@ -83,6 +91,11 @@ const router = createRouter({
           path: 'company',
           name: 'Company',
           component: CompanyManagementComponent,
+        },
+        {
+          path: 'department',
+          name: 'Department',
+          component: DepartmentManagementComponent,
         },
         {
           path: 'repair-management',
@@ -140,6 +153,11 @@ const router = createRouter({
       path: '/user-detail/:id',
       name: 'UserDetail',
       component: UserDetailComponent,
+    },
+    {
+      path: '/company-detail/:id',
+      name: 'CompanyDetail',
+      component: CompanyDetailComponent,
     },
   ],
 })
