@@ -15,6 +15,7 @@ interface UserDetailData {
   department?: string
   role?: string
   company?: string
+  avatar?: string
   time?: string
   createTime?: string
   createdAt?: string
@@ -53,6 +54,9 @@ const setUserDetailInfo = (userData: UserDetailData) => {
   if (userData.department) {
     Cookies.set('department', userData.department, { expires: 7 })
   }
+  if (userData.avatar) {
+    Cookies.set('avatar', userData.avatar, { expires: 7 })
+  }
 }
 
 export function useLogin() {
@@ -76,7 +80,7 @@ export function useLogin() {
           loginForm.account,
         )
         try {
-          const userInfoRes = await getUserInfoApi(loginForm.account)
+          const userInfoRes = await getUserInfoApi()
           if (userInfoRes.code === 200) {
             const userInfo =
               (userInfoRes.data as UserDetailData)?.admin ??

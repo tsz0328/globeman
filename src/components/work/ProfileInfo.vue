@@ -14,8 +14,8 @@
           <span class="avatar-info-secondary">{{ person.department || '-' }}</span>
         </div>
         <div class="avatar-actions">
-          <el-upload ref="avatarUploadRef" action="." :show-file-list="false" accept="image/*"
-            :auto-upload="false" :on-change="handleAvatarChange" class="avatar-upload">
+          <el-upload ref="avatarUploadRef" action="." :show-file-list="false" accept="image/*" :auto-upload="false"
+            :on-change="handleAvatarChange" class="avatar-upload">
             <el-button type="primary" size="large" :icon="Upload">上传头像</el-button>
           </el-upload>
           <el-button type="warning" size="large" :icon="Lock" @click="showPasswordDialog = true">修改密码</el-button>
@@ -25,14 +25,18 @@
       <div class="profile-grid">
         <!-- 账户名 -->
         <div class="grid-cell label">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
           <span>账户名</span>
         </div>
         <div class="grid-cell value">{{ person.account || '-' }}</div>
 
         <!-- 性别 -->
         <div class="grid-cell label">
-          <el-icon><Male /></el-icon>
+          <el-icon>
+            <Male />
+          </el-icon>
           <span>性别</span>
         </div>
         <div class="grid-cell value">
@@ -44,21 +48,27 @@
 
         <!-- 邮箱 -->
         <div class="grid-cell label">
-          <el-icon><Message /></el-icon>
+          <el-icon>
+            <Message />
+          </el-icon>
           <span>邮箱</span>
         </div>
         <div class="grid-cell value">{{ person.email || '-' }}</div>
 
         <!-- 手机号码 -->
         <div class="grid-cell label">
-          <el-icon><Phone /></el-icon>
+          <el-icon>
+            <Phone />
+          </el-icon>
           <span>手机号码</span>
         </div>
         <div class="grid-cell value">{{ person.phone || '-' }}</div>
 
         <!-- 地区 -->
         <div class="grid-cell label">
-          <el-icon><Location /></el-icon>
+          <el-icon>
+            <Location />
+          </el-icon>
           <span>地区</span>
         </div>
         <div class="grid-cell value">{{ person.address || '-' }}</div>
@@ -66,49 +76,63 @@
 
         <!-- 角色 -->
         <div class="grid-cell label">
-          <el-icon><Avatar /></el-icon>
+          <el-icon>
+            <Avatar />
+          </el-icon>
           <span>角色</span>
         </div>
         <div class="grid-cell value">{{ person.role || '-' }}</div>
 
         <!-- 学历 -->
         <div class="grid-cell label">
-          <el-icon><Reading /></el-icon>
+          <el-icon>
+            <Reading />
+          </el-icon>
           <span>学历</span>
         </div>
         <div class="grid-cell value">{{ person.education || '-' }}</div>
 
         <!-- 出生日期 -->
         <div class="grid-cell label">
-          <el-icon><Calendar /></el-icon>
+          <el-icon>
+            <Calendar />
+          </el-icon>
           <span>出生日期</span>
         </div>
         <div class="grid-cell value">{{ person.birth || '-' }}</div>
 
         <!-- 身份证 -->
         <div class="grid-cell label">
-          <el-icon><Tickets /></el-icon>
+          <el-icon>
+            <Tickets />
+          </el-icon>
           <span>身份证</span>
         </div>
         <div class="grid-cell value">{{ person.card || '-' }}</div>
 
         <!-- 紧急联系人 -->
         <div class="grid-cell label">
-          <el-icon><Warning /></el-icon>
+          <el-icon>
+            <Warning />
+          </el-icon>
           <span>紧急联系人</span>
         </div>
         <div class="grid-cell value">{{ person.emergency || '-' }}</div>
 
         <!-- 注册日期 -->
         <div class="grid-cell label">
-          <el-icon><Clock /></el-icon>
+          <el-icon>
+            <Clock />
+          </el-icon>
           <span>注册日期</span>
         </div>
         <div class="grid-cell value">{{ person.time || '-' }}</div>
 
         <!-- 状态 -->
         <div class="grid-cell label">
-          <el-icon><CircleCheck /></el-icon>
+          <el-icon>
+            <CircleCheck />
+          </el-icon>
           <span>状态</span>
         </div>
         <div class="grid-cell value">
@@ -122,7 +146,7 @@
 
     <!-- 修改密码弹窗 -->
     <el-dialog v-model="showPasswordDialog" title="修改密码" width="420px" :close-on-click-modal="false">
-      <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="80px">
+      <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="80px" :validate-on-rule-change="false">
         <el-form-item label="新密码" prop="newPassword">
           <el-input v-model="passwordForm.newPassword" type="password" show-password placeholder="请输入新密码" />
         </el-form-item>
@@ -139,12 +163,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules, UploadFile } from 'element-plus'
 import {
   User, UserFilled, Clock, Male, Message, Phone, Location,
-  OfficeBuilding, Grid, Avatar, Reading, Calendar, Tickets, Warning, CircleCheck, Upload, Lock
+  Avatar, Reading, Calendar, Tickets, Warning, CircleCheck, Upload, Lock
 } from '@element-plus/icons-vue'
 import type { PersonData } from '@/api/UserApi'
 import { getPersonApi, updateAvatarApi, updatePasswordApi } from '@/api/UserApi'
@@ -165,6 +189,16 @@ const validateConfirmPassword = (_rule: unknown, value: string, callback: (e?: E
     callback()
   }
 }
+
+watch(showPasswordDialog, (val) => {
+  if (val) {
+    passwordForm.value = { newPassword: '', confirmPassword: '' }
+    // 用 setTimeout 放到宏任务末尾，确保晚于 Element Plus 内部的验证触发
+    setTimeout(() => {
+      passwordFormRef.value?.clearValidate()
+    }, 0)
+  }
+})
 
 const passwordRules: FormRules = {
   newPassword: [

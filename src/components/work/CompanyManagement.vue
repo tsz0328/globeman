@@ -19,6 +19,11 @@
           style="width: 200px" @keyup.enter.prevent="handleSearch" />
       </div>
       <div class="filter-item">
+        <label for="account">负责人:</label>
+        <el-input id="account" aria-label="负责人" v-model="filterForm.account" placeholder="请输入负责人"
+          style="width: 150px" @keyup.enter.prevent="handleSearch" />
+      </div>
+      <div class="filter-item">
         <label for="createTime">创建时间:</label>
         <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
           style="width: 150px" />
@@ -35,6 +40,7 @@
         :row-key="getRowKey">
         <el-table-column type="selection" width="50"></el-table-column>
         <el-table-column prop="name" label="公司名称"></el-table-column>
+        <el-table-column prop="account" label="负责人" width="120"></el-table-column>
         <el-table-column prop="time" label="创建时间" width="180"></el-table-column>
         <el-table-column label="操作" width="133">
           <template #default="scope">
@@ -75,6 +81,7 @@ const selectedRows = ref<CompanyData[]>([])
 // 过滤表单
 const filterForm = ref({
   name: '',
+  account: '',
   createTime: null,
 })
 
@@ -85,6 +92,9 @@ onMounted(() => {
 const filteredData = computed(() => {
   return companyList.value.filter((item) => {
     if (filterForm.value.name && !item.name.includes(filterForm.value.name)) {
+      return false
+    }
+    if (filterForm.value.account && !(item.account || '').includes(filterForm.value.account)) {
       return false
     }
     if (filterForm.value.createTime) {
@@ -105,6 +115,7 @@ const handleSearch = () => {
 const handleReset = () => {
   filterForm.value = {
     name: '',
+    account: '',
     createTime: null,
   }
   currentPage.value = 1
@@ -125,8 +136,9 @@ const handleCompanySubmit = async (data: CompanyFormData) => {
 
 const viewCompany = (row: CompanyData) => {
   const name = encodeURIComponent(row.name || '')
+  const account = encodeURIComponent(row.account || '')
   const time = encodeURIComponent(row.time || '')
-  window.open(`/company-detail/${row.id}?name=${name}&time=${time}`, '_blank')
+  window.open(`/company-detail/${row.id}?name=${name}&account=${account}&time=${time}`, '_blank')
 }
 
 const handleDelete = async (row: CompanyData) => {
@@ -181,7 +193,7 @@ const handleBatchDelete = async () => {
     const success = await batchDeleteCompanies(ids)
 
     if (success) {
-      ElMessage.success('成功删除 ' + selectedRows.value.length + ' 个公司')
+      ElMessage.success('成功删除')
       selectedRows.value = []
     } else {
       ElMessage.error('批量删除失败')

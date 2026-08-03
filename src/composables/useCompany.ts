@@ -4,7 +4,6 @@ import {
   getInfoCompanyApi,
   getDepartmentInfoApi,
   deleteCompanyApi,
-  batchDeleteCompaniesApi,
   createCompanyApi,
   type CompanyData,
   type CompanyFormData,
@@ -80,7 +79,7 @@ export function useCompany() {
   const deleteCompany = async (id: number): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await deleteCompanyApi(id)
+      const res = await deleteCompanyApi([id])
       if (res.code === 200) {
         companyList.value = companyList.value.filter((c) => c.id !== id)
         return true
@@ -94,13 +93,13 @@ export function useCompany() {
     }
   }
 
-  // 批量删除公司
+  // 批量删除公司（一次请求传 ids 数组给后端）
   const batchDeleteCompanies = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await batchDeleteCompaniesApi(ids)
+      const res = await deleteCompanyApi(ids)
       if (res.code === 200) {
-        companyList.value = companyList.value.filter((c) => !ids.includes(c.id || 0))
+        await fetchCompanies()
         return true
       }
       return false

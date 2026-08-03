@@ -14,6 +14,9 @@
         <el-form-item label="公司名称">
           <el-input v-model="form.name" placeholder="请输入公司名称" />
         </el-form-item>
+        <el-form-item label="负责人">
+          <el-input v-model="form.account" placeholder="请输入负责人姓名" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSave" :loading="saving">保存</el-button>
         </el-form-item>
@@ -72,6 +75,7 @@ const saving = ref(false)
 
 const form = ref({
   name: '',
+  account: '',
   time: '',
 })
 
@@ -209,6 +213,7 @@ onMounted(async () => {
   const id = route.params.id
   companyId.value = typeof id === 'string' ? id : ''
   form.value.name = (route.query.name as string) || ''
+  form.value.account = (route.query.account as string) || ''
   form.value.time = (route.query.time as string) || ''
 
   if (form.value.name) {

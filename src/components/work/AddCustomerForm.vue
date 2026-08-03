@@ -11,7 +11,9 @@
         />
       </el-form-item>
       <el-form-item prop="company" label="公司名称">
-  <el-select
+        <el-input v-if="companyNames.length === 1" :model-value="form.company" disabled />
+        <el-select
+          v-else
           v-model="form.company"
           placeholder="请选择公司"
           style="width: 100%"
@@ -121,6 +123,17 @@ watch(
       resetForm()
     }
   },
+)
+
+// 公司列表只有一条时自动锁定
+watch(
+  () => props.companyNames,
+  (names) => {
+    if (names.length === 1) {
+      form.value.company = names[0]
+    }
+  },
+  { immediate: true },
 )
 
 const handleClose = () => {

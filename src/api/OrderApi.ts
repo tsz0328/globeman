@@ -28,12 +28,23 @@ export interface ApiResponse<T = unknown> {
   timestamp?: string
 }
 
+export interface OrderDetailInput {
+  name: string
+  model: string
+  type?: string
+  brand?: string
+  spec?: string
+  number: string | number
+  price: string | number
+  remark?: string
+}
+
 export interface CreateOrderData {
   id: string
   projectId?: string
   name: string
   type: string
-  leaderAccount: string
+  manager: string
   customer: string
   contact: string
   contactPhone: string
@@ -41,16 +52,19 @@ export interface CreateOrderData {
   city: string
   district: string
   address: string
+  details?: OrderDetailInput[]
 }
 
+// 创建订单
 export async function createOrderApi(data: CreateOrderData): Promise<ApiResponse<{ id: string }>> {
   return request({
-    url: '/order/create',
+    url: '/client/order/createOrder',
     method: 'post',
     data,
   })
 }
 
+// 获取订单列表
 export async function getOrdersApi(id?: string): Promise<ApiResponse<Record<string, OrderData>>> {
   return request({
     url: '/order/get',
@@ -59,6 +73,7 @@ export async function getOrdersApi(id?: string): Promise<ApiResponse<Record<stri
   })
 }
 
+// 删除订单
 export async function deleteOrderApi(id: string): Promise<ApiResponse<void>> {
   return request({
     url: '/order/delete',
@@ -67,6 +82,7 @@ export async function deleteOrderApi(id: string): Promise<ApiResponse<void>> {
   })
 }
 
+// 提交订单
 export async function submitOrderApi(id: string): Promise<ApiResponse<void>> {
   return request({
     url: '/order/done',

@@ -145,6 +145,8 @@ const handleCustomerSubmit = async (data: CustomerFormData) => {
     }
     if (success) {
       customerFormVisible.value = false
+      // 创建/编辑成功后重新拉取接口数据，不走本地拼接
+      await fetchCustomers(true)
       ElMessage.success('操作成功')
     }
   } catch (error) {
@@ -164,6 +166,7 @@ const handleDelete = async (row: Customer) => {
 
     const success = await deleteCustomer(row.id)
     if (success) {
+      await fetchCustomers(true)
       ElMessage.success('删除成功')
     } else {
       ElMessage.error('删除失败')
@@ -211,6 +214,7 @@ const handleBatchDelete = async () => {
     const success = await batchDeleteCustomers(ids)
 
     if (success) {
+      await fetchCustomers(true)
       ElMessage.success(`成功删除 ${selectedRows.value.length} 个客户`)
       selectedRows.value = []
     } else {

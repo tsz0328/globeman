@@ -67,12 +67,3 @@ export async function deleteProjectApi(id: string): Promise<ApiResponse<void>> {
     params: { id },
   })
 }
-
-// 批量删除项目
-export async function batchDeleteProjectsApi(ids: string[]): Promise<ApiResponse<void>> {
-  return request({
-    url: '/project/batchDelete',
-    method: 'delete',
-    params: { ids: ids.join(',') },
-  })
-}

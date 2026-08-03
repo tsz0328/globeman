@@ -5,19 +5,22 @@ import {
   deleteOrderApi,
   submitOrderApi,
   type OrderData,
+  type CreateOrderData,
 } from '@/api/OrderApi'
-import { createDetailApi } from '@/api/DetailApi'
-import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
+import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
 
 // 创建订单时一并提交的设备明细（字段对应后端 /details/create 接口）
 export interface CreateOrderDetailInput {
   name: string
   model: string
-  manufacturer?: string
+  type?: string
+  brand?: string
+  spec?: string
   number: string | number
   price: string | number
+  remark?: string
 }
 
 export interface Order {
@@ -52,27 +55,23 @@ export function useOrder() {
     try {
       // 生成订单 id：2位 订单类型首字母 + 时间(YYYYMMDDHHmmssSSS) + 5 位随机字母数字
       const orderId = generateTypedId(data.type)
-      const response = await createOrderApi({ ...data, id: orderId })
+      // 把设备明细一并提交到订单创建接口
+      const orderPayload: CreateOrderData = { ...data, id: orderId } as CreateOrderData
+      if (details && details.length > 0) {
+        orderPayload.details = details.map((d) => ({
+          name: d.name,
+          model: d.model,
+          type: d.type ?? '',
+          brand: d.brand ?? '',
+          spec: d.spec ?? '',
+          number: String(d.number ?? ''),
+          price: String(d.price ?? ''),
+          remark: d.remark ?? '',
+        }))
+      }
+      const response = await createOrderApi(orderPayload)
 
       if (response.code === 200) {
-        // 订单创建成功后，依次创建设备明细
-        // 后端 /details/create 仅接收 orderId/name/model/manufacturer/number/price
-        if (details && details.length > 0) {
-          for (const d of details) {
-            try {
-              await createDetailApi({
-                orderId,
-                name: d.name,
-                model: d.model,
-                manufacturer: d.manufacturer ?? '',
-                number: String(d.number ?? ''),
-                price: String(d.price ?? ''),
-              })
-            } catch (err) {
-              console.error('创建设备明细失败:', err)
-            }
-          }
-        }
         return true
       } else {
         console.error('创建订单失败，后端返回:', response)
@@ -97,7 +96,7 @@ export function useOrder() {
             projectId: item.project_id,
             name: item.name,
             type: item.type,
-            leaderAccount: item.leader_account,
+            leaderAccount: item.leader_account ?? '',
             leader: item.leader,
             creator: item.creator,
             creatorAccount: item.creator_account,

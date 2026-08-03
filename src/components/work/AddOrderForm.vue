@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="title" v-model="visibleValue" width="900px">
+  <el-dialog :title="title" v-model="visibleValue" width="80vw">
     <!-- 表单内容 -->
     <el-form ref="formRef" :model="form" :rules="rules">
       <div class="form-info">
@@ -90,7 +90,7 @@
             <el-input
               v-model="form.contactPhone"
               class="info-input"
-              placeholder="请输入联系人电话（选填）"
+              placeholder="请输入联系人电话"
               @keyup.enter.prevent="handleEnter($event)"
               @keydown.up.prevent="handleKeydown($event)"
               @keydown.down.prevent="handleKeydown($event)"
@@ -99,42 +99,21 @@
         </div>
 
         <div class="info-row">
-          <div class="info-item">
-            <span class="label">执行省份：</span>
-            <el-input
-              v-model="form.province"
+          <div class="info-item info-item-full">
+            <span class="label">执行省市区：</span>
+            <el-cascader
+              v-model="selectedRegion"
+              :options="regionData"
+              :props="{ value: 'label', emitPath: true }"
               class="info-input"
-              placeholder="请输入执行省份"
+              placeholder="请选择省/市/区"
+              clearable
               @keyup.enter.prevent="handleEnter($event)"
-              @keydown.up.prevent="handleKeydown($event)"
-              @keydown.down.prevent="handleKeydown($event)"
-            />
-          </div>
-          <div class="info-item">
-            <span class="label">执行市：</span>
-            <el-input
-              v-model="form.city"
-              class="info-input"
-              placeholder="请输入执行市"
-              @keyup.enter.prevent="handleEnter($event)"
-              @keydown.up.prevent="handleKeydown($event)"
-              @keydown.down.prevent="handleKeydown($event)"
             />
           </div>
         </div>
 
         <div class="info-row">
-          <div class="info-item">
-            <span class="label">执行区：</span>
-            <el-input
-              v-model="form.district"
-              class="info-input"
-              placeholder="请输入执行区"
-              @keyup.enter.prevent="handleEnter($event)"
-              @keydown.up.prevent="handleKeydown($event)"
-              @keydown.down.prevent="handleKeydown($event)"
-            />
-          </div>
           <div class="info-item">
             <span class="label">送修地址：</span>
             <el-input
@@ -163,29 +142,44 @@
           <el-input v-model="scope.row.equipmentModel" aria-label="型号" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="序列号" min-width="120">
+      <el-table-column label="类型" min-width="100">
         <template #default="scope">
-          <el-input v-model="scope.row.serialNo" aria-label="序列号" size="small" />
+          <el-input v-model="scope.row.type" aria-label="类型" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="单位" width="80" align="center">
+      <el-table-column label="品牌" min-width="100">
         <template #default="scope">
-          <el-input v-model="scope.row.unit" aria-label="单位" size="small" />
+          <el-input v-model="scope.row.brand" aria-label="品牌" size="small" />
+        </template>
+      </el-table-column>
+      <el-table-column label="参数" min-width="120">
+        <template #default="scope">
+          <el-input v-model="scope.row.spec" aria-label="参数" size="small" />
         </template>
       </el-table-column>
       <el-table-column label="数量" width="80" align="center">
         <template #default="scope">
-          <el-input v-model="scope.row.quantity" aria-label="数量" size="small" />
+          <el-input
+            v-model="scope.row.quantity"
+            aria-label="数量"
+            size="small"
+            @input="(val: string) => filterNumberInput(scope.row, 'quantity', val)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="单价" width="100" align="right">
         <template #default="scope">
-          <el-input v-model="scope.row.unitPrice" aria-label="单价" size="small" />
+          <el-input
+            v-model="scope.row.unitPrice"
+            aria-label="单价"
+            size="small"
+            @input="(val: string) => filterNumberInput(scope.row, 'unitPrice', val)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="金额" width="100" align="right">
         <template #default="scope">
-          {{ (Number(scope.row.quantity) || 0) * (Number(scope.row.unitPrice) || 0) }}
+          {{ calcAmountText(scope.row.quantity, scope.row.unitPrice) }}
         </template>
       </el-table-column>
       <el-table-column label="备注" min-width="120">
@@ -227,13 +221,15 @@
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
+import { regionData } from '@/data/chinaArea'
 import type { User } from '@/composables/useUser'
 import type { Customer } from '@/composables/useCustomer'
 interface DetailTableRow {
   equipmentName: string
   equipmentModel: string
-  serialNo: string
-  unit: string
+  type: string
+  brand: string
+  spec: string
   quantity: number | string
   unitPrice: number | string
   remark: string
@@ -241,8 +237,9 @@ interface DetailTableRow {
 const createBlankRow = (): DetailTableRow => ({
   equipmentName: '',
   equipmentModel: '',
-  serialNo: '',
-  unit: '',
+  type: '',
+  brand: '',
+  spec: '',
   quantity: '',
   unitPrice: '',
   remark: '',
@@ -271,13 +268,31 @@ const isModalVisible = ref(false)
 
 const rules = {}
 
+// 省市区级联选择器的值，格式: [provinceCode, cityCode, districtCode] 或 ['provinceName', 'cityName', 'districtName']
+// regionData 中 value 是行政区划代码, label 是名称
+// 我们选择 label 作为值以便直接用于表单
+const selectedRegion = ref<string[]>([])
+
+// 同步级联选择器 → form.province/city/district
+watch(selectedRegion, (val) => {
+  if (val && val.length >= 1) {
+    form.value.province = val[0] || ''
+    form.value.city = val[1] || ''
+    form.value.district = val[2] || ''
+  } else {
+    form.value.province = ''
+    form.value.city = ''
+    form.value.district = ''
+  }
+})
+
 const title = computed(() => '创建订单')
 
 const form = ref<OrderFormData>({
   projectId: props.projectId,
   name: '',
   type: '',
-  leaderAccount: '',
+  manager: '',
   customer: '',
   contact: '',
   contactPhone: '',
@@ -301,7 +316,7 @@ const resetForm = () => {
     projectId: props.projectId,
     name: '',
     type: '',
-    leaderAccount: '',
+    manager: '',
     customer: '',
     contact: '',
     contactPhone: '',
@@ -313,6 +328,7 @@ const resetForm = () => {
   leaderName.value = ''
   customerName.value = ''
   contactName.value = ''
+  selectedRegion.value = []
   detailRows.value = [createBlankRow()]
   formRef.value?.clearValidate()
 }
@@ -367,7 +383,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 const handleLeaderChange = (name: string) => {
   const user = props.userList.find((u) => u.name === name)
-  form.value.leaderAccount = user?.account || ''
+  form.value.manager = user?.account || ''
 }
 
 const queryCustomerSearch = (
@@ -473,6 +489,47 @@ const handleEnter = (event: KeyboardEvent) => {
   }
 }
 
+// 限制数量/单价输入：
+// - 数量：只能输入 0~9（纯整数）
+// - 单价：只能输入 0~9 和小数点，小数点后最多2位
+const filterNumberInput = (
+  row: DetailTableRow,
+  field: 'quantity' | 'unitPrice',
+  val: string,
+) => {
+  let cleaned: string
+  if (field === 'quantity') {
+    // 数量：只保留数字，纯整数
+    cleaned = val.replace(/[^\d]/g, '')
+  } else {
+    // 单价：保留数字和小数点，最多一个小数点，小数点后最多2位，.开头自动补0
+    cleaned = val
+      .replace(/[^\d.]/g, '')        // 只保留数字和小数点
+      .replace(/(\..*)\./g, '$1')    // 最多一个小数点
+      .replace(/^\./, '0.')          // .开头自动补0 → 0.
+      .replace(/(\.\d{2})\d+/, '$1') // 小数点后最多2位
+  }
+  if (cleaned !== val) {
+    row[field] = cleaned as never
+  }
+}
+
+// 按"分"整数计算金额，避免 JS 浮点误差（439 × 3466.8 = 1521925.2 而非 1521925.200000002）
+const calcAmountText = (
+  qty: string | number,
+  price: string | number,
+): string => {
+  const q = Number(qty)
+  const p = Number(price)
+  if (isNaN(q) || isNaN(p) || q <= 0 || p <= 0) return '0.00'
+  // 用"分"做整数运算（单价 × 100 = 单价分；数量是整数）
+  // 金额分 = 单价分 × 数量，金额元 = 金额分 / 100
+  // 这样避开浮点，精确到分
+  const priceCents = Math.round(p * 100)
+  const totalCents = Math.round(priceCents) * q
+  return (Math.round(totalCents) / 100).toFixed(2)
+}
+
 const handleSubmit = () => {
   if (isModalVisible.value) return
 
@@ -484,7 +541,7 @@ const handleSubmit = () => {
   if (!form.value.type.trim()) {
     errors.push('订单类型')
   }
-  if (!form.value.leaderAccount.trim()) {
+  if (!form.value.manager.trim()) {
     errors.push('负责人')
   }
   if (!form.value.customer.trim()) {
@@ -510,19 +567,57 @@ const handleSubmit = () => {
     return
   }
 
-  // 组装设备明细：过滤完全空白的行；要求有品名且数量/单价为正，否则跳过（与后端 /details/create 字段对齐）
+  // 组装设备明细：要求有品名且数量/单价为正数，否则报错提示
   const details: CreateOrderDetailInput[] = []
-  for (const r of detailRows.value) {
+  const detailErrors: string[] = []
+  for (let i = 0; i < detailRows.value.length; i++) {
+    const r = detailRows.value[i]
+    if (!r) continue
     const name = r.equipmentName.trim()
     const model = r.equipmentModel.trim()
-    const qty = Number(r.quantity)
-    const price = Number(r.unitPrice)
-    if (!name && !model) continue
-    if (!name || !(qty > 0) || !(price > 0)) {
-      console.warn('设备明细不完整，已跳过该行：', r)
+    const typeStr = r.type.trim()
+    const brandStr = r.brand.trim()
+    const specStr = r.spec.trim()
+    const qtyStr = String(r.quantity).trim()
+    const priceStr = String(r.unitPrice).trim()
+
+    // 完全空行跳过
+    if (!name && !model && !typeStr && !brandStr && !specStr && !qtyStr && !priceStr) continue
+
+    // 品名为空
+    if (!name) {
+      detailErrors.push(`第 ${i + 1} 行：品名不能为空`)
       continue
     }
-    details.push({ name, model, manufacturer: '', number: r.quantity, price: r.unitPrice })
+    // 数量校验
+    const qty = Number(qtyStr)
+    if (!qtyStr || isNaN(qty) || qty <= 0) {
+      detailErrors.push(`第 ${i + 1} 行：数量必须为正数（当前值："${r.quantity || ''}"）`)
+      continue
+    }
+    // 单价校验
+    const price = Number(priceStr)
+    if (!priceStr || isNaN(price) || price <= 0) {
+      detailErrors.push(`第 ${i + 1} 行：单价必须为正数（当前值："${r.unitPrice || ''}"）`)
+      continue
+    }
+
+    details.push({ name, model, type: typeStr, brand: brandStr, spec: specStr, number: qtyStr, price: priceStr, remark: r.remark })
+  }
+
+  if (detailErrors.length > 0) {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    isModalVisible.value = true
+    ElMessageBox.alert(`设备明细校验不通过：\n${detailErrors.join('\n')}`, '提示', {
+      confirmButtonText: '确定',
+    })
+      .then(() => {
+        isModalVisible.value = false
+      })
+      .catch(() => {
+        isModalVisible.value = false
+      })
+    return
   }
 
   emit('submit', { ...form.value, details })
@@ -536,7 +631,7 @@ export interface OrderFormData {
   projectId?: string
   name: string
   type: string
-  leaderAccount: string
+  manager: string
   customer: string
   contact: string
   contactPhone: string
@@ -574,6 +669,10 @@ export interface OrderSubmitPayload extends OrderFormData {
 
 .info-item:last-child {
   border-right: none;
+}
+
+.info-item-full {
+  flex: 2;
 }
 
 .info-item .label {

@@ -1,7 +1,29 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import router from '@/router'
 import MenuComponent from '@/components/work/MenuComponent.vue'
 import { ElMessage } from 'element-plus'
+import Cookies from 'js-cookie'
+
+const avatarUrl = ref('/1.jpg')
+
+function buildAvatarUrl(avatar: string): string {
+  if (!avatar) return '/1.jpg'
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  if (avatar.startsWith('/')) {
+    return `/api${avatar}`
+  }
+  return `/api/${avatar}`
+}
+
+onMounted(() => {
+  const avatar = Cookies.get('avatar')
+  if (avatar) {
+    avatarUrl.value = buildAvatarUrl(avatar)
+  }
+})
 
 function handleIndex() {
   router.push('/index')
@@ -40,7 +62,7 @@ function handleProfile() {
         </svg>
       </div>
       <div class="avatar" @click="handleProfile">
-        <img src="/1.jpg" alt="" />
+        <img :src="avatarUrl" alt="" />
       </div>
     </div>
   </div>

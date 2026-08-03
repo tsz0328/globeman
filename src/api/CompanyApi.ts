@@ -4,6 +4,7 @@ import request from '@/utils/request'
 export interface CompanyData {
   id?: number
   name: string
+  account?: string
   time?: string
 }
 
@@ -37,21 +38,36 @@ export async function getDepartmentInfoApi(): Promise<ApiResponse<string[]>> {
   })
 }
 
-// 删除公司
-export async function deleteCompanyApi(id: number): Promise<ApiResponse<unknown>> {
+// 部门数据接口
+export interface DepartmentData {
+  id?: number
+  name: string
+  time?: string
+}
+
+// 获取部门列表
+export async function getDepartmentsApi(): Promise<ApiResponse<string[]>> {
   return request({
-    url: '/company/delete',
-    method: 'delete',
-    params: { id },
+    url: '/client/department/getInfoDepartment',
+    method: 'get',
   })
 }
 
-// 批量删除公司
-export async function batchDeleteCompaniesApi(ids: number[]): Promise<ApiResponse<unknown>> {
+// 新建部门
+export async function createDepartmentApi(department: string): Promise<ApiResponse<void>> {
   return request({
-    url: '/company/batchDelete',
-    method: 'delete',
-    params: { ids: ids.join(',') },
+    url: '/client/department/createDepartment',
+    method: 'post',
+    params: { department },
+  })
+}
+
+// 删除公司（多个删除）
+export async function deleteCompanyApi(ids: number[]): Promise<ApiResponse<unknown>> {
+  return request({
+    url: '/client/company/delete',
+    method: 'post',
+    data: ids,
   })
 }
 

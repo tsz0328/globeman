@@ -106,13 +106,6 @@
             <span v-else>{{ scope.row.serialNo }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="单位" width="80" align="center">
-          <template #default="scope">
-            <el-input v-if="scope.row.isNew" v-model="scope.row.unit" aria-label="单位" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
-            <span v-else>{{ scope.row.unit }}</span>
-          </template>
-        </el-table-column>
         <el-table-column label="数量" width="80" align="center">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.quantity" aria-label="数量" size="small"
@@ -193,7 +186,6 @@ interface DetailTableRow {
   equipmentModel: string
   manufacturer: string
   serialNo: string
-  unit: string
   quantity: number | string
   unitPrice: number | string
   total: number
@@ -218,7 +210,6 @@ const createBlankRow = (): DetailTableRow => ({
   equipmentModel: '',
   manufacturer: '',
   serialNo: '',
-  unit: '',
   quantity: '',
   unitPrice: '',
   total: 0,
@@ -236,7 +227,6 @@ const detailTableData = computed<DetailTableRow[]>(() => {
       equipmentModel: item.equipmentModel,
       manufacturer: item.manufacturer || '',
       serialNo: item.sn || '',
-      unit: '台',
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       total: item.total,

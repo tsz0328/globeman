@@ -7,6 +7,7 @@ export interface CustomerData {
   company: string
   contact: string
   phone: string
+  time?: string
 }
 
 // 客户接口响应数据
@@ -18,9 +19,9 @@ export interface ApiResponse<T = unknown> {
 }
 
 // 获取客户列表
-export async function getCustomersApi(): Promise<ApiResponse<Record<string, CustomerData>>> {
+export async function getCustomersApi(): Promise<ApiResponse<CustomerData[]>> {
   return request({
-    url: '/customer/get',
+    url: '/client/customer/getInfoCustomer',
     method: 'get',
   })
 }
@@ -30,7 +31,7 @@ export async function createCustomerApi(
   data: Omit<CustomerData, 'id'>,
 ): Promise<ApiResponse<CustomerData>> {
   return request({
-    url: '/customer/create',
+    url: '/client/customer/createCustomer',
     method: 'post',
     data,
   })
@@ -50,17 +51,8 @@ export async function updateCustomerApi(
 // 删除客户
 export async function deleteCustomerApi(id: number): Promise<ApiResponse<unknown>> {
   return request({
-    url: '/customer/delete',
-    method: 'delete',
+    url: '/client/customer/deleteCustomer',
+    method: 'post',
     params: { id },
-  })
-}
-
-// 批量删除客户
-export async function batchDeleteCustomersApi(ids: number[]): Promise<ApiResponse<unknown>> {
-  return request({
-    url: '/customer/batchDelete',
-    method: 'delete',
-    params: { ids: ids.join(',') },
   })
 }

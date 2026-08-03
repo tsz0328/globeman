@@ -4,7 +4,6 @@ import {
   createCustomerApi,
   updateCustomerApi,
   deleteCustomerApi,
-  batchDeleteCustomersApi,
   type CustomerData,
 } from '@/api/CustomerApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
@@ -205,11 +204,12 @@ export function useCustomer() {
     }
   }
 
+  // 批量删除客户（逐个调用单删接口）
   const batchDeleteCustomers = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await batchDeleteCustomersApi(ids)
-      if (res.code === 200) {
+      const results = await Promise.all(ids.map((id) => deleteCustomerApi(id)))
+      if (results.every((res) => res.code === 200)) {
         customerList.value = customerList.value.filter((item) => !ids.includes(item.id))
         return true
       }

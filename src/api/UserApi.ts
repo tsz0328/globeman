@@ -87,8 +87,7 @@ export interface UserInfo {
   company: string
   department: string
   role: string
-  status: number
-  // 以下为详情扩展字段
+  status?: number
   address?: string
   birth?: string
   card?: string
@@ -96,6 +95,7 @@ export interface UserInfo {
   email?: string
   emergency?: string
   phone?: string
+  avatar?: string
   sex?: string
   time?: string
   certificateImages?: CertificateImageItem[]
@@ -127,9 +127,17 @@ const normalizeCertificateImageList = (value: unknown): CertificateImageItem[] =
 }
 
 // 登录时获取用户信息
-export async function getUserInfoApi(account: string): Promise<ApiResponse<UserInfo>> {
+export async function getUserInfoApi(): Promise<ApiResponse<UserInfo>> {
   return request({
     url: '/getInfoUser',
+    method: 'get',
+  })
+}
+
+// 获取用户信息
+export async function getUserApi(account: string): Promise<ApiResponse<UserInfo>> {
+  return request({
+    url: '/client/user/getInfoUser',
     method: 'get',
     params: { account },
   })
@@ -198,7 +206,7 @@ export async function getInfoRoleApi(): Promise<ApiResponse<RoleData[]>> {
 
 // 个人中心数据（对接 GET /client/person/getPerson）
 export interface PersonData {
-  avatar?: string // 前端保留字段，非接口返回
+  avatar?: string
   account?: string
   address?: string
   birth?: string

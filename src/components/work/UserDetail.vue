@@ -15,7 +15,8 @@
         <el-descriptions-item label="性别">{{ info.sex || '—' }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag v-if="info.status === 0" type="danger">禁用</el-tag>
-          <el-tag v-else type="success">正常</el-tag>
+          <el-tag v-else-if="info.status === 1" type="success">正常</el-tag>
+          <el-tag v-else type="info">未知</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="公司">{{ info.company || '—' }}</el-descriptions-item>
         <el-descriptions-item label="部门">{{ info.department || '—' }}</el-descriptions-item>
@@ -75,7 +76,7 @@ import { useRoute } from 'vue-router'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus'
 import {
-  getUserInfoApi,
+  getUserApi,
   getCertificateImagesApi,
   uploadCertificateImagesApi,
   deleteCertificateImageApi,
@@ -214,7 +215,7 @@ onMounted(async () => {
   account.value = userAccount
   loading.value = true
   try {
-    const res = await getUserInfoApi(userAccount)
+    const res = await getUserApi(userAccount)
     if (res.code === 200 && res.data) {
       info.value = res.data
     } else {

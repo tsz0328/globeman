@@ -160,13 +160,19 @@ export function useUser() {
     }
   }
 
-  // 批量删除用户
-  // 支持批量删除用户并更新用户列表
+  // 批量删除用户（逐个调用单删接口，用 account）
   const batchDeleteUsers = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {
-      userList.value = userList.value.filter((u) => !ids.includes(u.id))
-      return true
+      const accounts = userList.value
+        .filter((u) => ids.includes(u.id))
+        .map((u) => u.account)
+      const results = await Promise.all(accounts.map((account) => deleteUserApi(account)))
+      if (results.every((res) => res.code === 200)) {
+        await fetchUsers(true)
+        return true
+      }
+      return false
     } catch (error) {
       console.error('批量删除用户失败:', error)
       return false

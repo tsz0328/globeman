@@ -3,7 +3,6 @@ import {
   getProjectsApi,
   createProjectApi,
   deleteProjectApi,
-  batchDeleteProjectsApi,
 } from '@/api/ProjectApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
@@ -51,7 +50,7 @@ const getString = (record: Record<string, unknown>, keys: string[]): string => {
 }
 
 // 将后端记录（/project/get 列表项或 /project/create 返回值）映射为前端 Project
-// 字段名兼容多种命名：name/projectName、type/projectType、leader/leaderAccount/leader_account、
+// 字段名兼容多种命名：name/projectName、type/projectType、leader/leader_account、
 // company/cooperativeUnit、contact、creator/creator_account、customer、time/createTime、status/state
 const mapRecordToProject = (record: Record<string, unknown>, _index: number): Project => {
   return {
@@ -65,7 +64,6 @@ const mapRecordToProject = (record: Record<string, unknown>, _index: number): Pr
     projectType: getString(record, ['type', 'projectType']),
     projectManager: getString(record, [
       'leader',
-      'leaderAccount',
       'leader_account',
       'projectManager',
     ]),
@@ -180,12 +178,12 @@ export function useProject() {
     }
   }
 
-  // 批量删除项目
+  // 批量删除项目（逐个调用单删接口）
   const batchDeleteProjects = async (ids: string[]): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await batchDeleteProjectsApi(ids)
-      if (res.code === 200) {
+      const results = await Promise.all(ids.map((id) => deleteProjectApi(id)))
+      if (results.every((res) => res.code === 200)) {
         projectList.value = projectList.value.filter((p) => !ids.includes(p.id))
         return true
       }

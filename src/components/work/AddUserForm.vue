@@ -30,20 +30,25 @@
         />
       </el-form-item>
       <el-form-item prop="company" label="公司">
-  <el-select
-          v-model="form.company"
-          placeholder="请选择公司"
-          @keyup.enter.prevent="handleEnter($event)"
-          @keydown.up.prevent="handleKeydown($event)"
-          @keydown.down.prevent="handleKeydown($event)"
-        >
-          <el-option
-            v-for="name in companyNames"
-            :key="name"
-            :label="name"
-            :value="name"
-          />
-        </el-select>
+        <template v-if="companyNames.length === 1">
+          <el-input :model-value="companyNames[0]" disabled />
+        </template>
+        <template v-else>
+          <el-select
+            v-model="form.company"
+            placeholder="请选择公司"
+            @keyup.enter.prevent="handleEnter($event)"
+            @keydown.up.prevent="handleKeydown($event)"
+            @keydown.down.prevent="handleKeydown($event)"
+          >
+            <el-option
+              v-for="name in companyNames"
+              :key="name"
+              :label="name"
+              :value="name"
+            />
+          </el-select>
+        </template>
       </el-form-item>
       <el-form-item prop="department" label="部门">
         <el-select
@@ -164,6 +169,17 @@ watch(
       resetForm()
     }
   },
+)
+
+// 公司列表只有一条时自动选中并锁定
+watch(
+  () => props.companyNames,
+  (names) => {
+    if (names.length === 1) {
+      form.value.company = names[0]
+    }
+  },
+  { immediate: true },
 )
 
 const handleClose = () => {
