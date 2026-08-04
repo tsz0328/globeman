@@ -6,10 +6,10 @@ import {
   submitOrderApi,
   type OrderData,
   type CreateOrderData,
-} from '@/api/OrderApi'
+} from '@/api/order/OrderApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
-import type { OrderFormData } from '@/components/work/AddOrderForm.vue'
+import type { OrderFormData } from '@/components/order/AddOrderForm.vue'
 
 // 创建订单时一并提交的设备明细（字段对应后端 /details/create 接口）
 export interface CreateOrderDetailInput {

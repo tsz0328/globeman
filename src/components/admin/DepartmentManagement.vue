@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getDepartmentsApi, type DepartmentData } from '@/api/CompanyApi'
+import { getDepartmentsApi, type DepartmentData } from '@/api/admin/CompanyApi'
 import AddDepartmentForm from './AddDepartmentForm.vue'
 
 const tableData = ref<DepartmentData[]>([])

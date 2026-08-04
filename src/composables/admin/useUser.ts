@@ -4,7 +4,7 @@ import {
   getUsersApi,
   deleteUserApi,
   updateUserStatusApi,
-} from '@/api/UserApi'
+} from '@/api/admin/UserApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
 export interface User {

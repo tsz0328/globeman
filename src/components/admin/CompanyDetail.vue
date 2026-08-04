@@ -65,7 +65,7 @@ import { useRoute } from 'vue-router'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { UploadFile } from 'element-plus'
-import { uploadUsciApi, getUsciApi, deleteUsciApi } from '@/api/CompanyApi'
+import { uploadUsciApi, getUsciApi, deleteUsciApi } from '@/api/admin/CompanyApi'
 import { checkImageSize } from '@/utils/imageUpload'
 
 const route = useRoute()

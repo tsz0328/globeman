@@ -96,9 +96,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import Cookies from 'js-cookie'
 import UserForm from './AddUserForm.vue'
 import type { UserFormData } from './AddUserForm.vue'
-import { useUser, type User } from '@/composables/useUser'
-import { useRole } from '@/composables/useRole'
-import { useCompany } from '@/composables/useCompany'
+import { useUser, type User } from '@/composables/admin/useUser'
+import { useRole } from '@/composables/admin/useRole'
+import { useCompany } from '@/composables/admin/useCompany'
 
 const { userList, createUser, fetchUsers, deleteUser, batchDeleteUsers, updateUserStatus } =
   useUser()

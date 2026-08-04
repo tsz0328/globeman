@@ -7,7 +7,7 @@ import {
   createCompanyApi,
   type CompanyData,
   type CompanyFormData,
-} from '@/api/CompanyApi'
+} from '@/api/admin/CompanyApi'
 import { toTimeStamp, formatDateTime } from '@/utils/sort'
 
 // 公司列表按创建时间降序（最新在前）；时间字段为 time，时间相同或无效时用 id 兜底

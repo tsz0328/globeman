@@ -150,9 +150,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useProject, type Project } from '@/composables/useProject'
-import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
-import { repairTakeApi } from '@/api/DetailApi'
+import { useProject, type Project } from '@/composables/project/useProject'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
+import { repairTakeApi } from '@/api/detail/DetailApi'
 import { ElMessage } from 'element-plus'
 
 const { projectList: repairList, fetchProjects: fetchRepairs } = useProject()

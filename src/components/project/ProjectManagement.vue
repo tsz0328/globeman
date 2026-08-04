@@ -104,8 +104,8 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ProjectForm from './AddProjectForm.vue'
 import type { ProjectFormData } from './AddProjectForm.vue'
-import { useProject, type Project } from '@/composables/useProject'
-import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
+import { useProject, type Project } from '@/composables/project/useProject'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 
 const { projectList, fetchProjects, createProject, deleteProject, batchDeleteProjects } =
   useProject()

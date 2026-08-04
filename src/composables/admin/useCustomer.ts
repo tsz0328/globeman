@@ -5,7 +5,7 @@ import {
   updateCustomerApi,
   deleteCustomerApi,
   type CustomerData,
-} from '@/api/CustomerApi'
+} from '@/api/admin/CustomerApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
 // 客户接口

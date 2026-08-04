@@ -22,7 +22,7 @@ import {
   type TakenDetailData,
   type RepairImageData,
   type SubmitRepairData,
-} from '@/api/DetailApi'
+} from '@/api/detail/DetailApi'
 
 export interface TakenDetail {
   id: number
@@ -159,7 +159,7 @@ export function useDetail() {
   // 接单
   const acceptRepair = async (sn: string, account: string): Promise<boolean> => {
     try {
-      const { acceptRepairApi } = await import('@/api/DetailApi')
+      const { acceptRepairApi } = await import('@/api/detail/DetailApi')
       const res = await acceptRepairApi(sn, account)
       return res.code === 200
     } catch (error) {

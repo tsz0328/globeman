@@ -60,11 +60,13 @@
         </el-select>
       </div>
       <div class="filter-item">
+        <label for="createTime">归属项目：</label>
+        <el-select ></el-select>
+      </div>
+      <div class="filter-item">
         <label for="createTime">创建时间:</label>
         <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
           style="width: 150px" />
-      </div>
-      <div class="filter-item filter-actions">
         <el-button type="primary" @click="handleSearch">查询</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
@@ -119,10 +121,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useProject } from '@/composables/useProject'
-import { useCompany } from '@/composables/useCompany'
-import { useOrder, type Order } from '@/composables/useOrder'
-import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
+import { useProject } from '@/composables/project/useProject'
+import { useCompany } from '@/composables/admin/useCompany'
+import { useOrder, type Order } from '@/composables/order/useOrder'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 import OrderForm from './AddOrderForm.vue'
 import OrderDetailDialog from './OrderDetailDialog.vue'
 import type { OrderSubmitPayload } from './AddOrderForm.vue'

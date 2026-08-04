@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import router from '@/router'
-import MenuComponent from '@/components/work/MenuComponent.vue'
+import MenuComponent from '@/components/layout/MenuComponent.vue'
 import { ElMessage } from 'element-plus'
 import { Bell } from '@element-plus/icons-vue'
-import { useAvatar } from '@/composables/useAvatar'
+import { useAvatar } from '@/composables/common/useAvatar'
 
 const { currentAvatarUrl } = useAvatar()
 const avatarUrl = computed(() => currentAvatarUrl.value)

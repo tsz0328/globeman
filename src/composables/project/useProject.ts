@@ -3,7 +3,7 @@ import {
   getProjectsApi,
   createProjectApi,
   deleteProjectApi,
-} from '@/api/ProjectApi'
+} from '@/api/project/ProjectApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
 

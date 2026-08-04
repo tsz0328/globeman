@@ -101,8 +101,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useDetail } from '@/composables/useDetail'
-import { useOrder } from '@/composables/useOrder'
+import { useDetail } from '@/composables/detail/useDetail'
+import { useOrder } from '@/composables/order/useOrder'
 
 const route = useRoute()
 const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()

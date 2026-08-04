@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { loginApi } from '@/api/LoginApi'
-import { getUserInfoApi } from '@/api/UserApi'
+import { loginApi } from '@/api/auth/LoginApi'
+import { getUserInfoApi } from '@/api/admin/UserApi'
 import Cookies from 'js-cookie'
 
 export interface LoginForm {

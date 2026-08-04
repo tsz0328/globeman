@@ -114,7 +114,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 
-import { useDetail } from '@/composables/useDetail'
+import { useDetail } from '@/composables/detail/useDetail'
 
 // 设备详情路由参数
 const route = useRoute()

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getInfoRoleApi, type RoleData } from '@/api/UserApi'
+import { getInfoRoleApi, type RoleData } from '@/api/admin/UserApi'
 
 export function useRole() {
   const roleList = ref<RoleData[]>([])

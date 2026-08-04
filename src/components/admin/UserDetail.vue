@@ -83,7 +83,7 @@ import {
   deleteCertificateImageApi,
   type CertificateImageItem,
   type UserInfo,
-} from '@/api/UserApi'
+} from '@/api/admin/UserApi'
 
 const route = useRoute()
 const info = ref<UserInfo | null>(null)

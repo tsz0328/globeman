@@ -79,7 +79,7 @@
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
-import type { OrderManager, OrderCustomer } from '@/api/OrderApi'
+import type { OrderManager, OrderCustomer } from '@/api/order/OrderApi'
 
 const props = defineProps<{
   visible: boolean

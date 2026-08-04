@@ -222,7 +222,7 @@ import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
-import type { OrderManager, OrderCustomer } from '@/api/OrderApi'
+import type { OrderManager, OrderCustomer } from '@/api/order/OrderApi'
 interface DetailTableRow {
   equipmentName: string
   equipmentModel: string
@@ -624,7 +624,7 @@ const handleSubmit = () => {
 }
 </script>
 <script lang="ts">
-import type { CreateOrderDetailInput } from '@/composables/useOrder'
+import type { CreateOrderDetailInput } from '@/composables/order/useOrder'
 
 export interface OrderFormData {
   projectId?: string

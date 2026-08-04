@@ -121,12 +121,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useProject } from '@/composables/useProject'
-import { useOrder, type Order } from '@/composables/useOrder'
-import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/OrderApi'
-import OrderForm from './AddOrderForm.vue'
-import OrderDetailDialog from './OrderDetailDialog.vue'
-import type { OrderSubmitPayload } from './AddOrderForm.vue'
+import { useProject } from '@/composables/project/useProject'
+import { useOrder, type Order } from '@/composables/order/useOrder'
+import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
+import OrderForm from '@/components/order/AddOrderForm.vue'
+import OrderDetailDialog from '@/components/order/OrderDetailDialog.vue'
+import type { OrderSubmitPayload } from '@/components/order/AddOrderForm.vue'
 
 const route = useRoute()
 const { fetchProjects } = useProject()

@@ -97,8 +97,8 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CustomerForm from './AddCustomerForm.vue'
 import type { CustomerFormData } from './AddCustomerForm.vue'
-import { useCustomer, type Customer } from '@/composables/useCustomer'
-import { useCompany } from '@/composables/useCompany'
+import { useCustomer, type Customer } from '@/composables/admin/useCustomer'
+import { useCompany } from '@/composables/admin/useCompany'
 
 const { customerList, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, batchDeleteCustomers } =
   useCustomer()

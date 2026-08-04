@@ -65,9 +65,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useCompany } from '@/composables/useCompany'
-import type { CompanyData } from '@/api/CompanyApi'
-import type { CompanyFormData } from '@/api/CompanyApi'
+import { useCompany } from '@/composables/admin/useCompany'
+import type { CompanyData } from '@/api/admin/CompanyApi'
+import type { CompanyFormData } from '@/api/admin/CompanyApi'
 import CompanyForm from './AddCompanyForm.vue'
 
 const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } = useCompany()

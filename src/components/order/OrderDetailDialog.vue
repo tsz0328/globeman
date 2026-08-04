@@ -165,8 +165,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useDetail } from '@/composables/useDetail'
-import type { Order } from '@/composables/useOrder'
+import { useDetail } from '@/composables/detail/useDetail'
+import type { Order } from '@/composables/order/useOrder'
 
 const props = defineProps<{
   modelValue: boolean

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useLogin } from '@/composables/useLogin'
+import { useLogin } from '@/composables/auth/useLogin'
 import router from '@/router'
 import { User, Lock } from '@element-plus/icons-vue'
 

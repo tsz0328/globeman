@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
-import type { CompanyFormData } from '@/api/CompanyApi'
+import type { CompanyFormData } from '@/api/admin/CompanyApi'
 
 const props = defineProps<{
   visible: boolean
