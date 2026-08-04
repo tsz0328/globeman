@@ -207,7 +207,7 @@ import { useRoute } from 'vue-router'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus'
 import { useDetail, type RepairImageItem } from '@/composables/detail/useDetail'
-import type { RepairDetailData } from '@/api/detail/DetailApi'
+import type { RepairDetailData } from '@/api/repair/RepairApi'
 import { formatDateTime } from '@/utils/sort'
 import { checkImageSize } from '@/utils/imageUpload'
 

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { loginApi } from '@/api/auth/LoginApi'
-import { getUserInfoApi } from '@/api/admin/UserApi'
+import { getInfoUserApi } from '@/api/admin/UserApi'
 import Cookies from 'js-cookie'
 
 export interface LoginForm {
@@ -80,7 +80,7 @@ export function useLogin() {
           loginForm.account,
         )
         try {
-          const userInfoRes = await getUserInfoApi()
+          const userInfoRes = await getInfoUserApi()
           if (userInfoRes.code === 200) {
             const userInfo =
               (userInfoRes.data as UserDetailData)?.admin ??

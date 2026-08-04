@@ -152,7 +152,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
-import { repairTakeApi } from '@/api/detail/DetailApi'
+import { repairTakeApi } from '@/api/repair/RepairApi'
 import { ElMessage } from 'element-plus'
 
 const { projectList: repairList, fetchProjects: fetchRepairs } = useProject()

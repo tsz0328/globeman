@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import type { ApiResponse } from '@/api/types'
 
 // 用户数据接口
 export interface UserForm {
@@ -28,16 +29,7 @@ export interface RoleData {
   time?: string // 创建时间
 }
 
-// 通用 API 响应接口
-export interface ApiResponse<T = unknown> {
-  code: number
-  msg: string
-  data: T
-}
-
-
-
-// 创建用户
+// 用户管理页面新建用户
 export async function createUserApi(data: UserForm): Promise<ApiResponse<UserData>> {
   return request({
     url: '/register',
@@ -46,7 +38,7 @@ export async function createUserApi(data: UserForm): Promise<ApiResponse<UserDat
   })
 }
 
-// 获取用户列表
+// 用户管理页面用户表格信息
 export async function getUsersApi(): Promise<ApiResponse<UserData[]>> {
   return request({
     url: '/client/user/get',
@@ -54,7 +46,7 @@ export async function getUsersApi(): Promise<ApiResponse<UserData[]>> {
   })
 }
 
-// 删除用户
+// 用户管理页面删除用户
 export async function deleteUserApi(account: string): Promise<ApiResponse> {
   return request({
     url: '/client/user/delete',
@@ -63,7 +55,7 @@ export async function deleteUserApi(account: string): Promise<ApiResponse> {
   })
 }
 
-// 更新用户状态：仅传 account，后端改状态并返回最新 status（0=禁用, 1=正常）
+// 用户管理页面禁用用户，后端改状态并返回最新 status（0=禁用, 1=正常）
 export async function updateUserStatusApi(account: string): Promise<ApiResponse> {
   return request({
     url: '/client/user/updateStatus',
@@ -126,15 +118,15 @@ const normalizeCertificateImageList = (value: unknown): CertificateImageItem[] =
   return []
 }
 
-// 登录时获取用户信息
-export async function getUserInfoApi(): Promise<ApiResponse<UserInfo>> {
+// 登录时获取用户信息存入cookie
+export async function getInfoUserApi(): Promise<ApiResponse<UserInfo>> {
   return request({
     url: '/getInfoUser',
     method: 'get',
   })
 }
 
-// 获取用户信息
+// 用于用户详情页面获取用户完整信息
 export async function getUserApi(account: string): Promise<ApiResponse<UserInfo>> {
   return request({
     url: '/client/user/getInfoUser',
@@ -143,7 +135,7 @@ export async function getUserApi(account: string): Promise<ApiResponse<UserInfo>
   })
 }
 
-// 获取证书图片列表
+// 用户详情页面获取用户证书图片
 export async function getCertificateImagesApi(
   account: string,
 ): Promise<ApiResponse<CertificateImageItem[]>> {
@@ -158,7 +150,7 @@ export async function getCertificateImagesApi(
   } as ApiResponse<CertificateImageItem[]>
 }
 
-// 上传证书图片
+// 用户详情页面上传证书图片
 export async function uploadCertificateImagesApi(
   files: File[],
   account: string,
@@ -179,7 +171,7 @@ export async function uploadCertificateImagesApi(
   })
 }
 
-// 删除证书图片
+// 用户详情页面删除证书图片
 export async function deleteCertificateImageApi(url: string): Promise<ApiResponse<void>> {
   return request({
     url: '/client/user/deleteCertificate',
@@ -196,60 +188,10 @@ export async function getRolesApi(): Promise<ApiResponse<RoleData[]>> {
   })
 }
 
-// 获取角色（展示 name，实际传 role）
+// 专门用于获取角色名称列表
 export async function getInfoRoleApi(): Promise<ApiResponse<RoleData[]>> {
   return request({
     url: '/client/user/getInfoRole',
     method: 'get',
-  })
-}
-
-// 个人中心数据（对接 GET /client/person/getPerson）
-export interface PersonData {
-  avatar?: string
-  account?: string
-  address?: string
-  birth?: string
-  card?: string
-  company?: string
-  department?: string
-  education?: string
-  email?: string
-  emergency?: string
-  name?: string
-  phone?: string
-  role?: string
-  sex?: string
-  status?: number
-  time?: string
-}
-
-// 获取个人中心信息
-export async function getPersonApi(): Promise<ApiResponse<PersonData>> {
-  return request({
-    url: '/client/person/getPerson',
-    method: 'get',
-  })
-}
-
-// 上传头像
-export async function updateAvatarApi(file: File): Promise<ApiResponse<PersonData>> {
-  const formData = new FormData()
-  formData.append('file', file)
-  return request({
-    url: '/client/person/updateAvatar',
-    method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },  })
-}
-
-// 修改密码
-export async function updatePasswordApi(password: string): Promise<ApiResponse> {
-  return request({
-    url: '/client/person/updatePassword',
-    method: 'post',
-    params: { password },
   })
 }

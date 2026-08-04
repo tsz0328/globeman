@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="modelValue" width="1000px" align-center destroy-on-close class="order-detail-dialog"
+  <el-dialog :model-value="modelValue" width="70vw" align-center destroy-on-close class="order-detail-dialog"
     @update:model-value="emit('update:modelValue', $event)">
     <!-- 订单详情 -->
     <div class="order-detail-form" v-if="order">
@@ -30,7 +30,7 @@
         </div>
         <div class="info-row">
           <div class="info-item">
-            <span class="label">项目名称：</span><span class="value">{{ order.name || '' }}</span>
+            <span class="label">订单名称：</span><span class="value">{{ order.name || '' }}</span>
           </div>
         </div>
         <div class="info-row">
@@ -47,11 +47,13 @@
           </div>
         </div>
       </div>
+
       <!-- 表格 -->
-      <el-table :data="detailTableData" border class="detail-table" max-height="400" row-key="id"
+      <el-table :data="detailTableData" border class="detail-table" row-key="id"
         :expand-row-keys="expandedKeys" @expand-change="onExpandChange" :row-class-name="rowClassName"
         @row-click="onRowClick">
-        <el-table-column type="expand" width="0">
+        <!-- 展开行 -->
+        <el-table-column type="expand" >
           <template #default="scope">
             <div v-if="!scope.row.isNew && scope.row.id" class="sn-panel">
               <div class="sn-panel-title">
@@ -77,6 +79,8 @@
             </div>
           </template>
         </el-table-column>
+
+        <!-- 表格列 -->
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column label="品名" width="100">
           <template #default="scope">
@@ -92,23 +96,31 @@
             <span v-else>{{ scope.row.equipmentModel }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="厂商" width="100">
+        <el-table-column label="类型" width="100">
           <template #default="scope">
-            <el-input v-if="scope.row.isNew" v-model="scope.row.manufacturer" aria-label="厂商" size="small"
+            <el-input v-if="scope.row.isNew" v-model="scope.row.type" aria-label="类型" size="small"
+              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+            <span v-else>{{ scope.row.type }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="品牌">
+          <template #default="scope">
+            <el-input v-if="scope.row.isNew" v-model="scope.row.manufacturer" aria-label="品牌" size="small"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
             <span v-else>{{ scope.row.manufacturer }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="序列号" width="100">
+        <el-table-column label="参数" width="100">
           <template #default="scope">
-            <el-input v-if="scope.row.isNew" v-model="scope.row.serialNo" aria-label="序列号" size="small"
+            <el-input v-if="scope.row.isNew" v-model="scope.row.spec" aria-label="参数" size="small"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
-            <span v-else>{{ scope.row.serialNo }}</span>
+            <span v-else>{{ scope.row.spec }}</span>
           </template>
         </el-table-column>
         <el-table-column label="数量" width="80" align="center">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.quantity" aria-label="数量" size="small"
+              @input="(val: string) => filterNumberInput(scope.row, 'quantity', val)"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
             <span v-else>{{ scope.row.quantity }}</span>
           </template>
@@ -116,6 +128,7 @@
         <el-table-column label="单价" width="100" align="right">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.unitPrice" aria-label="单价" size="small"
+              @input="(val: string) => filterNumberInput(scope.row, 'unitPrice', val)"
               @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
             <span v-else>{{ scope.row.unitPrice }}</span>
           </template>
@@ -123,21 +136,13 @@
         <el-table-column label="金额" width="100" align="right">
           <template #default="scope">
             <span v-if="scope.row.isNew">
-              {{ (Number(scope.row.quantity) || 0) * (Number(scope.row.unitPrice) || 0) }}
+              {{ calcAmountText(scope.row.quantity, scope.row.unitPrice) }}
             </span>
             <span v-else>{{ scope.row.total }}</span>
           </template>
         </el-table-column>
-        <!-- 备注列：不设 width，作为唯一弹性列吸收剩余空间（fit 默认开启），
-             其余列均为固定 width，故不会出现多余空白列，表格精确铺满 -->
-        <el-table-column label="备注">
-          <template #default="scope">
-            <el-input v-if="scope.row.isNew" v-model="scope.row.remark" aria-label="备注" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
-            <span v-else>{{ scope.row.remark }}</span>
-          </template>
-        </el-table-column>
       </el-table>
+
       <!-- 表单底部 -->
       <div class="form-footer">
         <div class="footer-row">
@@ -155,6 +160,7 @@
       </div>
     </div>
 
+    <!-- 表单底部 -->
     <template #footer>
       <el-button @click="emit('update:modelValue', false)">关闭</el-button>
       <el-button type="primary" @click="printOrder">打印</el-button>
@@ -177,19 +183,19 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
 
-const { fetchDetails, detailList, createDetail, getRepairDetail, addRepairSn } = useDetail()
+const { fetchOrderDetails, detailList, createDetail, getRepairDetail, addRepairSn } = useDetail()
 
 interface DetailTableRow {
   id?: number
   isNew?: boolean
   equipmentName: string
   equipmentModel: string
+  type: string
   manufacturer: string
-  serialNo: string
+  spec: string
   quantity: number | string
   unitPrice: number | string
   total: number
-  remark: string
 }
 
 // SN 子记录（每条序列号一行，对应后端 repair 子表）
@@ -208,12 +214,12 @@ const createBlankRow = (): DetailTableRow => ({
   isNew: true,
   equipmentName: '',
   equipmentModel: '',
+  type: '',
   manufacturer: '',
-  serialNo: '',
+  spec: '',
   quantity: '',
   unitPrice: '',
   total: 0,
-  remark: '',
 })
 
 const newRow = ref<DetailTableRow>(createBlankRow())
@@ -225,12 +231,12 @@ const detailTableData = computed<DetailTableRow[]>(() => {
       id: item.id,
       equipmentName: item.equipmentName,
       equipmentModel: item.equipmentModel,
+      type: item.type || '',
       manufacturer: item.manufacturer || '',
-      serialNo: item.sn || '',
+      spec: item.spec || '',
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       total: item.total,
-      remark: '',
     })),
     newRow.value,
   ]
@@ -331,10 +337,8 @@ const handleNewRowSave = async (row: DetailTableRow) => {
   if (
     !row.equipmentName &&
     !row.equipmentModel &&
-    !row.serialNo &&
     !row.quantity &&
-    !row.unitPrice &&
-    !row.remark
+    !row.unitPrice
   ) {
     return
   }
@@ -365,22 +369,57 @@ const handleNewRowSave = async (row: DetailTableRow) => {
     manufacturer: row.manufacturer || '',
     number: String(quantity),
     price: String(unitPrice),
+    type: row.type || '',
+    spec: row.spec || '',
   })
   if (success) {
     ElMessage.success('添加设备成功')
-    // 记录已有明细 id，用于找出刚新增的那条
-    const beforeIds = new Set(detailList.value.map((d) => d.id))
     newRow.value = createBlankRow()
-    await fetchDetails(props.order.id)
-    // 自动展开刚添加的设备，让其数量对应的 N 条 SN 空白行直接出现在下方
-    const newId = detailList.value.find((d) => !beforeIds.has(d.id))?.id
-    if (newId != null) {
-      expandedKeys.value = [...expandedKeys.value, newId]
-      await loadSnChildren(newId)
-    }
+    await fetchOrderDetails(props.order.id)
   } else {
     ElMessage.error('添加设备失败')
   }
+}
+
+// 限制数量/单价输入：
+// - 数量：只能输入 0~9（纯整数）
+// - 单价：只能输入 0~9 和小数点，小数点后最多2位
+const filterNumberInput = (
+  row: DetailTableRow,
+  field: 'quantity' | 'unitPrice',
+  val: string,
+) => {
+  let cleaned: string
+  if (field === 'quantity') {
+    // 数量：只保留数字，纯整数
+    cleaned = val.replace(/[^\d]/g, '')
+  } else {
+    // 单价：保留数字和小数点，最多一个小数点，小数点后最多2位，.开头自动补0
+    cleaned = val
+      .replace(/[^\d.]/g, '')        // 只保留数字和小数点
+      .replace(/(\..*)\./g, '$1')    // 最多一个小数点
+      .replace(/^\./, '0.')          // .开头自动补0 → 0.
+      .replace(/(\.\d{2})\d+/, '$1') // 小数点后最多2位
+  }
+  if (cleaned !== val) {
+    row[field] = cleaned as never
+  }
+}
+
+// 按"分"整数计算金额，避免 JS 浮点误差（439 × 3466.8 = 1521925.2 而非 1521925.200000002）
+const calcAmountText = (
+  qty: string | number,
+  price: string | number,
+): string => {
+  const q = Number(qty)
+  const p = Number(price)
+  if (isNaN(q) || isNaN(p) || q <= 0 || p <= 0) return '0.00'
+  // 用"分"做整数运算（单价 × 100 = 单价分；数量是整数）
+  // 金额分 = 单价分 × 数量，金额元 = 金额分 / 100
+  // 这样避开浮点，精确到分
+  const priceCents = Math.round(p * 100)
+  const totalCents = Math.round(priceCents) * q
+  return (Math.round(totalCents) / 100).toFixed(2)
 }
 
 // 打印订单
@@ -402,7 +441,7 @@ watch(
       // 清空上一次展开的 SN 子记录，避免跨订单残留
       snChildrenMap.value = {}
       expandedKeys.value = []
-      fetchDetails(props.order.id)
+      fetchOrderDetails(props.order.id)
     }
   },
 )
@@ -466,17 +505,7 @@ watch(
   margin: 16px 0;
 }
 
-/* 隐藏展开箭头列（整行点击已替代其功能） */
-.detail-table :deep(.el-table__expand-column) {
-  display: none !important;
-}
-/* 展开列的 <col> 宽度归零（width 对 <col> 生效，display:none 对 <col> 不生效），
-   确保 fit 不会把展开列当成弹性列去吸收剩余空间（否则会生成"备注后空白列"） */
-.detail-table :deep(colgroup col.el-table__expand-column),
-.detail-table :deep(colgroup col[name="__expand__"]) {
-  width: 0 !important;
-}
-
+/* 展开列（箭头）默认显示，用户可直接点箭头展开 SN 子表；整行点击展开仍保留 */
 /* 表格强制撑满容器宽度；列宽分配交给 fit 默认行为（仅「备注」一列无 width = 弹性列） */
 .detail-table {
   width: 100%;

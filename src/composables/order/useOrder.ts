@@ -33,6 +33,7 @@ export interface Order {
   creatorAccount: string
   customer: string
   contact: string
+  contactPhone: string
   province: string
   city: string
   district: string
@@ -99,6 +100,7 @@ export function useOrder() {
             creatorAccount: item.creator_account,
             customer: item.customer,
             contact: item.contact,
+            contactPhone: item.contactPhone ?? item.contact_phone ?? '',
             province: item.province,
             city: item.city,
             district: item.district,

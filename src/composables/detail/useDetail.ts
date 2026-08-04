@@ -3,6 +3,11 @@ import {
   createDetailApi,
   getDetailsApi,
   deleteDetailApi,
+  type DetailFormData,
+  type DetailData,
+  type DetailResponseData,
+} from '@/api/order/OrderDetailApi'
+import {
   getRepairDetailApi,
   addRepairSnApi,
   uploadRepairImagesApi,
@@ -15,14 +20,13 @@ import {
   saveRepairApi,
   getRepairByIdApi,
   getTakenDetailsApi,
-  type DetailFormData,
-  type DetailData,
-  type DetailResponseData,
+  acceptRepairApi,
   type RepairDetailData,
   type TakenDetailData,
   type RepairImageData,
   type SubmitRepairData,
-} from '@/api/detail/DetailApi'
+} from '@/api/repair/RepairApi'
+import { getInfoDetailsApi, type OrderInfoDetail } from '@/api/order/OrderApi'
 
 export interface TakenDetail {
   id: number
@@ -113,6 +117,60 @@ export function useDetail() {
     }
   }
 
+  // 获取订单设备明细（订单详情弹窗专用，走 /client/order/getInfoDetails）
+  // 字段映射按真实返回：brand→厂商、subtotal→金额、order→订单号；订单阶段无 sn/status/remark
+  const fetchOrderDetails = async (id: string): Promise<boolean> => {
+    loading.value = true
+    try {
+      const res = await getInfoDetailsApi(id)
+      if (res.code === 200) {
+        const data = res.data
+        if (Array.isArray(data)) {
+          detailList.value = data.map((item: OrderInfoDetail) => ({
+            id: item.id,
+            projectId: item.order,
+            belongProject: '',
+            equipmentName: item.name,
+            equipmentModel: item.model,
+            manufacturer: item.brand,
+            sn: '',
+            status: '',
+            quantity: Number(item.number) || 0,
+            unitPrice: Number(item.price) || 0,
+            total: Number(item.subtotal) || 0,
+            type: item.type || '',
+            spec: item.spec || '',
+          }))
+        } else if (typeof data === 'object' && data !== null) {
+          detailList.value = (Object.values(data) as OrderInfoDetail[]).map((item) => ({
+            id: item.id,
+            projectId: item.order,
+            belongProject: '',
+            equipmentName: item.name,
+            equipmentModel: item.model,
+            manufacturer: item.brand,
+            sn: '',
+            status: '',
+            quantity: Number(item.number) || 0,
+            unitPrice: Number(item.price) || 0,
+            total: Number(item.subtotal) || 0,
+            type: item.type || '',
+            spec: item.spec || '',
+          }))
+        } else {
+          detailList.value = []
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('获取订单设备明细失败:', error)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   // 删除设备
   const deleteDetail = async (id: number): Promise<boolean> => {
     loading.value = true
@@ -159,7 +217,7 @@ export function useDetail() {
   // 接单
   const acceptRepair = async (sn: string, account: string): Promise<boolean> => {
     try {
-      const { acceptRepairApi } = await import('@/api/detail/DetailApi')
+      const { acceptRepairApi } = await import('@/api/repair/RepairApi')
       const res = await acceptRepairApi(sn, account)
       return res.code === 200
     } catch (error) {
@@ -313,6 +371,7 @@ export function useDetail() {
     detailList,
     createDetail,
     fetchDetails,
+    fetchOrderDetails,
     deleteDetail,
     getRepairDetail,
     addRepairSn,

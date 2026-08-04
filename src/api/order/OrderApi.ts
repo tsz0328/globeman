@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import type { ApiResponse } from '@/api/types'
 
 export interface OrderData {
   id: string
@@ -10,6 +11,8 @@ export interface OrderData {
   creator_account: string
   customer: string
   contact: string
+  contactPhone?: string
+  contact_phone?: string
   province: string
   city: string
   district: string
@@ -17,13 +20,6 @@ export interface OrderData {
   company: string
   status: string
   time: string
-}
-
-export interface ApiResponse<T = unknown> {
-  code: number
-  data: T
-  msg?: string
-  timestamp?: string
 }
 
 export interface OrderDetailInput {
@@ -73,7 +69,7 @@ export interface OrderCustomer {
   phone: string
 }
 
-// 获取订单负责人列表
+// 专门用于获取负责人名称账号列表
 export async function getOrderManagersApi(): Promise<ApiResponse<OrderManager[]>> {
   return request({
     url: '/client/order/getInfoManager',
@@ -81,7 +77,7 @@ export async function getOrderManagersApi(): Promise<ApiResponse<OrderManager[]>
   })
 }
 
-// 获取订单客户列表
+// 专门用于获取客户名称列表
 export async function getOrderCustomersApi(): Promise<ApiResponse<OrderCustomer[]>> {
   return request({
     url: '/client/order/getInfoCustomer',
@@ -89,7 +85,32 @@ export async function getOrderCustomersApi(): Promise<ApiResponse<OrderCustomer[
   })
 }
 
-// 获取订单列表
+// 订单设备明细（GET /client/order/getInfoDetails 返回的单条结构）
+export interface OrderInfoDetail {
+  id: number
+  name: string
+  model: string
+  type: string
+  brand: string
+  spec: string
+  number: number
+  price: number
+  subtotal: number
+  order: string
+}
+
+// 获取订单设备明细（按订单 id）
+export async function getInfoDetailsApi(
+  id: string,
+): Promise<ApiResponse<OrderInfoDetail[]>> {
+  return request({
+    url: '/client/order/getInfoDetails',
+    method: 'get',
+    params: { id },
+  })
+}
+
+// 用于订单管理页面获取订单表格信息
 export async function getOrdersApi(id?: string): Promise<ApiResponse<OrderData[]>> {
   return request({
     url: '/client/order/getOrder',

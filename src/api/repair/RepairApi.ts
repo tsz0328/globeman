@@ -1,76 +1,8 @@
 import request from '@/utils/request'
+import type { ApiResponse } from '@/api/types'
+import type { DetailResponseData } from '@/api/order/OrderDetailApi'
 
-export interface DetailFormData {
-  orderId: string
-  name: string
-  model: string
-  manufacturer: string
-  number: string
-  price: string
-}
-
-export interface DetailResponseData {
-  id: number
-  project_id: string
-  name: string
-  model: string
-  manufacturer: string
-  sn: string
-  order_id: string
-  details_id: number
-  status: string
-  number: string
-  price: string
-  total: string
-}
-
-export interface DetailData {
-  id: number
-  projectId: string
-  belongProject: string
-  equipmentName: string
-  equipmentModel: string
-  manufacturer: string
-  sn: string
-  status: string
-  quantity: number
-  unitPrice: number
-  total: number
-}
-
-export interface ApiResponse<T = unknown> {
-  code: number
-  msg: string
-  data: T
-  timestamp?: string
-}
-
-export async function createDetailApi(data: DetailFormData): Promise<ApiResponse<void>> {
-  return request({
-    url: '/details/create',
-    method: 'post',
-    data,
-  })
-}
-
-export async function getDetailsApi(
-  id: string,
-): Promise<ApiResponse<DetailResponseData[] | { [key: string]: DetailResponseData }>> {
-  return request({
-    url: '/details/get',
-    method: 'get',
-    params: { id },
-  })
-}
-
-export async function deleteDetailApi(id: number): Promise<ApiResponse<void>> {
-  return request({
-    url: '/details/delete',
-    method: 'delete',
-    params: { id },
-  })
-}
-
+// 获取维修明细（按项目/维修单 id）
 export async function getRepairDetailApi(
   id: number,
 ): Promise<ApiResponse<{ [key: string]: DetailResponseData }>> {
@@ -81,6 +13,7 @@ export async function getRepairDetailApi(
   })
 }
 
+// 添加维修 SN 码
 export async function addRepairSnApi(sn: string, id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/repair/add',
@@ -112,6 +45,7 @@ export interface TakenDetailData {
   repairman_account: string
 }
 
+// 获取接单列表
 export async function getTakenDetailsApi(): Promise<
   ApiResponse<{ [key: string]: TakenDetailData }>
 > {
@@ -126,7 +60,7 @@ export interface RepairImageData {
   address: string
 }
 
-// 获取维修单图片 API：根据维修明细 ID 获取维修单的图片文件列表
+// 获取维修单图片
 export async function getRepairImagesApi(
   id: number,
 ): Promise<ApiResponse<{ [key: string]: RepairImageData }>> {
@@ -137,7 +71,7 @@ export async function getRepairImagesApi(
   })
 }
 
-// 删除维修单图片 API：删除指定维修明细的图片文件
+// 删除维修单图片
 export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/take/deleteImg',
@@ -146,7 +80,7 @@ export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void
   })
 }
 
-// 上传维修单图片 API：上传指定维修明细的图片文件
+// 上传维修单图片
 export async function uploadRepairImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
   const formData = new FormData()
   files.forEach((file) => {
@@ -210,7 +144,7 @@ export interface SubmitRepairData {
   test: string
 }
 
-// 提交维修结果 API：将指定维修明细标记为已完成，并提交维修结果信息
+// 提交维修结果
 export async function submitRepairApi(data: SubmitRepairData): Promise<ApiResponse<void>> {
   return request({
     url: '/take/submit',
@@ -219,7 +153,7 @@ export async function submitRepairApi(data: SubmitRepairData): Promise<ApiRespon
   })
 }
 
-// 归档维修单 API：将指定维修明细标记为已归档
+// 归档维修单
 export async function saveRepairApi(id: number): Promise<ApiResponse<void>> {
   return request({
     url: '/take/save',
@@ -228,7 +162,7 @@ export async function saveRepairApi(id: number): Promise<ApiResponse<void>> {
   })
 }
 
-// 维修单接单 API：将指定维修明细标记为已接单
+// 维修单接单 API（仅传 sn，标记已接单）
 export async function repairTakeApi(sn: string): Promise<ApiResponse<void>> {
   return request({
     url: '/repair/take',
@@ -261,7 +195,7 @@ export interface RepairDetailData {
   done_time: string
 }
 
-// 获取维修单详情 API：根据维修单 ID 获取维修单的详细信息
+// 获取维修单详情（按维修明细 id）
 export async function getRepairByIdApi(id: number): Promise<ApiResponse<RepairDetailData>> {
   return request({
     url: '/take/getById',

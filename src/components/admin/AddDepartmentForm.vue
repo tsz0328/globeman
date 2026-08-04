@@ -20,7 +20,7 @@
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { createDepartmentApi } from '@/api/admin/CompanyApi'
+import { createDepartmentApi } from '@/api/admin/DepartmentApi'
 
 const props = defineProps<{
   visible: boolean

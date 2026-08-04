@@ -170,8 +170,7 @@ import {
   User, UserFilled, Clock, Male, Message, Phone, Location,
   Avatar, Reading, Calendar, Tickets, Warning, CircleCheck, Upload, Lock
 } from '@element-plus/icons-vue'
-import type { PersonData } from '@/api/admin/UserApi'
-import { getPersonApi, updateAvatarApi, updatePasswordApi } from '@/api/admin/UserApi'
+import { getPersonApi, updateAvatarApi, updatePasswordApi, type PersonData } from '@/api/admin/PersonApi'
 import { useAvatar } from '@/composables/common/useAvatar'
 
 const loading = ref(false)

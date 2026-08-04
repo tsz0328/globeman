@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import type { ApiResponse } from '@/api/types'
 
 // 客户数据
 export interface CustomerData {
@@ -10,15 +11,7 @@ export interface CustomerData {
   time?: string
 }
 
-// 客户接口响应数据
-export interface ApiResponse<T = unknown> {
-  code: number
-  data: T
-  msg?: string
-  timestamp?: string
-}
-
-// 获取客户列表
+// 专门用于获取客户名称列表
 export async function getCustomersApi(): Promise<ApiResponse<CustomerData[]>> {
   return request({
     url: '/client/customer/getInfoCustomer',

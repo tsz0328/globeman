@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getTakenDetailsApi, type TakenDetailData } from '@/api/detail/DetailApi'
+import { getTakenDetailsApi, type TakenDetailData } from '@/api/repair/RepairApi'
 
 interface TakenDetail {
   id: number

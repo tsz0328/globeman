@@ -17,7 +17,7 @@ export interface LoginResponse {
   };
 }
 
-// 登录接口
+// 登录
 export async function loginApi(loginForm: LoginForm): Promise<LoginResponse> {
   return request({
     url: '/login',

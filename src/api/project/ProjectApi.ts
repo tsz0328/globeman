@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import type { ApiResponse } from '@/api/types'
 
 // 项目数据
 export interface ProjectData {
@@ -10,14 +11,6 @@ export interface ProjectData {
   time: string // 项目创建时间
   customer: string // 项目合作单位
   contact: string // 项目联系人姓名
-}
-
-// 项目接口响应数据
-export interface ApiResponse<T = unknown> {
-  code: number
-  data: T
-  msg?: string
-  timestamp?: string
 }
 
 // 获取项目列表
