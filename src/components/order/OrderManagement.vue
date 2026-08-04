@@ -102,6 +102,7 @@
           </template>
         </el-table-column>
       </el-table>
+
       <!-- 分页 -->
       <div class="pagination-section">
         <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
@@ -114,7 +115,7 @@
       @submit="handleOrderSubmit" />
 
     <!-- 订单详情弹窗 -->
-    <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder" />
+    <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder" @submitted="handleOrderSubmitted" />
   </div>
 </template>
 
@@ -223,8 +224,8 @@ const getStatusType = (status: string) => {
   switch (status) {
     case '编辑中':
       return 'warning'
-    case '已确认':
-      return 'danger'
+    case '已提交':
+      return 'success'
     default:
       return 'info'
   }
@@ -262,6 +263,16 @@ const handleOrderSubmit = async (data: OrderSubmitPayload) => {
 const viewOrder = (row: Order) => {
   currentOrder.value = row
   detailDialogVisible.value = true
+}
+
+// 弹窗内提交订单成功后：回拉订单列表最新状态，并把 currentOrder 指向更新后的订单对象
+// （currentOrder 持有的是打开时的旧引用，fetchOrders 只刷新 orderList，需手动同步 status）
+const handleOrderSubmitted = async () => {
+  await fetchOrders()
+  if (currentOrder.value) {
+    const updated = orderList.value.find((o) => o.id === currentOrder.value!.id)
+    if (updated) currentOrder.value = updated
+  }
 }
 
 const handleDelete = async (row: Order) => {

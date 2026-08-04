@@ -1,17 +1,7 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
 
-// 用户数据接口
-export interface UserForm {
-  account: string
-  password: string
-  name: string
-  company: string
-  department: string
-  role: string
-}
-
-// 用户数据接口
+// === 用户实体（创建返回 / 列表，供 useUser 复用）===
 export interface UserData {
   id?: number
   account: string
@@ -21,15 +11,16 @@ export interface UserData {
   createTime?: string
 }
 
-// 角色数据接口
-export interface RoleData {
-  id?: number
-  role: string // 角色
-  name: string // 角色名称
-  time?: string // 创建时间
+// === 新建用户 ===
+export interface UserForm {
+  account: string
+  password: string
+  name: string
+  company: string
+  department: string
+  role: string
 }
 
-// 用户管理页面新建用户
 export async function createUserApi(data: UserForm): Promise<ApiResponse<UserData>> {
   return request({
     url: '/register',
@@ -38,7 +29,7 @@ export async function createUserApi(data: UserForm): Promise<ApiResponse<UserDat
   })
 }
 
-// 用户管理页面用户表格信息
+// === 用户列表（删除 / 状态）===
 export async function getUsersApi(): Promise<ApiResponse<UserData[]>> {
   return request({
     url: '/client/user/get',
@@ -46,7 +37,6 @@ export async function getUsersApi(): Promise<ApiResponse<UserData[]>> {
   })
 }
 
-// 用户管理页面删除用户
 export async function deleteUserApi(account: string): Promise<ApiResponse> {
   return request({
     url: '/client/user/delete',
@@ -55,7 +45,6 @@ export async function deleteUserApi(account: string): Promise<ApiResponse> {
   })
 }
 
-// 用户管理页面禁用用户，后端改状态并返回最新 status（0=禁用, 1=正常）
 export async function updateUserStatusApi(account: string): Promise<ApiResponse> {
   return request({
     url: '/client/user/updateStatus',
@@ -64,15 +53,7 @@ export async function updateUserStatusApi(account: string): Promise<ApiResponse>
   })
 }
 
-// 用户完整信息接口（GET /client/user/getInfoUser?account=xxx 返回）
-export interface CertificateImageItem {
-  id?: string
-  address?: string
-  url?: string
-  image?: string
-  img?: string
-}
-
+// === 用户完整信息（GET /client/user/getInfoUser，供 useUser 复用）===
 export interface UserInfo {
   account: string
   name: string
@@ -94,8 +75,32 @@ export interface UserInfo {
   certificateImageUrls?: string[]
 }
 
+export async function getInfoUserApi(): Promise<ApiResponse<UserInfo>> {
+  return request({
+    url: '/getInfoUser',
+    method: 'get',
+  })
+}
+
+export async function getUserApi(account: string): Promise<ApiResponse<UserInfo>> {
+  return request({
+    url: '/client/user/getInfoUser',
+    method: 'get',
+    params: { account },
+  })
+}
+
+// === 用户证书图片 ===
+export interface CertificateImageItem {
+  id?: string
+  address?: string
+  url?: string
+  image?: string
+  img?: string
+}
+
+// 将后端返回的证书图片（可能为字符串 URL 或对象）规整为 CertificateImageItem[]
 const normalizeCertificateImageList = (value: unknown): CertificateImageItem[] => {
-  // 辅助函数：将单项转为 CertificateImageItem，处理字符串 URL 的情况
   const toItem = (item: unknown): CertificateImageItem => {
     if (typeof item === 'string') {
       return { address: item }
@@ -118,24 +123,6 @@ const normalizeCertificateImageList = (value: unknown): CertificateImageItem[] =
   return []
 }
 
-// 登录时获取用户信息存入cookie
-export async function getInfoUserApi(): Promise<ApiResponse<UserInfo>> {
-  return request({
-    url: '/getInfoUser',
-    method: 'get',
-  })
-}
-
-// 用于用户详情页面获取用户完整信息
-export async function getUserApi(account: string): Promise<ApiResponse<UserInfo>> {
-  return request({
-    url: '/client/user/getInfoUser',
-    method: 'get',
-    params: { account },
-  })
-}
-
-// 用户详情页面获取用户证书图片
 export async function getCertificateImagesApi(
   account: string,
 ): Promise<ApiResponse<CertificateImageItem[]>> {
@@ -150,7 +137,6 @@ export async function getCertificateImagesApi(
   } as ApiResponse<CertificateImageItem[]>
 }
 
-// 用户详情页面上传证书图片
 export async function uploadCertificateImagesApi(
   files: File[],
   account: string,
@@ -171,7 +157,6 @@ export async function uploadCertificateImagesApi(
   })
 }
 
-// 用户详情页面删除证书图片
 export async function deleteCertificateImageApi(url: string): Promise<ApiResponse<void>> {
   return request({
     url: '/client/user/deleteCertificate',
@@ -180,7 +165,14 @@ export async function deleteCertificateImageApi(url: string): Promise<ApiRespons
   })
 }
 
-// 获取角色列表
+// === 角色（列表 / 名称，供 useRole 复用）===
+export interface RoleData {
+  id?: number
+  role: string // 角色
+  name: string // 角色名称
+  time?: string // 创建时间
+}
+
 export async function getRolesApi(): Promise<ApiResponse<RoleData[]>> {
   return request({
     url: '/role/get',
@@ -188,7 +180,6 @@ export async function getRolesApi(): Promise<ApiResponse<RoleData[]>> {
   })
 }
 
-// 专门用于获取角色名称列表
 export async function getInfoRoleApi(): Promise<ApiResponse<RoleData[]>> {
   return request({
     url: '/client/user/getInfoRole',

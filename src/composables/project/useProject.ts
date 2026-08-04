@@ -7,7 +7,7 @@ import {
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
 
-// 项目接口
+// === 导出类型 ===
 export interface Project {
   id: string
   projectName: string
@@ -21,7 +21,6 @@ export interface Project {
   customer: string
 }
 
-// 项目表单数据接口
 export interface ProjectFormData {
   id?: string
   name: string
@@ -32,9 +31,11 @@ export interface ProjectFormData {
   time?: string
 }
 
+// === 共享状态（模块级单例）===
 const projectList = ref<Project[]>([])
 const loading = ref(false)
 
+// === 模块级辅助（记录 → 前端 Project 映射，兼容多种字段命名）===
 // 从记录中按候选 key 顺序读取字符串（兼容字符串/数字）
 const getString = (record: Record<string, unknown>, keys: string[]): string => {
   for (const key of keys) {
@@ -62,11 +63,7 @@ const mapRecordToProject = (record: Record<string, unknown>, _index: number): Pr
           : '',
     projectName: getString(record, ['name', 'projectName']),
     projectType: getString(record, ['type', 'projectType']),
-    projectManager: getString(record, [
-      'leader',
-      'leader_account',
-      'projectManager',
-    ]),
+    projectManager: getString(record, ['leader', 'leader_account', 'projectManager']),
     createTime: formatDateTime(getString(record, ['time', 'createTime'])),
     cooperativeUnit: getString(record, ['company', 'cooperativeUnit']),
     contactPerson: getString(record, ['contact', 'contactPerson', 'contactName', 'Contact']),
@@ -76,8 +73,9 @@ const mapRecordToProject = (record: Record<string, unknown>, _index: number): Pr
   }
 }
 
-// 按创建时间降序排序（最新在前）
+// === 组合函数（项目管理：列表 / 增删）===
 export function useProject() {
+  // === 获取项目列表 ===
   const fetchProjects = async () => {
     loading.value = true
     try {
@@ -127,7 +125,7 @@ export function useProject() {
     }
   }
 
-  // 创建项目
+  // === 创建项目 ===
   const createProject = async (data: ProjectFormData): Promise<boolean> => {
     loading.value = true
     try {
@@ -143,10 +141,7 @@ export function useProject() {
       })
       if (res.code === 200) {
         // 直接用后端返回的新建记录，避免再请求 /project/get 全量刷新
-        const newProject = mapRecordToProject(
-          res.data as unknown as Record<string, unknown>,
-          -1,
-        )
+        const newProject = mapRecordToProject(res.data as unknown as Record<string, unknown>, -1)
         // 插入到列表头部，并按创建时间降序保持时间顺序（最新在前）
         projectList.value = sortByCreateTimeDesc([newProject, ...projectList.value])
         return true
@@ -160,7 +155,7 @@ export function useProject() {
     }
   }
 
-  // 删除项目
+  // === 删除项目 ===
   const deleteProject = async (id: string): Promise<boolean> => {
     loading.value = true
     try {
@@ -178,7 +173,7 @@ export function useProject() {
     }
   }
 
-  // 批量删除项目（逐个调用单删接口）
+  // === 批量删除项目（逐个调用单删接口）===
   const batchDeleteProjects = async (ids: string[]): Promise<boolean> => {
     loading.value = true
     try {

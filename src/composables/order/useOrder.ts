@@ -11,7 +11,8 @@ import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
 import type { OrderFormData } from '@/components/order/AddOrderForm.vue'
 
-// 创建订单时一并提交的设备明细（字段对应后端 /details/create 接口）
+// === 导出类型 ===
+// 创建订单时一并提交的设备明细（字段对应后端 /client/order/createDetails 契约：name/model/type/brand/spec/number/price/remark）
 export interface CreateOrderDetailInput {
   name: string
   model: string
@@ -43,10 +44,12 @@ export interface Order {
   createTime: string
 }
 
+// === 共享状态（模块级单例）===
 const orderList = ref<Order[]>([])
 
+// === 组合函数（订单管理：创建 / 列表 / 删除 / 提交）===
 export function useOrder() {
-  // 创建订单（可选附带设备明细，订单创建成功后再逐条创建设备）
+  // === 创建订单（可选附带设备明细，订单创建成功后再逐条创建设备）===
   const createOrder = async (
     data: OrderFormData,
     details?: CreateOrderDetailInput[],
@@ -82,10 +85,10 @@ export function useOrder() {
     }
   }
 
-  // 获取订单列表
+  // === 获取订单列表（getOrdersApi 不带参数，返回全部订单；如需按项目筛，在拿到全量后本地过滤）===
   const fetchOrders = async (projectId?: string): Promise<void> => {
     try {
-      const response = await getOrdersApi(projectId)
+      const response = await getOrdersApi()
 
       if (response.code === 200) {
         const data = response.data
@@ -109,10 +112,14 @@ export function useOrder() {
             status: item.status || '无状态',
             createTime: formatDateTime(item.time),
           }))
+          // 按项目本地过滤（getOrdersApi 不支持服务端筛选项）
+          const filtered = projectId
+            ? orders.filter((o) => o.projectId === projectId)
+            : orders
           // 按创建时间降序（最新在前）排序
           // 兼容 "2026-07-17 10:32:20"（MySQL DATETIME，空格分隔）等非标准格式
           // 无效时间兜底为 0 排末尾；时间相同时用 id 兜底，保证稳定有序
-          orderList.value = sortByCreateTimeDesc(orders)
+          orderList.value = sortByCreateTimeDesc(filtered)
         } else {
           orderList.value = []
         }
@@ -122,7 +129,7 @@ export function useOrder() {
     }
   }
 
-  // 删除订单
+  // === 删除订单 ===
   const deleteOrder = async (id: string): Promise<boolean> => {
     try {
       const response = await deleteOrderApi(id)
@@ -141,7 +148,7 @@ export function useOrder() {
     }
   }
 
-  // 提交订单
+  // === 提交订单 ===
   const submitOrder = async (id: string): Promise<boolean> => {
     try {
       const response = await submitOrderApi(id)

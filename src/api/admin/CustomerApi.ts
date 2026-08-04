@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
 
-// 客户数据
+// === 客户实体（列表 / 创建 / 更新 / 删除 / 订单客户，供 useCustomer 复用）===
 export interface CustomerData {
   id?: number
   name: string
@@ -11,7 +11,7 @@ export interface CustomerData {
   time?: string
 }
 
-// 专门用于获取客户名称列表
+// 客户名称列表
 export async function getCustomersApi(): Promise<ApiResponse<CustomerData[]>> {
   return request({
     url: '/client/customer/getInfoCustomer',
@@ -19,7 +19,7 @@ export async function getCustomersApi(): Promise<ApiResponse<CustomerData[]>> {
   })
 }
 
-// 获取订单客户信息
+// 订单客户信息
 export async function getOrderCustomerApi(): Promise<ApiResponse<CustomerData>> {
   return request({
     url: '/client/order/getOrderCustomer',

@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
 
-// 公司数据接口
+// === 公司实体（列表/详情/创建返回，供 useCompany 复用）===
 export interface CompanyData {
   id?: number
   name: string
@@ -9,7 +9,6 @@ export interface CompanyData {
   time?: string
 }
 
-// 用于公司管理页面获取公司表格信息
 export async function getCompaniesApi(): Promise<ApiResponse<CompanyData[]>> {
   return request({
     url: '/client/company/get',
@@ -17,7 +16,6 @@ export async function getCompaniesApi(): Promise<ApiResponse<CompanyData[]>> {
   })
 }
 
-// 专门用于获取公司名称列表
 export async function getInfoCompanyApi(): Promise<ApiResponse<string[]>> {
   return request({
     url: '/client/user/getInfoCompany',
@@ -25,7 +23,6 @@ export async function getInfoCompanyApi(): Promise<ApiResponse<string[]>> {
   })
 }
 
-// 删除公司（多个删除）
 export async function deleteCompanyApi(ids: number[]): Promise<ApiResponse<unknown>> {
   return request({
     url: '/client/company/delete',
@@ -34,7 +31,7 @@ export async function deleteCompanyApi(ids: number[]): Promise<ApiResponse<unkno
   })
 }
 
-// 新建公司数据接口
+// === 新建公司 ===
 export interface CompanyFormData {
   account: string
   password: string
@@ -42,7 +39,6 @@ export interface CompanyFormData {
   company: string
 }
 
-// 创建公司
 export async function createCompanyApi(data: CompanyFormData): Promise<ApiResponse<CompanyData>> {
   return request({
     url: '/client/company/create',
@@ -51,7 +47,7 @@ export async function createCompanyApi(data: CompanyFormData): Promise<ApiRespon
   })
 }
 
-// 公司详情页面获取营业执照
+// === 营业执照（USCI）===
 export async function getUsciApi(
   company: string,
 ): Promise<ApiResponse<string | { url?: string; address?: string; image?: string }>> {
@@ -62,7 +58,6 @@ export async function getUsciApi(
   })
 }
 
-// 公司详情页面上传营业执照
 export async function uploadUsciApi(file: File, company: string): Promise<ApiResponse<void>> {
   const formData = new FormData()
   formData.append('file', file)
@@ -77,7 +72,6 @@ export async function uploadUsciApi(file: File, company: string): Promise<ApiRes
   })
 }
 
-// 公司详情页面删除营业执照
 export async function deleteUsciApi(url: string): Promise<ApiResponse<void>> {
   return request({
     url: '/client/company/deleteUsci',

@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
 
-// 项目数据
+// === 项目实体（列表 / 更新 / 删除）===
 export interface ProjectData {
   id: string // 项目ID
   name: string // 项目名称
@@ -18,25 +18,6 @@ export async function getProjectsApi(): Promise<ApiResponse<Record<string, Proje
   return request({
     url: '/project/get',
     method: 'get',
-  })
-}
-
-// 创建项目参数
-export interface CreateProjectData {
-  id: string
-  name: string
-  type: string
-  leaderAccount: string
-  customer: string
-  contact: string
-}
-
-// 创建项目
-export async function createProjectApi(data: CreateProjectData): Promise<ApiResponse<ProjectData>> {
-  return request({
-    url: '/project/create',
-    method: 'post',
-    data,
   })
 }
 
@@ -58,5 +39,24 @@ export async function deleteProjectApi(id: string): Promise<ApiResponse<void>> {
     url: '/project/delete',
     method: 'delete',
     params: { id },
+  })
+}
+
+// === 新建项目 ===
+export interface CreateProjectData {
+  id: string
+  name: string
+  type: string
+  leaderAccount: string
+  customer: string
+  contact: string
+}
+
+// 创建项目
+export async function createProjectApi(data: CreateProjectData): Promise<ApiResponse<ProjectData>> {
+  return request({
+    url: '/project/create',
+    method: 'post',
+    data,
   })
 }

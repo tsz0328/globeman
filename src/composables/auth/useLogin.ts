@@ -3,11 +3,13 @@ import { loginApi } from '@/api/auth/LoginApi'
 import { getInfoUserApi } from '@/api/admin/UserApi'
 import Cookies from 'js-cookie'
 
+// === 导出类型 ===
 export interface LoginForm {
   account: string
   password: string
 }
 
+// === 模块级辅助（写入/读取登录 cookie）===
 interface UserDetailData {
   name?: string
   email?: string
@@ -59,9 +61,12 @@ const setUserDetailInfo = (userData: UserDetailData) => {
   }
 }
 
+// === 组合函数（登录）===
 export function useLogin() {
+  // === 登录状态 ===
   const loading = ref(false)
 
+  // === 登录 ===
   const login = async (
     loginForm: LoginForm,
   ): Promise<{ success: boolean; message: string }> => {

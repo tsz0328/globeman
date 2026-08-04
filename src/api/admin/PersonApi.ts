@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
 
-// 个人中心数据（对接 GET /client/person/getPerson）
+// === 个人中心实体（对接 GET /client/person/getPerson）===
 export interface PersonData {
   avatar?: string
   account?: string
@@ -21,7 +21,7 @@ export interface PersonData {
   time?: string
 }
 
-// 个人中心页面获取个人信息
+// 获取个人信息
 export async function getPersonApi(): Promise<ApiResponse<PersonData>> {
   return request({
     url: '/client/person/getPerson',
@@ -29,7 +29,7 @@ export async function getPersonApi(): Promise<ApiResponse<PersonData>> {
   })
 }
 
-// 个人中心页面上传头像
+// 上传头像（返回最新个人信息）
 export async function updateAvatarApi(file: File): Promise<ApiResponse<PersonData>> {
   const formData = new FormData()
   formData.append('file', file)
@@ -43,7 +43,7 @@ export async function updateAvatarApi(file: File): Promise<ApiResponse<PersonDat
   })
 }
 
-// 个人中心页面修改密码
+// 修改密码
 export async function updatePasswordApi(password: string): Promise<ApiResponse> {
   return request({
     url: '/client/person/updatePassword',

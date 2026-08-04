@@ -7,6 +7,7 @@ import {
 } from '@/api/admin/UserApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
+// === 导出类型 ===
 export interface User {
   id: number
   account: string
@@ -27,7 +28,9 @@ export interface UserFormData {
   role: string
 }
 
+// === 组合函数（用户管理：列表 / 增删 / 状态）===
 export function useUser() {
+  // === 用户列表状态 ===
   const userList = ref<User[]>([])
   const loading = ref(false)
 

@@ -8,7 +8,7 @@ import {
 } from '@/api/admin/CustomerApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 
-// 客户接口
+// === 导出类型 ===
 export interface Customer {
   id: number
   name: string
@@ -18,14 +18,13 @@ export interface Customer {
   createTime: string
 }
 
-// 客户列表
+// === 共享状态（模块级单例，跨组件缓存客户列表）===
 const customerList = ref<Customer[]>([])
-// 加载状态
 const loading = ref(false)
 
-// 获取客户列表
+// === 组合函数（客户管理：列表 / 增删改）===
 export function useCustomer() {
-  // 获取客户列表（带缓存，只在数据为空时请求）
+  // === 获取客户列表 ===
   const fetchCustomers = async (force = false) => {
     if (!force && customerList.value.length > 0) {
       return
@@ -99,7 +98,7 @@ export function useCustomer() {
     }
   }
 
-
+  // === 创建客户 ===
   const createCustomer = async (data: CustomerData): Promise<boolean> => {
     loading.value = true
     try {
@@ -139,6 +138,7 @@ export function useCustomer() {
     }
   }
 
+  // === 更新客户 ===
   const updateCustomer = async (data: CustomerData): Promise<boolean> => {
     loading.value = true
     try {
@@ -188,6 +188,7 @@ export function useCustomer() {
     }
   }
 
+  // === 删除客户 ===
   const deleteCustomer = async (id: number): Promise<boolean> => {
     loading.value = true
     try {
@@ -205,7 +206,7 @@ export function useCustomer() {
     }
   }
 
-  // 批量删除客户（逐个调用单删接口）
+  // === 批量删除客户（逐个调用单删接口）===
   const batchDeleteCustomers = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {

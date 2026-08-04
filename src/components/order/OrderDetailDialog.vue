@@ -48,12 +48,12 @@
         </div>
       </div>
 
-      <!-- 表格 -->
-      <el-table :data="detailTableData" border class="detail-table" row-key="id"
-        :expand-row-keys="expandedKeys" @expand-change="onExpandChange" :row-class-name="rowClassName"
-        @row-click="onRowClick">
+      <!-- 设备表格 -->
+      <el-table :data="detailTableData" border class="detail-table" row-key="id" :expand-row-keys="expandedKeys"
+        max-height="30vh"
+        @expand-change="onExpandChange" :row-class-name="rowClassName" @row-click="onRowClick">
         <!-- 展开行 -->
-        <el-table-column type="expand" >
+        <el-table-column type="expand">
           <template #default="scope">
             <div v-if="!scope.row.isNew && scope.row.id" class="sn-panel">
               <div class="sn-panel-title">
@@ -85,51 +85,72 @@
         <el-table-column label="品名" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.equipmentName" aria-label="品名" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('equipmentName', el)"
+              @keydown="onNewRowKeydown(scope.row, 'equipmentName', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.equipmentName }}</span>
           </template>
         </el-table-column>
         <el-table-column label="型号" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.equipmentModel" aria-label="型号" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('equipmentModel', el)"
+              @keydown="onNewRowKeydown(scope.row, 'equipmentModel', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.equipmentModel }}</span>
           </template>
         </el-table-column>
         <el-table-column label="类型" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.type" aria-label="类型" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('type', el)"
+              @keydown="onNewRowKeydown(scope.row, 'type', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.type }}</span>
           </template>
         </el-table-column>
         <el-table-column label="品牌">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.manufacturer" aria-label="品牌" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('manufacturer', el)"
+              @keydown="onNewRowKeydown(scope.row, 'manufacturer', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.manufacturer }}</span>
           </template>
         </el-table-column>
         <el-table-column label="参数" width="100">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.spec" aria-label="参数" size="small"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('spec', el)"
+              @keydown="onNewRowKeydown(scope.row, 'spec', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.spec }}</span>
           </template>
         </el-table-column>
         <el-table-column label="数量" width="80" align="center">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.quantity" aria-label="数量" size="small"
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('quantity', el)"
               @input="(val: string) => filterNumberInput(scope.row, 'quantity', val)"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              @keydown="onNewRowKeydown(scope.row, 'quantity', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.quantity }}</span>
           </template>
         </el-table-column>
         <el-table-column label="单价" width="100" align="right">
           <template #default="scope">
             <el-input v-if="scope.row.isNew" v-model="scope.row.unitPrice" aria-label="单价" size="small"
+              class="new-row-input"
+              :ref="(el: unknown) => setNewRowRef('unitPrice', el)"
               @input="(val: string) => filterNumberInput(scope.row, 'unitPrice', val)"
-              @keydown.enter.prevent="handleNewRowSave(scope.row)" @blur="handleNewRowSave(scope.row)" />
+              @keydown="onNewRowKeydown(scope.row, 'unitPrice', $event)"
+              @blur="handleNewRowBlur(scope.row, $event)" />
             <span v-else>{{ scope.row.unitPrice }}</span>
           </template>
         </el-table-column>
@@ -163,16 +184,17 @@
     <!-- 表单底部 -->
     <template #footer>
       <el-button @click="emit('update:modelValue', false)">关闭</el-button>
-      <el-button type="primary" @click="printOrder">打印</el-button>
+      <el-button type="primary" :loading="submitting" :disabled="isSubmitted" @click="handleSubmitOrder">提交</el-button>
+      <el-button @click="printOrder">打印</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
-import type { Order } from '@/composables/order/useOrder'
+import { useOrder, type Order } from '@/composables/order/useOrder'
 
 const props = defineProps<{
   modelValue: boolean
@@ -181,9 +203,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
+  (e: 'submitted'): void
 }>()
 
 const { fetchOrderDetails, detailList, createDetail, getRepairDetail, addRepairSn } = useDetail()
+const { submitOrder } = useOrder()
+
+// 订单是否已提交（锁定态）：成功后本地乐观置位 + 父组件回拉最新 status 后由 props.order.status 驱动
+// 状态为 "已提交" 时：禁用「提交」按钮、隐藏新增设备行（不可再编辑/添加设备）
+const SUBMITTED_STATUS = '已提交'
+const submittedFlag = ref(false)
+const isSubmitted = computed(() => submittedFlag.value || props.order?.status === SUBMITTED_STATUS)
 
 interface DetailTableRow {
   id?: number
@@ -224,22 +254,80 @@ const createBlankRow = (): DetailTableRow => ({
 
 const newRow = ref<DetailTableRow>(createBlankRow())
 
+// 新行可编辑列顺序（决定回车 / 方向键切换列的顺序）
+const NEW_ROW_COLUMNS = [
+  'equipmentName',
+  'equipmentModel',
+  'type',
+  'manufacturer',
+  'spec',
+  'quantity',
+  'unitPrice',
+]
+
+// 新行各列输入框实例（用于回车 / 方向键切换焦点）
+const newRowRefs = ref<Record<string, { focus: () => void } | null>>({})
+const setNewRowRef = (col: string, el: unknown) => {
+  newRowRefs.value[col] = (el as { focus: () => void } | null) ?? null
+}
+const focusNewRowCol = (col: string) => {
+  const inst = newRowRefs.value[col]
+  if (inst && typeof inst.focus === 'function') inst.focus()
+}
+
+// 新行键盘导航：
+// - 回车：跳到下一列；最后一列（单价）回车创建设备
+// - 左右方向键：切换输入列
+// 失焦创建：新行任意输入框失焦、且焦点真正离开新行（非同行列间切换）时也创建设备
+const focusNewRowByOffset = (fromIdx: number, offset: number) => {
+  const target = NEW_ROW_COLUMNS[fromIdx + offset]
+  if (typeof target === 'string') focusNewRowCol(target)
+}
+const onNewRowKeydown = (row: DetailTableRow, col: string, e: KeyboardEvent) => {
+  const idx = NEW_ROW_COLUMNS.indexOf(col)
+  if (idx < 0) return
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (idx < NEW_ROW_COLUMNS.length - 1) {
+      focusNewRowByOffset(idx, 1)
+    } else {
+      handleNewRowSave(row)
+    }
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    if (idx < NEW_ROW_COLUMNS.length - 1) focusNewRowByOffset(idx, 1)
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    if (idx > 0) focusNewRowByOffset(idx, -1)
+  }
+}
+
+// 失焦创建：新行输入框失焦时，若焦点落在同行其它列（列间切换）则不创建，
+// 仅当焦点真正离开新行（点其它行 / 按钮 / 弹窗外）才提交设备
+const handleNewRowBlur = (row: DetailTableRow, e: FocusEvent) => {
+  const next = (e.relatedTarget as HTMLElement | null)
+  if (next && next.closest && next.closest('.new-row-input')) {
+    return
+  }
+  handleNewRowSave(row)
+}
+
 // 计算表格数据，包括已有的明细和新添加的空白行
 const detailTableData = computed<DetailTableRow[]>(() => {
-  return [
-    ...detailList.value.map((item) => ({
-      id: item.id,
-      equipmentName: item.equipmentName,
-      equipmentModel: item.equipmentModel,
-      type: item.type || '',
-      manufacturer: item.manufacturer || '',
-      spec: item.spec || '',
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      total: item.total,
-    })),
-    newRow.value,
-  ]
+  const rows: DetailTableRow[] = detailList.value.map((item) => ({
+    id: item.id,
+    equipmentName: item.equipmentName,
+    equipmentModel: item.equipmentModel,
+    type: item.type || '',
+    manufacturer: item.manufacturer || '',
+    spec: item.spec || '',
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    total: item.total,
+  }))
+  // 已提交（锁定态）不再展示新增设备行，避免继续编辑/添加设备
+  if (!isSubmitted.value) rows.push(newRow.value)
+  return rows
 })
 
 // 每个设备行展开后的 SN 子记录（key = 设备明细 id）
@@ -363,19 +451,22 @@ const handleNewRowSave = async (row: DetailTableRow) => {
   if (!props.order) return
 
   const success = await createDetail({
-    orderId: props.order.id,
+    order: props.order.id,
     name: row.equipmentName,
     model: row.equipmentModel,
-    manufacturer: row.manufacturer || '',
-    number: String(quantity),
-    price: String(unitPrice),
     type: row.type || '',
+    brand: row.manufacturer || '',
     spec: row.spec || '',
+    number: quantity,
+    price: unitPrice,
   })
   if (success) {
     ElMessage.success('添加设备成功')
     newRow.value = createBlankRow()
     await fetchOrderDetails(props.order.id)
+    // 创建后自动聚焦新行首列，便于连续录单
+    await nextTick()
+    focusNewRowCol('equipmentName')
   } else {
     ElMessage.error('添加设备失败')
   }
@@ -422,6 +513,26 @@ const calcAmountText = (
   return (Math.round(totalCents) / 100).toFixed(2)
 }
 
+// 提交订单（PUT /client/order/submit?id=）
+const submitting = ref(false)
+const handleSubmitOrder = async () => {
+  if (!props.order) return
+  submitting.value = true
+  try {
+    const success = await submitOrder(props.order.id)
+    if (success) {
+      ElMessage.success('订单提交成功')
+      // 乐观锁定：立即禁用提交 / 隐藏新增行，同时通知父组件回拉最新 status
+      submittedFlag.value = true
+      emit('submitted')
+    } else {
+      ElMessage.error('订单提交失败')
+    }
+  } finally {
+    submitting.value = false
+  }
+}
+
 // 打印订单
 const printOrder = () => {
   const printContent = document.querySelector('.order-detail-form') as HTMLElement | null
@@ -441,6 +552,8 @@ watch(
       // 清空上一次展开的 SN 子记录，避免跨订单残留
       snChildrenMap.value = {}
       expandedKeys.value = []
+      // 重新打开时复位锁定态（若订单本身已是"已提交"，由 props.order.status 重新驱动）
+      submittedFlag.value = false
       fetchOrderDetails(props.order.id)
     }
   },
@@ -452,6 +565,9 @@ watch(
   text-align: center;
   margin-bottom: 16px;
 }
+
+/* 表格用 el-table 的 max-height 自行内部滚动（el-dialog 无 height 属性），
+   故弹窗本体不再强制 80vh，表头/表尾保持不动，仅设备表格区域滚动 */
 
 .form-title {
   font-size: 20px;
@@ -510,6 +626,7 @@ watch(
 .detail-table {
   width: 100%;
 }
+
 .detail-table :deep(.el-table),
 .detail-table :deep(.el-table__inner-wrapper),
 .detail-table :deep(table) {

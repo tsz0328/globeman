@@ -305,12 +305,14 @@ const submitEditRow = async (row: EditableDetailData) => {
   }
 
   const submitData = {
+    order: orderIdValue,
     name: row.equipmentName,
     model: row.equipmentModel,
-    manufacturer: row.manufacturer,
-    orderId: orderIdValue,
-    number: String(row.quantity),
-    price: String(row.unitPrice),
+    type: '',
+    brand: row.manufacturer,
+    spec: '',
+    number: Number(row.quantity),
+    price: Number(row.unitPrice),
   }
 
   const success = await createDetail(submitData)

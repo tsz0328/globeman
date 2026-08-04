@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
 
-// 部门数据接口
+// === 部门实体（部门管理，供 useDepartment 复用）===
 export interface DepartmentData {
   id?: number
   name: string

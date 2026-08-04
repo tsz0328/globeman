@@ -20,7 +20,6 @@ import {
   saveRepairApi,
   getRepairByIdApi,
   getTakenDetailsApi,
-  acceptRepairApi,
   type RepairDetailData,
   type TakenDetailData,
   type RepairImageData,
@@ -28,6 +27,7 @@ import {
 } from '@/api/repair/RepairApi'
 import { getInfoDetailsApi, type OrderInfoDetail } from '@/api/order/OrderApi'
 
+// === 导出类型 ===
 export interface TakenDetail {
   id: number
   detailsId: number
@@ -47,11 +47,13 @@ export interface RepairImageItem {
   address: string
 }
 
+// === 共享状态（模块级单例）===
 const loading = ref(false)
 const detailList = ref<DetailData[]>([])
 
+// === 组合函数（设备明细 + 维修）===
 export function useDetail() {
-  // 创建设备
+  // === 设备明细：创建 / 获取 / 删除 ===
   const createDetail = async (data: DetailFormData): Promise<boolean> => {
     loading.value = true
     try {
@@ -68,7 +70,6 @@ export function useDetail() {
     }
   }
 
-  // 获取设备列表
   const fetchDetails = async (id: string): Promise<boolean> => {
     loading.value = true
     try {
@@ -171,7 +172,6 @@ export function useDetail() {
     }
   }
 
-  // 删除设备
   const deleteDetail = async (id: number): Promise<boolean> => {
     loading.value = true
     try {
@@ -192,7 +192,7 @@ export function useDetail() {
     }
   }
 
-  // 获取维修详情
+  // === 维修详情 / SN / 接单 ===
   const getRepairDetail = async (id: number) => {
     try {
       const res = await getRepairDetailApi(id)
@@ -203,7 +203,6 @@ export function useDetail() {
     }
   }
 
-  // 添加维修 SN 码
   const addRepairSn = async (sn: string, id: number): Promise<boolean> => {
     try {
       const res = await addRepairSnApi(sn, id)
@@ -214,7 +213,6 @@ export function useDetail() {
     }
   }
 
-  // 接单
   const acceptRepair = async (sn: string, account: string): Promise<boolean> => {
     try {
       const { acceptRepairApi } = await import('@/api/repair/RepairApi')
@@ -226,7 +224,6 @@ export function useDetail() {
     }
   }
 
-  // 获取维修工单详情
   const getRepairById = async (id: number): Promise<RepairDetailData | null> => {
     try {
       const res = await getRepairByIdApi(id)
@@ -240,7 +237,7 @@ export function useDetail() {
     }
   }
 
-  // 获取维修图片列表
+  // === 维修图片 ===
   const getRepairImages = async (id: number): Promise<RepairImageItem[]> => {
     try {
       const res = await getRepairImagesApi(id)
@@ -257,7 +254,6 @@ export function useDetail() {
     }
   }
 
-  // 上传维修图片
   const uploadRepairImages = async (files: File[], id: number): Promise<boolean> => {
     try {
       const res = await uploadRepairImagesApi(files, id)
@@ -268,7 +264,6 @@ export function useDetail() {
     }
   }
 
-  // 删除维修图片
   const deleteRepairImage = async (id: number): Promise<boolean> => {
     try {
       const res = await deleteRepairImageApi(id)
@@ -279,7 +274,7 @@ export function useDetail() {
     }
   }
 
-  // 获取测试图片列表
+  // === 测试实拍图片 ===
   const getTestImages = async (id: number): Promise<RepairImageItem[]> => {
     try {
       const res = await getTestImagesApi(id)
@@ -296,7 +291,6 @@ export function useDetail() {
     }
   }
 
-  // 上传测试图片
   const uploadTestImages = async (files: File[], id: number): Promise<boolean> => {
     try {
       const res = await uploadTestImagesApi(files, id)
@@ -307,7 +301,6 @@ export function useDetail() {
     }
   }
 
-  // 删除测试图片
   const deleteTestImage = async (id: number): Promise<boolean> => {
     try {
       const res = await deleteTestImageApi(id)
@@ -318,7 +311,7 @@ export function useDetail() {
     }
   }
 
-  // 提交维修工单
+  // === 维修工单：提交 / 保存 ===
   const submitRepair = async (data: SubmitRepairData): Promise<boolean> => {
     try {
       const res = await submitRepairApi(data)
@@ -329,7 +322,6 @@ export function useDetail() {
     }
   }
 
-  // 保存维修工单
   const saveRepair = async (id: number): Promise<boolean> => {
     try {
       const res = await saveRepairApi(id)
@@ -340,7 +332,7 @@ export function useDetail() {
     }
   }
 
-  // 获取接单列表
+  // === 接单列表 ===
   const getTakenDetails = async (): Promise<TakenDetail[]> => {
     try {
       const res = await getTakenDetailsApi()
