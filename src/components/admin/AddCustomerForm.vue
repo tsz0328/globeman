@@ -130,7 +130,7 @@ watch(
   () => props.companyNames,
   (names) => {
     if (names.length === 1) {
-      form.value.company = names[0]
+      form.value.company = names[0] ?? ''
     }
   },
   { immediate: true },
