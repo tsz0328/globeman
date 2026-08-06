@@ -1,5 +1,5 @@
 <template>
-  <div class="order-detail">
+  <div class="order-detail" v-loading="loading">
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">项目订单详情</h2>
@@ -103,6 +103,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
 import { useOrder } from '@/composables/order/useOrder'
+import { isOrderLocked } from '@/composables/common/useOrderStatus'
 
 const route = useRoute()
 const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()
@@ -121,8 +122,7 @@ const isLocked = computed(() => {
   if (!orderStatus.value) {
     return true
   }
-  const lockedStatuses = ['已确认']
-  return lockedStatuses.includes(orderStatus.value)
+  return isOrderLocked(orderStatus.value)
 })
 
 const parseProjectId = (id: unknown): string => {
@@ -328,6 +328,8 @@ const submitEditRow = async (row: EditableDetailData) => {
   }
 }
 
+const loading = ref(false)
+
 onMounted(async () => {
   const id = parseProjectId(route.params.id)
 
@@ -343,19 +345,23 @@ onMounted(async () => {
     orderName.value = decodeURIComponent(nameParam)
   }
 
-  const projectIdParam = route.query.projectId as string
-  if (projectIdParam) {
-    await fetchOrders(projectIdParam)
-    const order = orderList.value.find((o) => o.id === id)
+  loading.value = true
+  try {
+    const projectIdParam = route.query.projectId as string
+    if (projectIdParam) {
+      await fetchOrders(projectIdParam)
+      const order = orderList.value.find((o) => o.id === id)
       if (order) {
         orderStatus.value = order.status
         if (!orderName.value) {
           orderName.value = order.name
         }
       }
+    }
+    await fetchDetails(id)
+  } finally {
+    loading.value = false
   }
-
-  fetchDetails(id)
 })
 </script>
 

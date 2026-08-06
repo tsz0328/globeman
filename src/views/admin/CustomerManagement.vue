@@ -1,5 +1,5 @@
 <template>
-  <div class="customer-management">
+  <div class="customer-management" v-loading="loading">
     <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="title">客户管理</h2>
@@ -95,8 +95,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import CustomerForm from './AddCustomerForm.vue'
-import type { CustomerFormData } from './AddCustomerForm.vue'
+import CustomerForm from '@/components/admin/AddCustomerForm.vue'
+import type { CustomerFormData } from '@/components/admin/AddCustomerForm.vue'
 import { useCustomer, type Customer } from '@/composables/admin/useCustomer'
 import { useCompany } from '@/composables/admin/useCompany'
 
@@ -109,12 +109,21 @@ const pageSize = ref(10)
 const customerFormVisible = ref(false)
 const editData = ref<CustomerFormData | null>(null)
 const selectedRows = ref<Customer[]>([])
+const loading = ref(false)
 
 // 组件挂载时获取客户列表和公司列表
-onMounted(() => {
-  fetchCustomers()
-  fetchCompanyNames()
-})
+const loadData = async () => {
+  loading.value = true
+  try {
+    // 先拉客户列表 /client/customer/getInfoCustomer
+    await fetchCustomers()
+    // 客户列表返回后，再拉取筛选用公司下拉 /client/user/getInfoCompany
+    await fetchCompanyNames()
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadData)
 
 // 新增客户
 const addCustomer = () => {

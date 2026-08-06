@@ -1,5 +1,5 @@
 <template>
-  <div class="repair-accept">
+  <div class="repair-accept" v-loading="loading">
     <div class="page-header">
       <h2 class="title">维修接单</h2>
       <div class="action-buttons">
@@ -98,6 +98,7 @@ const takenList = ref<TakenDetail[]>([])
 const currentPage = ref(1)
 const pageSize = ref(8)
 const selectedRows = ref<TakenDetail[]>([])
+const loading = ref(false)
 
 const fetchTakenDetails = async () => {
   try {
@@ -127,8 +128,13 @@ const fetchTakenDetails = async () => {
   }
 }
 
-onMounted(() => {
-  fetchTakenDetails()
+onMounted(async () => {
+  loading.value = true
+  try {
+    await fetchTakenDetails()
+  } finally {
+    loading.value = false
+  }
 })
 
 const viewRepair = (row: TakenDetail) => {
@@ -137,18 +143,7 @@ const viewRepair = (row: TakenDetail) => {
 
 const getRowKey = (row: TakenDetail) => row.id
 
-const getStatusType = (status: string) => {
-  switch (status) {
-    case '待维修':
-      return 'warning'
-    case '维修中':
-      return 'primary'
-    case '已完成':
-      return 'success'
-    default:
-      return 'info'
-  }
-}
+import { getStatusTagType as getStatusType } from '@/composables/common/useOrderStatus'
 
 const handleSelectionChange = (val: TakenDetail[]) => {
   selectedRows.value = val

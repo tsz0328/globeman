@@ -1,5 +1,5 @@
 <template>
-  <div class="project-management">
+  <div class="project-management" v-loading="loading">
     <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="title">用户管理</h2>
@@ -94,8 +94,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Cookies from 'js-cookie'
-import UserForm from './AddUserForm.vue'
-import type { UserFormData } from './AddUserForm.vue'
+import UserForm from '@/components/admin/AddUserForm.vue'
+import type { UserFormData } from '@/components/admin/AddUserForm.vue'
 import { useUser, type User } from '@/composables/admin/useUser'
 import { useRole } from '@/composables/admin/useRole'
 import { useCompany } from '@/composables/admin/useCompany'
@@ -109,6 +109,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const userFormVisible = ref(false)
 const selectedRows = ref<User[]>([])
+const loading = ref(false)
 
 const notAdminRole = computed(() => Cookies.get('role') !== 'admin')
 
@@ -118,12 +119,20 @@ const viewUser = (row: User) => {
 }
 
 // 组件挂载时获取用户列表
-onMounted(() => {
-  fetchUsers()
-  fetchRoles()
-  fetchCompanyNames()
-  fetchDepartmentNames()
-})
+const loadData = async () => {
+  loading.value = true
+  try {
+    // 先拉用户列表 /client/user/get
+    await fetchUsers()
+    // 用户列表返回后，逐个拉取筛选用下拉数据，避免一次性并发过多请求
+    await fetchRoles()
+    await fetchCompanyNames()
+    await fetchDepartmentNames()
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadData)
 
 // 新增用户
 const addUser = () => {

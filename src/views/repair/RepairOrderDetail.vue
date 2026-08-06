@@ -1,5 +1,5 @@
 <template>
-  <div class="order-detail">
+  <div class="order-detail" v-loading="loading">
     <div class="detail-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">维修订单详情</h2>
@@ -231,18 +231,7 @@ const goBack = () => {
 }
 
 // 获取状态类型
-const getStatusType = (
-  status: string,
-): '' | 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
-  switch (status) {
-    case '待维修':
-      return 'primary'
-    case '维修中':
-      return 'warning'
-    default:
-      return 'info'
-  }
-}
+import { getStatusTagType as getStatusType } from '@/composables/common/useOrderStatus'
 
 // 把 getRepairDetail 的响应映射为弹窗表格数据；baseRow 提供字段兜底与外层设备信息
 const buildDetailList = (
@@ -351,6 +340,7 @@ const submitSn = async (sn: string, id: number) => {
   return false
 }
 
+// 处理弹窗内 SN 提交（回车或失焦触发）
 const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => {
   if (!submit) {
     return
@@ -360,12 +350,14 @@ const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => 
     return
   }
 
+  // 检查数据ID是否有效
   const targetId = Number(row.id)
   if (!targetId) {
     ElMessage.error('无效的数据ID')
     return
   }
 
+  // 检查 SN 是否为空或与上次已提交的 SN 一致，避免重复提交
   const trimmedSn = String(row.sn || '').trim()
   // 空值静默跳过，避免点进输入框又点出时误报"不能为空"
   if (!trimmedSn) {
@@ -376,6 +368,7 @@ const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => 
     return
   }
 
+  // 标记提交中，防止重复提交
   row.submitting = true
   try {
     const success = await submitSn(trimmedSn, targetId)
@@ -388,7 +381,10 @@ const handleInlineSnSubmit = async (row: EditableDetailData, submit = false) => 
   }
 }
 
-onMounted(() => {
+const loading = ref(false)
+
+// 页面加载时获取维修订单详情
+onMounted(async () => {
   const id = parseProjectId(route.params.id)
 
   if (!id) {
@@ -403,7 +399,12 @@ onMounted(() => {
     orderName.value = decodeURIComponent(nameParam)
   }
 
-  fetchRepairDetails(id)
+  loading.value = true
+  try {
+    await fetchRepairDetails(id)
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 

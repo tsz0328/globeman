@@ -1,5 +1,5 @@
 <template>
-  <div class="equipment-repair-info-page">
+  <div class="equipment-repair-info-page" v-loading="loading">
     <div class="page-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="page-title">设备维修信息详情</h2>
@@ -226,6 +226,7 @@ const {
 const route = useRoute()
 const repairId = ref(0)
 const submitLoading = ref(false)
+const loading = ref(false)
 
 const repairUploadRef = ref()
 const testUploadRef = ref()
@@ -308,13 +309,20 @@ const fetchRepairDetails = async () => {
   testImages.value = await getTestImages(repairId.value)
 }
 
-onMounted(() => {
+onMounted(async () => {
   const id = route.params.id
   if (typeof id === 'string') {
     repairId.value = parseInt(id, 10)
   }
-  fetchRepairById()
-  fetchRepairDetails()
+  loading.value = true
+  try {
+    // 先拉维修记录主数据 /client/repair/getById
+    await fetchRepairById()
+    // 主数据返回后，再拉取设备维修明细，避免一次性并发过多请求
+    await fetchRepairDetails() // /client/repair/getRepairDetails
+  } finally {
+    loading.value = false
+  }
 })
 
 const handleFileChange = (file: UploadFile, fileList: UploadFile[], type: string) => {

@@ -1,5 +1,5 @@
 <template>
-  <div class="company-management">
+  <div class="company-management" v-loading="loading">
     <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="title">公司管理</h2>
@@ -68,11 +68,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCompany } from '@/composables/admin/useCompany'
 import type { CompanyData } from '@/api/admin/CompanyApi'
 import type { CompanyFormData } from '@/api/admin/CompanyApi'
-import CompanyForm from './AddCompanyForm.vue'
+import CompanyForm from '@/components/admin/AddCompanyForm.vue'
 
 const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } = useCompany()
 
 const companyFormVisible = ref(false)
+const loading = ref(false)
 
 const currentPage = ref(1)
 const pageSize = ref(8)
@@ -85,9 +86,16 @@ const filterForm = ref({
   createTime: null,
 })
 
-onMounted(() => {
-  fetchCompanies()
-})
+const loadCompanies = async () => {
+  loading.value = true
+  try {
+    await fetchCompanies()
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadCompanies)
 
 const filteredData = computed(() => {
   return companyList.value.filter((item) => {

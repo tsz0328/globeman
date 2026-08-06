@@ -56,22 +56,24 @@
         <el-table-column type="expand">
           <template #default="scope">
             <div v-if="!scope.row.isNew && scope.row.id" class="sn-panel">
-              <div class="sn-panel-title">
-                序列号（共 {{ (snChildrenMap[scope.row.id ?? 0] || []).length }} 条）
+              <div>
+                序列号（共 {{ countRealSn(scope.row.id ?? 0) }} 条）
               </div>
               <el-table :data="snChildrenMap[scope.row.id ?? 0] || []" border size="small" class="sn-sub-table">
                 <el-table-column label="序号" type="index" width="50" align="center" />
                 <el-table-column label="SN码" min-width="220">
                   <template #default="snScope">
-                    <el-input v-model="snScope.row.sn" size="small" placeholder="编辑SN，回车提交" aria-label="SN码"
-                      :readonly="snScope.row.status === '维修中' || snScope.row.status === '待维修'"
-                      @keyup.enter.prevent="handleSnSubmit(snScope.row)" @blur="handleSnSubmit(snScope.row)" />
+                    <span v-if="isRepair">{{ snScope.row.sn }}</span>
+                    <el-input v-else v-model="snScope.row.sn" size="small"
+                      :placeholder="snScope.row.isBlank ? '输入SN，失焦提交新增' : (snScope.row.committed ? '' : '编辑SN，回车提交')" aria-label="SN码"
+                      :readonly="!!snScope.row.committed || (!snScope.row.isBlank && (snScope.row.status === '维修中' || snScope.row.status === '待维修'))"
+                      @keyup.enter.prevent="onSnBlur(snScope.row)" @blur="onSnBlur(snScope.row)" />
                   </template>
                 </el-table-column>
                 <el-table-column label="状态" width="90" align="center">
                   <template #default="snScope">
                     <el-tag :type="getSnStatusType(snScope.row.status)" size="small">
-                      {{ snScope.row.status || '-' }}
+                      {{ snScope.row.status || '---' }}
                     </el-tag>
                   </template>
                 </el-table-column>
@@ -184,7 +186,7 @@
     <!-- 表单底部 -->
     <template #footer>
       <el-button @click="emit('update:modelValue', false)">关闭</el-button>
-      <el-button type="primary" :loading="submitting" :disabled="isSubmitted" @click="handleSubmitOrder">提交</el-button>
+      <el-button v-if="!isRepair" type="primary" :loading="submitting" :disabled="isSubmitted" @click="handleSubmitOrder">提交</el-button>
       <el-button @click="printOrder">打印</el-button>
     </template>
   </el-dialog>
@@ -195,10 +197,13 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
 import { useOrder, type Order } from '@/composables/order/useOrder'
+import type { RepairOrderDetail } from '@/api/repair/RepairApi'
 
 const props = defineProps<{
   modelValue: boolean
   order: Order | null
+  // 维修订单：明细已随列表接口内联返回，传入后弹窗直接用、不再二次请求订单明细接口；且为只读查看
+  details?: RepairOrderDetail[]
 }>()
 
 const emit = defineEmits<{
@@ -206,14 +211,16 @@ const emit = defineEmits<{
   (e: 'submitted'): void
 }>()
 
-const { fetchOrderDetails, detailList, createDetail, getRepairDetail, addRepairSn } = useDetail()
+const { fetchOrderDetails, detailList, createDetail, addRepairSn, addSn } = useDetail()
 const { submitOrder } = useOrder()
 
 // 订单是否已提交（锁定态）：成功后本地乐观置位 + 父组件回拉最新 status 后由 props.order.status 驱动
-// 状态为 "已提交" 时：禁用「提交」按钮、隐藏新增设备行（不可再编辑/添加设备）
-const SUBMITTED_STATUS = '已提交'
+// 状态为 "已提交" 时：禁用「提交」按钮、隐藏新增设备行
+import { SUBMITTED_STATUS } from '@/composables/common/useOrderStatus'
 const submittedFlag = ref(false)
 const isSubmitted = computed(() => submittedFlag.value || props.order?.status === SUBMITTED_STATUS)
+// 维修订单（通过 details 传入）为只读查看：不展示新增设备行、不显示「提交」按钮
+const isRepair = computed(() => !!props.details && props.details.length > 0)
 
 interface DetailTableRow {
   id?: number
@@ -236,6 +243,10 @@ interface SnRow {
   status: string
   lastSn?: string
   submitting?: boolean
+  // 空白新增行（编辑态，失焦提交到 /client/repair/addSN），区别于既有 SN 记录
+  isBlank?: boolean
+  // 本次会话内已成功提交到后端的 SN 行（本地展示用，只读、不再重复提交）
+  committed?: boolean
 }
 
 //创建一个空白行对象
@@ -253,6 +264,15 @@ const createBlankRow = (): DetailTableRow => ({
 })
 
 const newRow = ref<DetailTableRow>(createBlankRow())
+
+// 创建 SN 子表的空白新增行（编辑态，失焦提交到 /client/repair/addSN）
+const createBlankSnRow = (parentId: number): SnRow => ({
+  id: 0,
+  parentId,
+  sn: '',
+  status: '',
+  isBlank: true,
+})
 
 // 新行可编辑列顺序（决定回车 / 方向键切换列的顺序）
 const NEW_ROW_COLUMNS = [
@@ -325,8 +345,8 @@ const detailTableData = computed<DetailTableRow[]>(() => {
     unitPrice: item.unitPrice,
     total: item.total,
   }))
-  // 已提交（锁定态）不再展示新增设备行，避免继续编辑/添加设备
-  if (!isSubmitted.value) rows.push(newRow.value)
+  // 已提交（锁定态）或维修订单（只读）不再展示新增设备行，避免继续编辑/添加设备
+  if (!isSubmitted.value && !isRepair.value) rows.push(newRow.value)
   return rows
 })
 
@@ -335,23 +355,13 @@ const snChildrenMap = ref<Record<number, SnRow[]>>({})
 // 当前已展开的设备行 id 列表（受控展开，便于新增后自动展开）
 const expandedKeys = ref<number[]>([])
 
-// 拉取某设备明细下的 N 条序列号子记录（N = 数量）
-const loadSnChildren = async (detailId: number, force = false) => {
+// 展开 SN 子表时初始化：不再调用 /repair/get?id 拉取既有 SN（该接口已弃用），
+// 仅确保「订单已提交」时存在一条可编辑空白行供录入 SN；已初始化的不覆盖（保留本次会话已提交 SN）
+const loadSnChildren = (detailId: number) => {
   if (!detailId || detailId <= 0) return
-  if (!force && snChildrenMap.value[detailId]) return
-  const res = await getRepairDetail(detailId)
-  if (res && res.code === 200) {
-    const dataValues = Object.values(res.data || {}) as unknown as Record<string, unknown>[]
-    snChildrenMap.value[detailId] = dataValues.map((d) => ({
-      id: (d.id as number) || 0,
-      parentId: detailId,
-      sn: (d.sn as string) || '',
-      status: (d.status as string) || '',
-      lastSn: (d.sn as string) || '',
-    }))
-  } else {
-    snChildrenMap.value[detailId] = []
-  }
+  if (snChildrenMap.value[detailId]) return
+  // 仅订单状态为「已提交」时可录入 SN：追加一条可编辑空白行；草稿态不追加，SN 须待订单提交后方可录入
+  snChildrenMap.value[detailId] = isSubmitted.value ? [createBlankSnRow(detailId)] : []
 }
 
 // 提交单条 SN（回车/失焦触发），复用 addRepairSn，并做重复提交防护
@@ -373,14 +383,55 @@ const handleSnSubmit = async (row: SnRow) => {
     if (success) {
       row.lastSn = trimmed
       ElMessage.success('SN提交成功')
-      // 重新拉取，使状态与后端同步
-      await loadSnChildren(row.parentId, true)
     } else {
       ElMessage.error('SN提交失败')
     }
   } finally {
     row.submitting = false
   }
+}
+
+// SN 输入框失焦 / 回车统一入口：空白新增行走 addSN，已提交行只读跳过，其余走 addRepairSn
+const onSnBlur = (row: SnRow) => {
+  if (row.isBlank) handleBlankSnSubmit(row)
+  else if (row.committed) return
+  else handleSnSubmit(row)
+}
+
+// 空白新增行失焦提交：POST /client/repair/addSN?SN={录入值}&id={设备明细 id}
+const handleBlankSnSubmit = async (row: SnRow) => {
+  if (row.submitting) return
+  const trimmed = String(row.sn || '').trim()
+  // 空白行：空值不做提交，保留空白行供继续录入
+  if (!trimmed) return
+  row.submitting = true
+  try {
+    const success = await addSn(trimmed, row.parentId)
+    if (success) {
+      ElMessage.success('SN提交成功')
+      // 不重新拉取（/repair/get?id 已弃用）；本地把刚提交的 SN 标记为已提交行并补一条空白行
+      const list = (snChildrenMap.value[row.parentId] || []).filter((r) => r !== row)
+      const committed: SnRow = {
+        id: -Date.now(),
+        parentId: row.parentId,
+        sn: trimmed,
+        status: '',
+        lastSn: trimmed,
+        committed: true,
+      }
+      snChildrenMap.value[row.parentId] = [...list, committed, createBlankSnRow(row.parentId)]
+    } else {
+      ElMessage.error('SN提交失败')
+    }
+  } finally {
+    row.submitting = false
+  }
+}
+
+// 统计某设备真实的 SN 条数（不含空白新增行），用于子表标题展示
+const countRealSn = (detailId: number): number => {
+  const list = snChildrenMap.value[detailId] || []
+  return list.filter((r) => !r.isBlank).length
 }
 
 // SN 状态标签颜色
@@ -397,20 +448,26 @@ const onExpandChange = (row: DetailTableRow, expandedRows: DetailTableRow[]) => 
   expandedKeys.value = expandedRows
     .map((r) => r.id)
     .filter((id): id is number => typeof id === 'number' && id > 0)
-  if (!row.isNew && row.id && row.id > 0 && expandedRows.includes(row)) {
+  // 维修订单的 SN 已内联在响应里，展开时不需再请求 /repair/get
+  if (!isRepair.value && !row.isNew && row.id && row.id > 0 && expandedRows.includes(row)) {
     loadSnChildren(row.id)
   }
 }
 
 // 整行点击切换展开/收起（与展开箭头效果一致）；隐藏展开列后作为唯一入口
-const onRowClick = (row: DetailTableRow) => {
+// 注意：点「展开箭头」本身也会冒泡触发 row-click，若不拦截会导致
+// onExpandChange 刚把行展开、row-click 又立刻把它收起，空白行看不到。
+// 因此当点击来自展开列（column.type === 'expand'）时直接跳过，展开只由 onExpandChange 处理。
+const onRowClick = (row: DetailTableRow, column?: { type?: string }) => {
+  if (column && column.type === 'expand') return
   // 新增行没有明细 id，不触发展开
   if (row.isNew || !row.id || row.id <= 0) return
   if (expandedKeys.value.includes(row.id)) {
     expandedKeys.value = expandedKeys.value.filter((id) => id !== row.id)
   } else {
     expandedKeys.value = [...expandedKeys.value, row.id]
-    loadSnChildren(row.id)
+    // 维修订单的 SN 已内联在响应里，展开时不需再请求 /repair/get
+    if (!isRepair.value) loadSnChildren(row.id)
   }
 }
 
@@ -554,7 +611,38 @@ watch(
       expandedKeys.value = []
       // 重新打开时复位锁定态（若订单本身已是"已提交"，由 props.order.status 重新驱动）
       submittedFlag.value = false
-      fetchOrderDetails(props.order.id)
+      if (props.details && props.details.length) {
+        // 维修订单：明细随列表接口内联返回，直接映射，不再请求订单明细接口
+        detailList.value = props.details.map((d) => ({
+          id: d.id,
+          projectId: props.order!.id,
+          belongProject: '',
+          equipmentName: d.name,
+          equipmentModel: d.model,
+          manufacturer: d.brand,
+          sn: (d.SN || []).join(','),
+          status: '',
+          quantity: d.number,
+          unitPrice: 0,
+          total: 0,
+          type: d.type || '',
+          spec: d.spec || '',
+        }))
+        // 维修订单的 SN 也已随响应内联返回（d.SN 数组），直接渲染成行，
+        snChildrenMap.value = {}
+        props.details.forEach((d) => {
+          const snList = d.SN || []
+          snChildrenMap.value[d.id] = snList.map((sn, i) => ({
+            id: i + 1,
+            parentId: d.id,
+            sn,
+            status: '',
+            lastSn: sn,
+          }))
+        })
+      } else {
+        fetchOrderDetails(props.order.id)
+      }
     }
   },
 )
@@ -565,9 +653,6 @@ watch(
   text-align: center;
   margin-bottom: 16px;
 }
-
-/* 表格用 el-table 的 max-height 自行内部滚动（el-dialog 无 height 属性），
-   故弹窗本体不再强制 80vh，表头/表尾保持不动，仅设备表格区域滚动 */
 
 .form-title {
   font-size: 20px;
@@ -622,7 +707,6 @@ watch(
 }
 
 /* 展开列（箭头）默认显示，用户可直接点箭头展开 SN 子表；整行点击展开仍保留 */
-/* 表格强制撑满容器宽度；列宽分配交给 fit 默认行为（仅「备注」一列无 width = 弹性列） */
 .detail-table {
   width: 100%;
 }
@@ -636,16 +720,6 @@ watch(
 /* 已有明细行可点击，光标变手型 */
 .detail-table :deep(.clickable-row) {
   cursor: pointer;
-}
-
-.sn-panel {
-  padding: 10px 16px;
-}
-
-.sn-panel-title {
-  font-size: 13px;
-  color: #606266;
-  margin-bottom: 8px;
 }
 
 .detail-table :deep(.el-table__header-wrapper th) {

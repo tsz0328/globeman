@@ -1,5 +1,5 @@
 <template>
-  <div class="project-management">
+  <div class="project-management" v-loading="loading">
     <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="title">项目管理</h2>
@@ -102,8 +102,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ProjectForm from './AddProjectForm.vue'
-import type { ProjectFormData } from './AddProjectForm.vue'
+import ProjectForm from '@/components/project/AddProjectForm.vue'
+import type { ProjectFormData } from '@/components/project/AddProjectForm.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 
@@ -137,11 +137,22 @@ const currentPage = ref(1)
 const pageSize = ref(8)
 const projectFormVisible = ref(false)
 const selectedRows = ref<Project[]>([])
+const loading = ref(false)
 
 // 组件挂载时获取项目列表
-onMounted(() => {
-  Promise.all([fetchProjects(), fetchOrderCustomers(), fetchOrderManagers()])
-})
+const loadData = async () => {
+  loading.value = true
+  try {
+    // 先拉项目列表 /client/project/getProject
+    await fetchProjects()
+    // 项目列表返回后，逐个拉取筛选用下拉数据，避免一次性并发过多请求
+    await fetchOrderCustomers() // /client/order/getInfoCustomer
+    await fetchOrderManagers()  // /client/order/getInfoManager
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadData)
 
 // 新增项目
 const addProject = () => {
@@ -200,18 +211,7 @@ const handleDelete = async (row: Project) => {
 const getRowKey = (row: Project) => row.id
 
 // 获取状态标签类型
-const getStatusType = (status: string) => {
-  switch (status) {
-    case '编辑中':
-      return 'primary'
-    case '已完成':
-      return 'success'
-    case '已取消':
-      return 'danger'
-    default:
-      return 'info'
-  }
-}
+import { getStatusTagType as getStatusType } from '@/composables/common/useOrderStatus'
 
 // 删除按钮点击（用于模板调用，避免类型错误）
 const handleDeleteBtn = (row: unknown) => {

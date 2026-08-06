@@ -1,5 +1,5 @@
 <template>
-  <div class="repair-order-management">
+  <div class="repair-order-management" v-loading="loading">
     <div class="page-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">维修订单管理</h2>
@@ -160,6 +160,7 @@ const {
 } = useOrder()
 
 const managers = ref<OrderManager[]>([])
+const loading = ref(false)
 const fetchOrderManagers = async () => {
   try {
     const res = await getOrderManagersApi()
@@ -234,16 +235,7 @@ const paginatedData = computed(() => {
 const getRowKey = (row: { id: number }) => row.id
 
 // 获取状态类型
-const getStatusType = (status: string) => {
-  switch (status) {
-    case '编辑中':
-      return 'warning'
-    case '已确认':
-      return 'danger'
-    default:
-      return 'info'
-  }
-}
+import { getStatusTagType as getStatusType } from '@/composables/common/useOrderStatus'
 
 const goBack = () => {
   window.close()
@@ -303,7 +295,7 @@ const handleOrderSubmit = async (data: OrderFormData) => {
   }
 }
 
-onMounted(() => {
+const loadData = async () => {
   repairId.value = parseRepairId(route.params.id)
 
   if (!repairId.value) {
@@ -312,8 +304,19 @@ onMounted(() => {
     return
   }
 
-  Promise.all([fetchProjects(), fetchOrderCustomers(), fetchRepairOrders(repairId.value), fetchOrderManagers()])
-})
+  loading.value = true
+  try {
+    // 先拉维修订单列表 /client/repair/getRepairOrders
+    await fetchRepairOrders(repairId.value)
+    // 列表返回后，逐个拉取筛选用下拉数据，避免一次性并发过多请求
+    await fetchProjects()        // /client/project/getProject
+    await fetchOrderCustomers()  // /client/order/getInfoCustomer
+    await fetchOrderManagers()   // /client/order/getInfoManager
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadData)
 </script>
 
 <style scoped>

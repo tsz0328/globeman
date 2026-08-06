@@ -1,29 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Cookies from 'js-cookie'
-import IndexView from '@/View/IndexView.vue'
-import WorkView from '@/View/WorkView.vue'
-import LoginComponent from '@/components/Index/LoginComponent.vue'
-import LoginSuccessComponent from '@/components/Index/LoginSuccess.vue'
-import UserManagementComponent from '@/components/admin/UserManagement.vue'
-import HomeComponent from '@/components/layout/HomeComponent.vue'
-import ProjectManagementComponent from '@/components/project/ProjectManagement.vue'
-import CustomerManagementComponent from '@/components/admin/CustomerManagement.vue'
-import CompanyManagementComponent from '@/components/admin/CompanyManagement.vue'
-import OrderDetailComponent from '@/components/project/ProjectOrderDetail.vue'
-import RepairOrderDetailComponent from '@/components/repair/RepairOrderDetail.vue'
-import ProjectOrderManagementComponent from '@/components/project/ProjectOrderManagement.vue'
-import RepairManagementComponent from '@/components/repair/RepairManagement.vue'
-import RepairOrderManagementComponent from '@/components/repair/RepairOrderManagement.vue'
-import RepairAcceptComponent from '@/components/repair/RepairAccept.vue'
-import EquipmentRepairInformationComponent from '@/components/repair/EquipmentRepairInformation.vue'
-import OutboundManagementComponent from '@/components/inventory/OutboundManagement.vue'
-import InboundManagementComponent from '@/components/inventory/InboundManagement.vue'
-import InventoryManagementComponent from '@/components/inventory/InventoryManagement.vue'
-import OrderManagementComponent from '@/components/order/OrderManagement.vue'
-import UserDetailComponent from '@/components/admin/UserDetail.vue'
-import ProfileInfoComponent from '@/components/layout/ProfileInfo.vue'
-import DepartmentManagementComponent from '@/components/admin/DepartmentManagement.vue'
-import CompanyDetailComponent from '@/components/admin/CompanyDetail.vue'
+import IndexView from '@/layouts/IndexView.vue'
+import WorkView from '@/layouts/WorkView.vue'
+import LoginComponent from '@/views/index/LoginComponent.vue'
+import LoginSuccessComponent from '@/views/index/LoginSuccess.vue'
+import UserManagementComponent from '@/views/admin/UserManagement.vue'
+import WorkHomeComponent from '@/views/layout/WorkHome.vue'
+import ProjectManagementComponent from '@/views/project/ProjectManagement.vue'
+import CustomerManagementComponent from '@/views/admin/CustomerManagement.vue'
+import CompanyManagementComponent from '@/views/admin/CompanyManagement.vue'
+import OrderDetailComponent from '@/views/project/ProjectOrderDetail.vue'
+import RepairOrderDetailComponent from '@/views/repair/RepairOrderDetail.vue'
+import ProjectOrderManagementComponent from '@/views/project/ProjectOrderManagement.vue'
+import RepairManagementComponent from '@/views/repair/RepairManagement.vue'
+import RepairOrderManagementComponent from '@/views/repair/RepairOrderManagement.vue'
+import RepairAcceptComponent from '@/views/repair/RepairAccept.vue'
+import EquipmentRepairInformationComponent from '@/views/repair/EquipmentRepairInformation.vue'
+import OutboundManagementComponent from '@/views/inventory/OutboundManagement.vue'
+import InboundManagementComponent from '@/views/inventory/InboundManagement.vue'
+import InventoryManagementComponent from '@/views/inventory/InventoryManagement.vue'
+import OrderManagementComponent from '@/views/order/OrderManagement.vue'
+import UserDetailComponent from '@/views/admin/UserDetail.vue'
+import ProfileInfoComponent from '@/views/layout/ProfileInfo.vue'
+import DepartmentManagementComponent from '@/views/admin/DepartmentManagement.vue'
+import CompanyDetailComponent from '@/views/admin/CompanyDetail.vue'
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -60,7 +60,7 @@ const router = createRouter({
         {
           path: 'home',
           name: 'Home',
-          component: HomeComponent,
+          component: WorkHomeComponent,
         },
         {
           path: 'profile',

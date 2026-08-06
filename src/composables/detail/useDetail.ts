@@ -10,6 +10,7 @@ import {
 import {
   getRepairDetailApi,
   addRepairSnApi,
+  addSnApi,
   uploadRepairImagesApi,
   getRepairImagesApi,
   deleteRepairImageApi,
@@ -213,6 +214,17 @@ export function useDetail() {
     }
   }
 
+  // 新增 SN（订单详情弹窗 SN 子表空白行失焦提交）：POST /client/repair/addSN?SN=...&id=...
+  const addSn = async (sn: string, id: number | string): Promise<boolean> => {
+    try {
+      const res = await addSnApi(sn, id)
+      return res.code === 200
+    } catch (error) {
+      console.error('新增SN失败:', error)
+      return false
+    }
+  }
+
   const acceptRepair = async (sn: string, account: string): Promise<boolean> => {
     try {
       const { acceptRepairApi } = await import('@/api/repair/RepairApi')
@@ -367,6 +379,7 @@ export function useDetail() {
     deleteDetail,
     getRepairDetail,
     addRepairSn,
+    addSn,
     acceptRepair,
     getRepairById,
     getRepairImages,

@@ -1,5 +1,5 @@
 <template>
-  <div class="department-management">
+  <div class="department-management" v-loading="loading">
     <!-- 页面头部 -->
     <div class="page-header">
       <h2 class="title">部门管理</h2>
@@ -50,7 +50,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getDepartmentsApi, type DepartmentData } from '@/api/admin/DepartmentApi'
-import AddDepartmentForm from './AddDepartmentForm.vue'
+import AddDepartmentForm from '@/components/admin/AddDepartmentForm.vue'
 
 const tableData = ref<DepartmentData[]>([])
 const loading = ref(false)

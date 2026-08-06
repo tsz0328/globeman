@@ -1,5 +1,5 @@
 <template>
-  <div class="order-management">
+  <div class="order-management" v-loading="loading">
     <div class="page-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="title">项目订单管理</h2>
@@ -161,6 +161,7 @@ const projectId = ref('')
 const orderFormVisible = ref(false)
 const selectedRows = ref<Order[]>([])
 const isProjectIdValid = ref(true)
+const loading = ref(false)
 const isFilterVisible = ref(true)
 const detailDialogVisible = ref(false)
 const currentOrder = ref<Order | null>(null)
@@ -218,20 +219,10 @@ const paginatedData = computed(() => {
 const getRowKey = (row: Order) => row.id
 
 const isRowSelectable = (row: Order) => {
-  const lockedStatuses = ['已确认', '已完成', '已提交']
-  return !lockedStatuses.includes(row.status)
+  return !isOrderLocked(row.status)
 }
 
-const getStatusType = (status: string) => {
-  switch (status) {
-    case '编辑中':
-      return 'warning'
-    case '已确认':
-      return 'danger'
-    default:
-      return 'info'
-  }
-}
+import { getStatusTagType as getStatusType, isOrderLocked } from '@/composables/common/useOrderStatus'
 
 const goBack = () => {
   window.close()
@@ -391,7 +382,7 @@ const handleOrderSubmit = async (data: OrderSubmitPayload) => {
   }
 }
 
-onMounted(() => {
+const loadData = async () => {
   projectId.value = parseProjectId(route.params.id)
 
   if (!projectId.value) {
@@ -400,8 +391,19 @@ onMounted(() => {
     return
   }
 
-  Promise.all([fetchProjects(), fetchOrderCustomers(), fetchOrders(projectId.value), fetchOrderManagers()])
-})
+  loading.value = true
+  try {
+    // 先拉项目订单列表 /client/order/getOrder
+    await fetchOrders(projectId.value)
+    // 列表返回后，逐个拉取筛选用下拉数据，避免一次性并发过多请求
+    await fetchProjects()        // /client/project/getProject
+    await fetchOrderCustomers()  // /client/order/getInfoCustomer
+    await fetchOrderManagers()   // /client/order/getInfoManager
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadData)
 </script>
 
 <style scoped>

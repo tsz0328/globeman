@@ -134,27 +134,37 @@
       <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column label="品名" min-width="120">
         <template #default="scope">
-          <el-input v-model="scope.row.equipmentName" aria-label="品名" size="small" />
+          <el-input v-model="scope.row.equipmentName" aria-label="品名" size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'equipmentName', el)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'equipmentName', $event)" />
         </template>
       </el-table-column>
       <el-table-column label="型号" min-width="120">
         <template #default="scope">
-          <el-input v-model="scope.row.equipmentModel" aria-label="型号" size="small" />
+          <el-input v-model="scope.row.equipmentModel" aria-label="型号" size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'equipmentModel', el)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'equipmentModel', $event)" />
         </template>
       </el-table-column>
       <el-table-column label="类型" min-width="100">
         <template #default="scope">
-          <el-input v-model="scope.row.type" aria-label="类型" size="small" />
+          <el-input v-model="scope.row.type" aria-label="类型" size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'type', el)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'type', $event)" />
         </template>
       </el-table-column>
       <el-table-column label="品牌" min-width="100">
         <template #default="scope">
-          <el-input v-model="scope.row.brand" aria-label="品牌" size="small" />
+          <el-input v-model="scope.row.brand" aria-label="品牌" size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'brand', el)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'brand', $event)" />
         </template>
       </el-table-column>
       <el-table-column label="参数" min-width="120">
         <template #default="scope">
-          <el-input v-model="scope.row.spec" aria-label="参数" size="small" />
+          <el-input v-model="scope.row.spec" aria-label="参数" size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'spec', el)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'spec', $event)" />
         </template>
       </el-table-column>
       <el-table-column label="数量" width="80" align="center">
@@ -163,7 +173,9 @@
             v-model="scope.row.quantity"
             aria-label="数量"
             size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'quantity', el)"
             @input="(val: string) => filterNumberInput(scope.row, 'quantity', val)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'quantity', $event)"
           />
         </template>
       </el-table-column>
@@ -173,18 +185,15 @@
             v-model="scope.row.unitPrice"
             aria-label="单价"
             size="small"
+            :ref="(el: unknown) => setCellRef(scope.$index, 'unitPrice', el)"
             @input="(val: string) => filterNumberInput(scope.row, 'unitPrice', val)"
+            @keydown="onCellKeydown(scope.row, scope.$index, 'unitPrice', $event)"
           />
         </template>
       </el-table-column>
       <el-table-column label="金额" width="100" align="right">
         <template #default="scope">
           {{ calcAmountText(scope.row.quantity, scope.row.unitPrice) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" min-width="120">
-        <template #default="scope">
-          <el-input v-model="scope.row.remark" aria-label="备注" size="small" />
         </template>
       </el-table-column>
     </el-table>
@@ -218,7 +227,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
@@ -231,7 +240,6 @@ interface DetailTableRow {
   spec: string
   quantity: number | string
   unitPrice: number | string
-  remark: string
 }
 const createBlankRow = (): DetailTableRow => ({
   equipmentName: '',
@@ -241,13 +249,66 @@ const createBlankRow = (): DetailTableRow => ({
   spec: '',
   quantity: '',
   unitPrice: '',
-  remark: '',
 })
 
 // 设备明细只存在本地，暂不调用保存接口
 const detailRows = ref<DetailTableRow[]>([createBlankRow()])
 const addDetailRow = () => {
   detailRows.value.push(createBlankRow())
+  const newIndex = detailRows.value.length - 1
+  // 新增后自动聚焦新行首列，便于连续录单
+  nextTick(() => focusCell(newIndex, ROW_COLUMNS[0]!))
+}
+
+// 设备明细列顺序（决定键盘导航的列流转顺序），与表格列一致
+const ROW_COLUMNS = [
+  'equipmentName',
+  'equipmentModel',
+  'type',
+  'brand',
+  'spec',
+  'quantity',
+  'unitPrice',
+]
+
+// 各单元格输入框实例（行号 + 列名 定位，用于键盘导航时切换焦点）
+const cellRefs = ref<Record<string, { focus: () => void } | null>>({})
+const setCellRef = (rowIndex: number, col: string, el: unknown) => {
+  const key = `${rowIndex}:${col}`
+  if (el) cellRefs.value[key] = el as { focus: () => void }
+  else delete cellRefs.value[key]
+}
+const focusCell = (rowIndex: number, col: string) => {
+  cellRefs.value[`${rowIndex}:${col}`]?.focus()
+}
+
+// 单元格键盘导航（与订单详情弹窗一致）：
+// - 回车：跳到下一列；末列回车 → 下一行首列；最后一行末列回车 → 新增一行并聚焦其首列
+// - 左右方向键：同列切换
+const onCellKeydown = (
+  _row: DetailTableRow,
+  rowIndex: number,
+  col: string,
+  e: KeyboardEvent,
+) => {
+  const idx = ROW_COLUMNS.indexOf(col)
+  if (idx < 0) return
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (idx < ROW_COLUMNS.length - 1) {
+      focusCell(rowIndex, ROW_COLUMNS[idx + 1]!)
+    } else if (rowIndex < detailRows.value.length - 1) {
+      focusCell(rowIndex + 1, ROW_COLUMNS[0]!)
+    } else {
+      addDetailRow()
+    }
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    if (idx < ROW_COLUMNS.length - 1) focusCell(rowIndex, ROW_COLUMNS[idx + 1]!)
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    if (idx > 0) focusCell(rowIndex, ROW_COLUMNS[idx - 1]!)
+  }
 }
 
 const props = defineProps<{
@@ -329,6 +390,7 @@ const resetForm = () => {
   contactName.value = ''
   selectedRegion.value = []
   detailRows.value = [createBlankRow()]
+  cellRefs.value = {}
   formRef.value?.clearValidate()
 }
 
@@ -601,7 +663,7 @@ const handleSubmit = () => {
       continue
     }
 
-    details.push({ name, model, type: typeStr, brand: brandStr, spec: specStr, number: qtyStr, price: priceStr, remark: r.remark })
+    details.push({ name, model, type: typeStr, brand: brandStr, spec: specStr, number: qtyStr, price: priceStr })
   }
 
   if (detailErrors.length > 0) {

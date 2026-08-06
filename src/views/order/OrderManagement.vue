@@ -1,5 +1,5 @@
 <template>
-  <div class="order-management">
+  <div class="order-management" v-loading="loading">
     <!-- 页面标题 -->
     <div class="page-header">
       <h2 class="title">订单管理</h2>
@@ -11,6 +11,7 @@
         <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
       </div>
     </div>
+
     <!-- 筛选栏 -->
     <div class="filter-section" v-if="isFilterVisible">
       <div class="filter-item">
@@ -61,7 +62,7 @@
       </div>
       <div class="filter-item">
         <label for="createTime">归属项目：</label>
-        <el-select ></el-select>
+        <el-select style="width: 200px"></el-select>
       </div>
       <div class="filter-item">
         <label for="createTime">创建时间:</label>
@@ -71,6 +72,7 @@
         <el-button @click="handleReset">重置</el-button>
       </div>
     </div>
+
     <!-- 表格 -->
     <div class="table-section">
       <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
@@ -126,9 +128,9 @@ import { useProject } from '@/composables/project/useProject'
 import { useCompany } from '@/composables/admin/useCompany'
 import { useOrder, type Order } from '@/composables/order/useOrder'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
-import OrderForm from './AddOrderForm.vue'
-import OrderDetailDialog from './OrderDetailDialog.vue'
-import type { OrderSubmitPayload } from './AddOrderForm.vue'
+import OrderForm from '@/components/order/AddOrderForm.vue'
+import OrderDetailDialog from '@/components/order/OrderDetailDialog.vue'
+import type { OrderSubmitPayload } from '@/components/order/AddOrderForm.vue'
 
 // 订单客户列表（从 /client/order/getInfoCustomer 获取，用于筛选栏下拉和表单自动补全）
 const orderCustomers = ref<OrderCustomer[]>([])
@@ -166,6 +168,7 @@ const selectedRows = ref<Order[]>([])
 const detailDialogVisible = ref(false)
 const currentOrder = ref<Order | null>(null)
 const isFilterVisible = ref(true)
+const loading = ref(false)
 
 const filterForm = reactive({
   status: '',
@@ -220,16 +223,7 @@ const paginatedData = computed(() => {
 
 const getRowKey = (row: Order) => row.id
 
-const getStatusType = (status: string) => {
-  switch (status) {
-    case '编辑中':
-      return 'warning'
-    case '已提交':
-      return 'success'
-    default:
-      return 'info'
-  }
-}
+import { getStatusTagType as getStatusType } from '@/composables/common/useOrderStatus'
 
 const handleSelectionChange = (val: Order[]) => {
   selectedRows.value = val
@@ -339,9 +333,21 @@ const handleReset = () => {
   currentPage.value = 1
 }
 
-onMounted(() => {
-  Promise.all([fetchOrderCustomers(), fetchProjects(), fetchCompanyNames(), fetchOrders(), fetchOrderManagers()])
-})
+const loadData = async () => {
+  loading.value = true
+  try {
+    // 先拉订单列表 /client/order/getOrder
+    await fetchOrders()
+    // 订单列表返回后，逐个拉取筛选用下拉数据，避免一次性并发过多请求
+    await fetchOrderCustomers() // /client/order/getInfoCustomer
+    await fetchProjects()       // /client/project/getProject
+    await fetchCompanyNames()   // /client/user/getInfoCompany
+    await fetchOrderManagers()  // /client/order/getInfoManager
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadData)
 </script>
 
 <style scoped>
