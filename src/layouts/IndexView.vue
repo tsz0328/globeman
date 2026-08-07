@@ -9,6 +9,7 @@ import CarouselComponent from '@/components/Index/CarouselComponent.vue'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { Promotion } from '@element-plus/icons-vue'
+import logoImg from '@/assets/logo.jpg'
 
 const time = ref('')
 const pad = (n: number):string => n.toString().padStart(2, '0')
@@ -40,7 +41,7 @@ onMounted(() => {
     <div class="head idx-base">
       <div class="logo">
         <div class="logo_left">
-          <img src="/logo.jpg" alt="logo" />
+          <img :src="logoImg" alt="logo" />
         </div>
         <div class="logo_right">
           <div class="company_name">湖南全球人信息技术有限公司</div>

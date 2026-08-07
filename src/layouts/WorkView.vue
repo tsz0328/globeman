@@ -5,6 +5,7 @@ import MenuComponent from '@/components/layout/MenuComponent.vue'
 import { ElMessage } from 'element-plus'
 import { Bell } from '@element-plus/icons-vue'
 import { useAvatar } from '@/composables/common/useAvatar'
+import logoImg from '@/assets/logo.jpg'
 
 const { currentAvatarUrl } = useAvatar()
 const avatarUrl = computed(() => currentAvatarUrl.value)
@@ -24,7 +25,7 @@ function handleProfile() {
 <template>
   <div class="head">
     <div class="head-left">
-      <img src="/logo.jpg" @click="handleIndex" alt="" />
+      <img :src="logoImg" @click="handleIndex" alt="" />
     </div>
     <div class="head-right">
       <div class="notice">

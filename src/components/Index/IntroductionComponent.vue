@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import logoImg from '@/assets/logo.jpg'
+import contentBg from '@/assets/contentBg.png'
 </script>
 
 <template>
@@ -8,7 +10,7 @@
   >
     <div data-v-35ec83d2="" data-v-c9becc0e="" class="title">
       <img
-                        src="/logo.png"
+        :src="logoImg"
         alt="湖南全球人logo"
         />
       <div data-v-35ec83d2="" data-v-c9becc0e="" class="title-text">
@@ -28,7 +30,7 @@
   overflow: hidden;
   border-radius: 5px 5px 0 0;
   height: 399px;
-  background: url(/contentBg.30fe6623.png) no-repeat;
+  background: url(v-bind(contentBg)) no-repeat;
   background-size: 100% 100%;
   width: 100%;
   padding: 25px 30px 24px;

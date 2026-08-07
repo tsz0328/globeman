@@ -1,12 +1,13 @@
 import { computed, ref } from 'vue'
 import Cookies from 'js-cookie'
+import defaultAvatar from '@/assets/2.jpg'
 
 // === 共享状态（模块级单例：登录时由 useLogin 写入 cookie，上传头像时由此处更新；保证页头小头像与资料页同步刷新）===
 const avatarPath = ref<string>(Cookies.get('avatar') || '')
 
 // === 工具函数（头像 URL 拼接）===
 export function buildAvatarUrl(avatar: string): string {
-  if (!avatar) return '/1.jpg'
+  if (!avatar) return defaultAvatar
   if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
     return avatar
   }

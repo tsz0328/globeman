@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Carousel, Navigation, Pagination, Slide } from 'vue3-carousel'
+import banner1 from '@/assets/1.jpg'
+import banner2 from '@/assets/2.jpg'
 
 const carouselConfig = {
   itemsToShow: 1,
@@ -10,8 +12,8 @@ const carouselConfig = {
 }
 
 const bannerList = [
-  { id: 1, imgUrl: '/1.jpg' },
-  { id: 2, imgUrl: '/2.jpg' },
+  { id: 1, imgUrl: banner1 },
+  { id: 2, imgUrl: banner2 },
 ]
 </script>
 
