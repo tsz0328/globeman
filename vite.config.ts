@@ -21,15 +21,6 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path,
         // rewrite: (path) => path.replace(/^\/api/, ''),
-        // 调试：打印每个接口请求的真实转发地址
-        configure(proxy) {
-          proxy.on('proxyReq', (proxyReq) => {
-            console.log(
-              ' 代理转发真实地址：',
-              proxyReq.protocol + '//' + proxyReq.host + proxyReq.path,
-            )
-          })
-        },
       },
     },
   },

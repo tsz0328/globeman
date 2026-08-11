@@ -8,6 +8,9 @@ export type StatusTagType = '' | 'primary' | 'success' | 'warning' | 'danger' | 
 // 已提交状态常量（提交按钮锁定判断用）
 export const SUBMITTED_STATUS = '已提交'
 
+// 编辑中状态常量（草稿态，未提交；此状态下设备明细行不可展开查看 SN 子表）
+export const EDITING_STATUS = '编辑中'
+
 // 已锁定（不可再编辑 / 提交 / 删除）的状态集合
 export const LOCKED_STATUSES = ['已确认', '已完成', '已提交'] as const
 

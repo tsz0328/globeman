@@ -120,8 +120,6 @@ const fetchRepairOrders = async () => {
     if (res.code === 200 && Array.isArray(res.data)) {
       rawRepairOrders.value = res.data
     }
-    // 打印完整响应，方便在开发者工具 Console / Network 查看真实字段
-    console.log('[repair/getOrder] 原始响应：', res)
   } catch (error) {
     console.error('获取维修订单失败:', error)
   }

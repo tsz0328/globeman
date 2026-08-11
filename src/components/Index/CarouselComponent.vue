@@ -8,7 +8,7 @@ const carouselConfig = {
   wrapAround: true,
   autoplay: 3000,       // 这里！全小写！
   transition: 1200,
-  pauseOnHover: true, // 鼠标放上去不暂停
+  pauseOnHover: true, // 鼠标悬停时暂停自动播放
 }
 
 const bannerList = [

@@ -34,28 +34,6 @@ request.interceptors.request.use(
         console.warn('No token found in Cookies!')
       }
     }
-    // 调试：打印每个接口请求的所有相关地址
-    // 临时调试用，验证完应移除。
-    {
-      const dbgOrigin =
-        typeof window !== 'undefined' && window.location?.origin
-          ? window.location.origin
-          : '(无 window)'
-      const dbgFullPath = (config.baseURL || '') + (config.url || '')
-      const dbgAbsolute =
-        dbgOrigin !== '(无 window)'
-          ? new URL(dbgFullPath, dbgOrigin).href
-          : dbgFullPath
-      console.log('[request] 接口地址信息', {
-        method: (config.method || '').toUpperCase(),
-        url: config.url,
-        baseURL: config.baseURL,
-        相对路径: dbgFullPath,
-        当前页origin: dbgOrigin,
-        浏览器实际请求地址: dbgAbsolute,
-      })
-    }
-
     return config
   },
   (errors) => {

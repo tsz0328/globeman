@@ -80,6 +80,13 @@
         <el-menu-item index="/work/inbound">入库管理</el-menu-item>
         <el-menu-item index="/work/inventory">库存管理</el-menu-item>
       </el-sub-menu>
+
+      <el-menu-item index="/work/asset">
+        <el-icon>
+          <Coin />
+        </el-icon>
+        <span>固定资产管理</span>
+      </el-menu-item>
     </el-menu>
   </div>
 </template>

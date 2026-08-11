@@ -52,8 +52,8 @@
       <el-table :data="detailTableData" border class="detail-table" row-key="id" :expand-row-keys="expandedKeys"
         max-height="30vh"
         @expand-change="onExpandChange" :row-class-name="rowClassName" @row-click="onRowClick">
-        <!-- 展开行 -->
-        <el-table-column type="expand">
+        <!-- 展开行：编辑中状态不展示展开箭头，行不可展开 -->
+        <el-table-column type="expand" v-if="!isEditing">
           <template #default="scope">
             <div v-if="!scope.row.isNew && scope.row.id" class="sn-panel">
               <div>
@@ -216,11 +216,13 @@ const { submitOrder } = useOrder()
 
 // 订单是否已提交（锁定态）：成功后本地乐观置位 + 父组件回拉最新 status 后由 props.order.status 驱动
 // 状态为 "已提交" 时：禁用「提交」按钮、隐藏新增设备行
-import { SUBMITTED_STATUS } from '@/composables/common/useOrderStatus'
+import { SUBMITTED_STATUS, EDITING_STATUS } from '@/composables/common/useOrderStatus'
 const submittedFlag = ref(false)
 const isSubmitted = computed(() => submittedFlag.value || props.order?.status === SUBMITTED_STATUS)
 // 维修订单（通过 details 传入）为只读查看：不展示新增设备行、不显示「提交」按钮
 const isRepair = computed(() => !!props.details && props.details.length > 0)
+// 编辑中（草稿态）：设备明细行不可展开，避免在未提交时误触 SN 子表
+const isEditing = computed(() => props.order?.status === EDITING_STATUS)
 
 interface DetailTableRow {
   id?: number
@@ -445,6 +447,7 @@ const getSnStatusType = (
 
 // 展开/收起时同步已展开列表，并在展开时拉取 SN 子记录
 const onExpandChange = (row: DetailTableRow, expandedRows: DetailTableRow[]) => {
+  if (isEditing.value) return
   expandedKeys.value = expandedRows
     .map((r) => r.id)
     .filter((id): id is number => typeof id === 'number' && id > 0)
@@ -459,6 +462,7 @@ const onExpandChange = (row: DetailTableRow, expandedRows: DetailTableRow[]) => 
 // onExpandChange 刚把行展开、row-click 又立刻把它收起，空白行看不到。
 // 因此当点击来自展开列（column.type === 'expand'）时直接跳过，展开只由 onExpandChange 处理。
 const onRowClick = (row: DetailTableRow, column?: { type?: string }) => {
+  if (isEditing.value) return
   if (column && column.type === 'expand') return
   // 新增行没有明细 id，不触发展开
   if (row.isNew || !row.id || row.id <= 0) return
@@ -471,8 +475,9 @@ const onRowClick = (row: DetailTableRow, column?: { type?: string }) => {
   }
 }
 
-// 给已有明细行添加可点击样式（光标变手型）
+// 给已有明细行添加可点击样式（光标变手型）；编辑中态不可展开，不显示手型
 const rowClassName = ({ row }: { row: DetailTableRow }): string => {
+  if (isEditing.value) return ''
   return !row.isNew && row.id && row.id > 0 ? 'clickable-row' : ''
 }
 

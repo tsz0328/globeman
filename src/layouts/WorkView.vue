@@ -5,7 +5,7 @@ import MenuComponent from '@/components/layout/MenuComponent.vue'
 import { ElMessage } from 'element-plus'
 import { Bell } from '@element-plus/icons-vue'
 import { useAvatar } from '@/composables/common/useAvatar'
-import logoImg from '@/assets/logo.jpg'
+import logoPng from '@/assets/logo.png'
 
 const { currentAvatarUrl } = useAvatar()
 const avatarUrl = computed(() => currentAvatarUrl.value)
@@ -25,7 +25,7 @@ function handleProfile() {
 <template>
   <div class="head">
     <div class="head-left">
-      <img :src="logoImg" @click="handleIndex" alt="" />
+      <img :src="logoPng" class="logo-link" @click="handleIndex" alt="" />
     </div>
     <div class="head-right">
       <div class="notice">
@@ -53,6 +53,7 @@ function handleProfile() {
   display: flex;
   align-items: center;
   flex-direction: row;
+  padding: 10px 0;
 }
 
 .body {
@@ -72,7 +73,18 @@ function handleProfile() {
 .head-left img {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain; /* 等比缩放，完整显示 */
+  object-fit: contain;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.logo-link {
+  cursor: pointer;
+}
+
+.logo-link:hover {
+  opacity: 0.75;
+  filter: brightness(1.05);
+  transform: scale(1.05);
 }
 
 .head-right {

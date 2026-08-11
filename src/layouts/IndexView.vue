@@ -9,7 +9,7 @@ import CarouselComponent from '@/components/Index/CarouselComponent.vue'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { Promotion } from '@element-plus/icons-vue'
-import logoImg from '@/assets/logo.jpg'
+import logoPng from '@/assets/logo.png'
 
 const time = ref('')
 const pad = (n: number):string => n.toString().padStart(2, '0')
@@ -41,7 +41,7 @@ onMounted(() => {
     <div class="head idx-base">
       <div class="logo">
         <div class="logo_left">
-          <img :src="logoImg" alt="logo" />
+          <img :src="logoPng" alt="logo" />
         </div>
         <div class="logo_right">
           <div class="company_name">湖南全球人信息技术有限公司</div>
@@ -51,10 +51,9 @@ onMounted(() => {
       <div class="time">
         {{ time }}
       </div>
-      <!--搜索栏暂无功能-->
+      <!-- TODO: 搜索栏暂无功能，待接入公告搜索接口 -->
       <div class="search">
         <div class="search-icon">
-          <!-- 搜索输入框 -->
           <input
             id="announcementSearch"
             name="announcementSearch"
@@ -63,7 +62,6 @@ onMounted(() => {
             aria-label="公告标题搜索"
             placeholder="请输入公告标题包含的关键字"
           />
-          <!-- 搜索按钮 -->
           <button type="button" class="search-button">搜索</button>
         </div>
       </div>
@@ -83,7 +81,7 @@ onMounted(() => {
           </h4>
         </div>
         <div class="notice-content">
-          <h4>11111</h4>
+          <!-- TODO: 接入动态最新公告数据 -->
         </div>
       </div>
       <div class="content">
@@ -126,15 +124,16 @@ onMounted(() => {
 
 .logo {
   width: 480px;
-  height: 100%; /* 直接写死 68px，和头部一样高 */
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   overflow: hidden;
 }
 
 .logo_left {
-  width: 120px;
+  width: 80px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -142,9 +141,9 @@ onMounted(() => {
 }
 
 .logo_left img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* 等比缩放，完整显示 */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .logo_right {
