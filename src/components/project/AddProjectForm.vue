@@ -11,7 +11,7 @@
         />
       </el-form-item>
       <el-form-item prop="type" label="项目类型">
-  <el-select
+  <el-select filterable
           v-model="form.type"
           placeholder="请选择项目类型"
           @keyup.enter.prevent="handleEnter($event)"
@@ -24,7 +24,7 @@
         </el-select>
       </el-form-item>
       <el-form-item prop="leaderAccount" label="负责人">
-  <el-select
+  <el-select filterable
           v-model="leaderName"
           placeholder="请选择负责人"
           @change="handleLeaderChange"
@@ -45,7 +45,7 @@
           v-model="customerName"
           :fetch-suggestions="queryCustomerSearch"
           placeholder="请输入客户名称"
-          :trigger-on-focus="false"
+          :trigger-on-focus="true"
           @select="handleCustomerSelect"
           @blur="handleCustomerBlur"
           @keyup.enter.prevent="handleEnter($event)"
@@ -58,7 +58,7 @@
           v-model="contactName"
           :fetch-suggestions="queryContactSearch"
           placeholder="请输入联系人"
-          :trigger-on-focus="false"
+          :trigger-on-focus="true"
           @select="handleContactSelect"
           @blur="handleContactBlur"
           @keyup.enter.prevent="handleSubmit"

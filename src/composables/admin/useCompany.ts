@@ -49,7 +49,7 @@ export function useCompany() {
   const deleteCompany = async (id: number): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await deleteCompanyApi([id])
+      const res = await deleteCompanyApi(id)
       if (res.code === 200) {
         companyList.value = companyList.value.filter((c) => c.id !== id)
         return true
@@ -63,12 +63,13 @@ export function useCompany() {
     }
   }
 
-  // 批量删除公司（一次请求传 ids 数组给后端）
+  // 批量删除公司（移除数组型批量接口，改为逐个调用单删接口）
   const batchDeleteCompanies = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await deleteCompanyApi(ids)
-      if (res.code === 200) {
+      const results = await Promise.all(ids.map((id) => deleteCompanyApi(id)))
+      const allOk = results.every((r) => r.code === 200)
+      if (allOk) {
         await fetchCompanies()
         return true
       }

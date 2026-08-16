@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Cookies from 'js-cookie'
+import { useAvatar } from '@/composables/common/useAvatar'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import IndexCardHeader from '@/components/Index/IndexCardHeader.vue'
@@ -13,6 +14,8 @@ function clearUserInfo() {
 
 function handleLogout() {
   clearUserInfo()
+  // 重置页头头像单例，避免退出后残留上一个账号头像
+  useAvatar().setAvatar('')
   ElMessage.success('退出成功')
   router.push('login')
 }

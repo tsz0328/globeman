@@ -47,51 +47,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getDepartmentsApi, type DepartmentData } from '@/api/admin/DepartmentApi'
 import AddDepartmentForm from '@/components/admin/AddDepartmentForm.vue'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const tableData = ref<DepartmentData[]>([])
 const loading = ref(false)
 const selectedRows = ref<DepartmentData[]>([])
-const currentPage = ref(1)
-const pageSize = ref(8)
-
-const filterForm = ref({
-  name: '',
-})
 
 // 弹窗
 const addDialogVisible = ref(false)
 
-const getRowKey = (row: DepartmentData) => row.name
-
-const filteredData = computed(() => {
-  return tableData.value.filter((item) => {
-    if (filterForm.value.name && !item.name.includes(filterForm.value.name)) {
-      return false
-    }
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  tableData,
+  (item: DepartmentData, form) => {
+    if (form.name && !item.name.includes(form.name)) return false
     return true
-  })
-})
+  },
+  { name: '' },
+  8,
+)
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return filteredData.value.slice(start, start + pageSize.value)
-})
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
+
+const getRowKey = (row: DepartmentData) => row.name
 
 const handleSelectionChange = (rows: DepartmentData[]) => {
   selectedRows.value = rows
-}
-
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.value = { name: '' }
-  currentPage.value = 1
 }
 
 const handleAdd = () => {

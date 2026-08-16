@@ -11,97 +11,26 @@
         <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
       </div>
     </div>
-    <!-- 筛选栏 -->
-    <div class="filter-section" v-if="isFilterVisible">
-
-      <div class="filter-item">
-        <label for="orderName">订单名称：</label>
-        <el-input id="orderName" aria-label="订单名称" v-model="filterForm.orderName" placeholder="请输入订单名称"
-          style="width: 150px" />
-      </div>
-
-      <div class="filter-item">
-        <label for="orderType">订单类型：</label>
-        <el-select id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
-          <el-option label="全部类型" value="" />
-          <el-option label="销售订单" value="销售" />
-          <el-option label="采购订单" value="采购" />
-          <el-option label="维修订单" value="维修" />
-        </el-select>
-      </div>
-
-      <div class="filter-item">
-        <label for="orderStatus">订单状态：</label>
-        <el-select id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态"
-          style="width: 150px">
-          <el-option label="全部状态" value="" />
-          <el-option label="编辑中" value="编辑中" />
-          <el-option label="已确认" value="已确认" />
-        </el-select>
-      </div>
-
-      <div class="filter-item">
-        <label for="leader">负责人：</label>
-        <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人"
-          style="width: 150px">
-          <el-option label="全部负责人" value="" />
-          <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
-        </el-select>
-      </div>
-
-      <div class="filter-item">
-        <label for="customer">客户：</label>
-        <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
-          <el-option label="全部客户" value="" />
-          <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
-            :value="customer.name" />
-        </el-select>
-      </div>
-
-      <div class="filter-item">
-        <label for="createTime">创建时间:</label>
-        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
-          style="width: 150px" />
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </div>
-    </div>
+    <!-- 筛选栏（子组件：自管理筛选 UI，查询/重置事件上抛） -->
+    <ProjectOrderFilter
+      v-if="isFilterVisible"
+      :filter-form="filterForm"
+      :managers="managers"
+      :customers="orderCustomers"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
-        :row-key="getRowKey">
-        <el-table-column type="selection" width="39" :selectable="isRowSelectable" />
-        <el-table-column prop="name" label="订单名称" />
-        <el-table-column prop="type" label="订单类型" width="81" />
-        <el-table-column prop="customer" label="客户" />
-        <el-table-column prop="contact" label="客户联系人" />
-        <el-table-column prop="contactPhone" label="联系人电话" width="111" />
-        <el-table-column prop="leaderAccount" label="负责人" />
-        <el-table-column prop="province" label="执行省份" />
-        <el-table-column prop="city" label="执行市" />
-        <el-table-column prop="district" label="执行区" />
-        <el-table-column prop="address" label="送修地址" />
-        <el-table-column prop="status" label="状态" width="81">
-          <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)">
-              {{ scope.row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="300">
-          <template #default="scope">
-            <div class="action-buttons">
-              <el-button type="primary" size="small" @click="goToDetail(scope.row.id)">查看</el-button>
-              <el-button size="small" @click="goToOrderDetailPage(scope.row)">详情</el-button>
-              <el-button type="success" size="small" @click="handleSubmitBtn(scope.row)"
-                :disabled="scope.row.status === '已确认'">提交</el-button>
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
-                :disabled="scope.row.status === '已确认'">删除</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 订单表格（子组件：行操作以事件上抛） -->
+      <ProjectOrderTable
+        :orders="paginatedData"
+        @view="goToDetail"
+        @detail="goToOrderDetailPage"
+        @submit="handleSubmitBtn"
+        @delete="handleDeleteBtn"
+        @selection-change="handleSelectionChange"
+      />
 
       <div class="pagination-section">
         <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
@@ -118,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/project/useProject'
@@ -126,7 +55,10 @@ import { useOrder, type Order } from '@/composables/order/useOrder'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 import OrderForm from '@/components/order/AddOrderForm.vue'
 import OrderDetailDialog from '@/components/order/OrderDetailDialog.vue'
-import type { OrderSubmitPayload } from '@/components/order/AddOrderForm.vue'
+import type { OrderSubmitPayload } from '@/api/order/types'
+import { useTableQuery } from '@/composables/common/useTableQuery'
+import ProjectOrderFilter from './ProjectOrderFilter.vue'
+import ProjectOrderTable from './ProjectOrderTable.vue'
 
 const route = useRoute()
 const { fetchProjects } = useProject()
@@ -155,8 +87,6 @@ const fetchOrderManagers = async () => {
   }
 }
 
-const currentPage = ref(1)
-const pageSize = ref(8)
 const projectId = ref('')
 const orderFormVisible = ref(false)
 const selectedRows = ref<Order[]>([])
@@ -173,56 +103,29 @@ const parseProjectId = (id: unknown): string => {
   return ''
 }
 
-const filterForm = ref({
-  status: '',
-  type: '',
-  orderName: '',
-  leaderAccount: '',
-  customer: '',
-  createTime: null,
-})
-
-const filteredData = computed(() => {
-  return orderList.value.filter((item) => {
-    if (filterForm.value.status && item.status !== filterForm.value.status) {
-      return false
-    }
-    if (filterForm.value.type && item.type !== filterForm.value.type) {
-      return false
-    }
-    if (filterForm.value.orderName && !item.name.includes(filterForm.value.orderName)) {
-      return false
-    }
-    if (filterForm.value.leaderAccount && item.leaderAccount !== filterForm.value.leaderAccount) {
-      return false
-    }
-    if (filterForm.value.customer && item.customer !== filterForm.value.customer) {
-      return false
-    }
-    if (filterForm.value.createTime) {
-      const filterDate = new Date(filterForm.value.createTime)
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  orderList,
+  (item: Order, form) => {
+    if (form.status && item.status !== form.status) return false
+    if (form.type && item.type !== form.type) return false
+    if (form.orderName && !item.name.includes(form.orderName)) return false
+    if (form.leaderAccount && item.leaderAccount !== form.leaderAccount) return false
+    if (form.customer && item.customer !== form.customer) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
       const itemDate = new Date(item.createTime)
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
-      }
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
     }
     return true
-  })
-})
+  },
+  { status: '', type: '', orderName: '', leaderAccount: '', customer: '', createTime: null },
+  8,
+)
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
-
-const getRowKey = (row: Order) => row.id
-
-const isRowSelectable = (row: Order) => {
-  return !isOrderLocked(row.status)
-}
-
-import { getStatusTagType as getStatusType, isOrderLocked } from '@/composables/common/useOrderStatus'
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 
 const goBack = () => {
   window.close()
@@ -345,22 +248,6 @@ const handleBatchDelete = async () => {
   }
 }
 
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.value = {
-    status: '',
-    type: '',
-    orderName: '',
-    leaderAccount: '',
-    customer: '',
-    createTime: null,
-  }
-  currentPage.value = 1
-}
-
 const handleOrderSubmit = async (data: OrderSubmitPayload) => {
   try {
     // 拆分出订单数据与设备明细，避免把 details 字段误传进订单创建接口
@@ -431,20 +318,6 @@ onMounted(loadData)
 
 .action-buttons {
   display: flex;
-}
-
-.filter-section {
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  justify-content: space-between;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .table-section {

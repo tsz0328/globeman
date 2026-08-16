@@ -23,11 +23,11 @@ export async function getInfoCompanyApi(): Promise<ApiResponse<string[]>> {
   })
 }
 
-export async function deleteCompanyApi(ids: number[]): Promise<ApiResponse<unknown>> {
+export async function deleteCompanyApi(id: number): Promise<ApiResponse<unknown>> {
   return request({
     url: '/client/company/delete',
     method: 'post',
-    data: ids,
+    data: id,
   })
 }
 

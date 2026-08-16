@@ -1,29 +1,32 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Cookies from 'js-cookie'
-import IndexView from '@/layouts/IndexView.vue'
-import WorkView from '@/layouts/WorkView.vue'
-import LoginComponent from '@/views/index/LoginComponent.vue'
-import LoginSuccessComponent from '@/views/index/LoginSuccess.vue'
-import UserManagementComponent from '@/views/admin/UserManagement.vue'
-import WorkHomeComponent from '@/views/layout/WorkHome.vue'
-import ProjectManagementComponent from '@/views/project/ProjectManagement.vue'
-import CustomerManagementComponent from '@/views/admin/CustomerManagement.vue'
-import CompanyManagementComponent from '@/views/admin/CompanyManagement.vue'
-import OrderDetailComponent from '@/views/project/ProjectOrderDetail.vue'
-import RepairOrderDetailComponent from '@/views/repair/RepairOrderDetail.vue'
-import ProjectOrderManagementComponent from '@/views/project/ProjectOrderManagement.vue'
-import RepairManagementComponent from '@/views/repair/RepairManagement.vue'
-import RepairOrderManagementComponent from '@/views/repair/RepairOrderManagement.vue'
-import RepairAcceptComponent from '@/views/repair/RepairAccept.vue'
-import EquipmentRepairInformationComponent from '@/views/repair/EquipmentRepairInformation.vue'
-import OutboundManagementComponent from '@/views/inventory/OutboundManagement.vue'
-import InboundManagementComponent from '@/views/inventory/InboundManagement.vue'
-import InventoryManagementComponent from '@/views/inventory/InventoryManagement.vue'
-import OrderManagementComponent from '@/views/order/OrderManagement.vue'
-import UserDetailComponent from '@/views/admin/UserDetail.vue'
-import ProfileInfoComponent from '@/views/layout/ProfileInfo.vue'
-import DepartmentManagementComponent from '@/views/admin/DepartmentManagement.vue'
-import CompanyDetailComponent from '@/views/admin/CompanyDetail.vue'
+
+// 路由级代码分割：全部视图改为动态 import，避免首屏加载全部 14k 行代码
+const IndexView = () => import('@/layouts/IndexView.vue')
+const WorkView = () => import('@/layouts/WorkView.vue')
+const Login = () => import('@/views/index/Login.vue')
+const LoginSuccessComponent = () => import('@/views/index/LoginSuccess.vue')
+const UserManagementComponent = () => import('@/views/admin/UserManagement.vue')
+const Home = () => import('@/views/home/Home.vue')
+const ProjectManagementComponent = () => import('@/views/project/ProjectManagement.vue')
+const CustomerManagementComponent = () => import('@/views/admin/CustomerManagement.vue')
+const CompanyManagementComponent = () => import('@/views/admin/CompanyManagement.vue')
+const OrderDetailComponent = () => import('@/views/project/ProjectOrderDetail.vue')
+const RepairOrderDetailComponent = () => import('@/views/repair/RepairOrderDetail.vue')
+const ProjectOrderManagementComponent = () => import('@/views/project/ProjectOrderManagement.vue')
+const RepairManagementComponent = () => import('@/views/repair/RepairManagement.vue')
+const RepairOrderManagementComponent = () => import('@/views/repair/RepairOrderManagement.vue')
+const RepairAcceptComponent = () => import('@/views/repair/RepairAccept.vue')
+const EquipmentRepairInfo = () => import('@/views/repair/EquipmentRepairInfo.vue')
+const OutboundManagementComponent = () => import('@/views/inventory/OutboundManagement.vue')
+const InboundManagementComponent = () => import('@/views/inventory/InboundManagement.vue')
+const InventoryManagementComponent = () => import('@/views/inventory/InventoryManagement.vue')
+const OrderManagementComponent = () => import('@/views/order/OrderManagement.vue')
+const UserDetailComponent = () => import('@/views/admin/UserDetail.vue')
+const Profile = () => import('@/views/profile/Profile.vue')
+const DepartmentManagementComponent = () => import('@/views/admin/DepartmentManagement.vue')
+const CompanyDetailComponent = () => import('@/views/admin/CompanyDetail.vue')
+const FixedAssetManagement = () => import('@/views/asset/FixedAssetManagement.vue')
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -42,7 +45,7 @@ const router = createRouter({
         {
           path: 'login',
           name: 'Login',
-          component: LoginComponent,
+          component: Login,
         },
         {
           path: 'success',
@@ -60,12 +63,12 @@ const router = createRouter({
         {
           path: 'home',
           name: 'Home',
-          component: WorkHomeComponent,
+          component: Home,
         },
         {
           path: 'profile',
           name: 'Profile',
-          component: ProfileInfoComponent,
+          component: Profile,
         },
         {
           path: 'user',
@@ -122,6 +125,11 @@ const router = createRouter({
           name: 'InventoryManagement',
           component: InventoryManagementComponent,
         },
+        {
+          path: 'fixedAsset',
+          name: 'FixedAssetManagement',
+          component: FixedAssetManagement,
+        }
       ],
     },
     {
@@ -147,7 +155,7 @@ const router = createRouter({
     {
       path: '/equipment-repair-information/:id',
       name: 'EquipmentRepairInformation',
-      component: EquipmentRepairInformationComponent,
+      component: EquipmentRepairInfo,
     },
     {
       path: '/user-detail/:id',

@@ -13,7 +13,7 @@
     <div class="filter-section" v-if="isFilterVisible">
       <div class="filter-item">
         <label for="orderStatus">订单状态：</label>
-        <el-select id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+        <el-select filterable id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="编辑中" value="编辑中" />
           <el-option label="已确认" value="已确认" />
@@ -21,7 +21,7 @@
       </div>
       <div class="filter-item">
         <label for="orderType">订单类型：</label>
-        <el-select id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
+        <el-select filterable id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
           <el-option label="全部类型" value="" />
           <el-option label="销售订单" value="销售" />
           <el-option label="采购订单" value="采购" />
@@ -38,14 +38,14 @@
       </div>
       <div class="filter-item">
         <label for="leader">负责人：</label>
-        <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人" style="width: 150px">
+        <el-select filterable id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人" style="width: 150px">
           <el-option label="全部负责人" value="" />
           <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="customer">客户：</label>
-        <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
+        <el-select filterable id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
           <el-option
             v-for="customer in orderCustomers"
@@ -131,14 +131,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useProject } from '@/composables/project/useProject'
-import { useOrder } from '@/composables/order/useOrder'
+import { useOrder, type Order } from '@/composables/order/useOrder'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 import OrderForm from '@/components/order/AddOrderForm.vue'
-import type { OrderFormData } from '@/components/order/AddOrderForm.vue'
+import type { OrderFormData } from '@/api/order/types'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const route = useRoute()
 const { fetchProjects } = useProject()
@@ -172,8 +173,6 @@ const fetchOrderManagers = async () => {
   }
 }
 
-const currentPage = ref(1)
-const pageSize = ref(8)
 const repairId = ref('')
 const orderFormVisible = ref(false)
 const isRepairIdValid = ref(true)
@@ -187,50 +186,29 @@ const parseRepairId = (id: unknown): string => {
   return ''
 }
 
-const filterForm = ref({
-  status: '',
-  type: '',
-  orderName: '',
-  leaderAccount: '',
-  customer: '',
-  createTime: null,
-})
-
-// 筛选数据
-const filteredData = computed(() => {
-  return repairOrderList.value.filter((item) => {
-    if (filterForm.value.status && item.status !== filterForm.value.status) {
-      return false
-    }
-    if (filterForm.value.type && item.type !== filterForm.value.type) {
-      return false
-    }
-    if (filterForm.value.orderName && !item.name.includes(filterForm.value.orderName)) {
-      return false
-    }
-    if (filterForm.value.leaderAccount && item.leaderAccount !== filterForm.value.leaderAccount) {
-      return false
-    }
-    if (filterForm.value.customer && item.customer !== filterForm.value.customer) {
-      return false
-    }
-    if (filterForm.value.createTime) {
-      const filterDate = new Date(filterForm.value.createTime)
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  repairOrderList,
+  (item: Order, form) => {
+    if (form.status && item.status !== form.status) return false
+    if (form.type && item.type !== form.type) return false
+    if (form.orderName && !item.name.includes(form.orderName)) return false
+    if (form.leaderAccount && item.leaderAccount !== form.leaderAccount) return false
+    if (form.customer && item.customer !== form.customer) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
       const itemDate = new Date(item.createTime)
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
-      }
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
     }
     return true
-  })
-})
+  },
+  { status: '', type: '', orderName: '', leaderAccount: '', customer: '', createTime: null },
+  8,
+)
 
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 
 const getRowKey = (row: { id: number }) => row.id
 
@@ -258,22 +236,6 @@ const goToRepairOrderDetail = (orderId: number, orderName: string) => {
   }
   const encodedName = encodeURIComponent(orderName)
   window.open(`/repair-order-detail/${orderId}?name=${encodedName}`, '_blank')
-}
-
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.value = {
-    status: '',
-    type: '',
-    orderName: '',
-    leaderAccount: '',
-    customer: '',
-    createTime: null,
-  }
-  currentPage.value = 1
 }
 
 const handleOrderSubmit = async (data: OrderFormData) => {

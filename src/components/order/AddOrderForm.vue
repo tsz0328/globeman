@@ -17,7 +17,7 @@
           </div>
           <div class="info-item">
             <span class="label">订单类型（必填）：</span>
-            <el-select
+            <el-select filterable
               v-model="form.type"
               class="info-input"
               placeholder="请选择订单类型"
@@ -35,7 +35,7 @@
         <div class="info-row">
           <div class="info-item">
             <span class="label">负责人（必填）：</span>
-            <el-select
+            <el-select filterable
               v-model="leaderName"
               class="info-input"
               placeholder="请选择负责人"
@@ -59,7 +59,7 @@
               class="info-input"
               :fetch-suggestions="queryCustomerSearch"
               placeholder="请输入客户名称"
-              :trigger-on-focus="false"
+              :trigger-on-focus="true"
               @select="handleCustomerSelect"
               @blur="handleCustomerBlur"
               @keyup.enter.prevent="handleEnter($event)"
@@ -77,7 +77,7 @@
               class="info-input"
               :fetch-suggestions="queryContactSearch"
               placeholder="请输入联系人"
-              :trigger-on-focus="false"
+              :trigger-on-focus="true"
               @select="handleContactSelect"
               @blur="handleContactBlur"
               @keyup.enter.prevent="handleEnter($event)"
@@ -129,94 +129,8 @@
       </div>
     </el-form>
 
-    <!-- 设备明细表格 -->
-    <el-table :data="detailRows" border class="detail-table" max-height="400">
-      <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column label="品名" min-width="120">
-        <template #default="scope">
-          <el-input v-model="scope.row.equipmentName" aria-label="品名" size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'equipmentName', el)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'equipmentName', $event)" />
-        </template>
-      </el-table-column>
-      <el-table-column label="型号" min-width="120">
-        <template #default="scope">
-          <el-input v-model="scope.row.equipmentModel" aria-label="型号" size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'equipmentModel', el)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'equipmentModel', $event)" />
-        </template>
-      </el-table-column>
-      <el-table-column label="类型" min-width="100">
-        <template #default="scope">
-          <el-input v-model="scope.row.type" aria-label="类型" size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'type', el)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'type', $event)" />
-        </template>
-      </el-table-column>
-      <el-table-column label="品牌" min-width="100">
-        <template #default="scope">
-          <el-input v-model="scope.row.brand" aria-label="品牌" size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'brand', el)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'brand', $event)" />
-        </template>
-      </el-table-column>
-      <el-table-column label="参数" min-width="120">
-        <template #default="scope">
-          <el-input v-model="scope.row.spec" aria-label="参数" size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'spec', el)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'spec', $event)" />
-        </template>
-      </el-table-column>
-      <el-table-column label="数量" width="80" align="center">
-        <template #default="scope">
-          <el-input
-            v-model="scope.row.quantity"
-            aria-label="数量"
-            size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'quantity', el)"
-            @input="(val: string) => filterNumberInput(scope.row, 'quantity', val)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'quantity', $event)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="单价" width="100" align="right">
-        <template #default="scope">
-          <el-input
-            v-model="scope.row.unitPrice"
-            aria-label="单价"
-            size="small"
-            :ref="(el: unknown) => setCellRef(scope.$index, 'unitPrice', el)"
-            @input="(val: string) => filterNumberInput(scope.row, 'unitPrice', val)"
-            @keydown="onCellKeydown(scope.row, scope.$index, 'unitPrice', $event)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="金额" width="100" align="right">
-        <template #default="scope">
-          {{ calcAmountText(scope.row.quantity, scope.row.unitPrice) }}
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <div class="table-actions">
-      <el-button size="small" @click="addDetailRow">+ 添加一行</el-button>
-    </div>
-
-    <!-- 弹窗底部盖章区 -->
-    <div class="form-footer">
-      <div class="footer-row">
-        <div class="footer-item">
-          <div><span class="label">采购单位（甲方盖章）：</span></div>
-          <div><span class="label">代表人（签名）：</span></div>
-          <div><span class="label">日期：</span></div>
-        </div>
-        <div class="footer-item">
-          <div><span class="label">供应单位（甲方盖章）：</span></div>
-          <div><span class="label">代表人（签名）：</span></div>
-          <div><span class="label">日期：</span></div>
-        </div>
-      </div>
-    </div>
+    <!-- 设备明细表格（子组件：本地录入 + 键盘导航） -->
+    <OrderDetailEditor v-model:rows="detailRows" />
 
     <!-- 弹窗底部 -->
     <template #footer>
@@ -227,89 +141,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
 import type { OrderManager, OrderCustomer } from '@/api/order/OrderApi'
-interface DetailTableRow {
-  equipmentName: string
-  equipmentModel: string
-  type: string
-  brand: string
-  spec: string
-  quantity: number | string
-  unitPrice: number | string
-}
-const createBlankRow = (): DetailTableRow => ({
-  equipmentName: '',
-  equipmentModel: '',
-  type: '',
-  brand: '',
-  spec: '',
-  quantity: '',
-  unitPrice: '',
-})
-
-// 设备明细只存在本地，暂不调用保存接口
-const detailRows = ref<DetailTableRow[]>([createBlankRow()])
-const addDetailRow = () => {
-  detailRows.value.push(createBlankRow())
-  const newIndex = detailRows.value.length - 1
-  // 新增后自动聚焦新行首列，便于连续录单
-  nextTick(() => focusCell(newIndex, ROW_COLUMNS[0]!))
-}
-
-// 设备明细列顺序（决定键盘导航的列流转顺序），与表格列一致
-const ROW_COLUMNS = [
-  'equipmentName',
-  'equipmentModel',
-  'type',
-  'brand',
-  'spec',
-  'quantity',
-  'unitPrice',
-]
-
-// 各单元格输入框实例（行号 + 列名 定位，用于键盘导航时切换焦点）
-const cellRefs = ref<Record<string, { focus: () => void } | null>>({})
-const setCellRef = (rowIndex: number, col: string, el: unknown) => {
-  const key = `${rowIndex}:${col}`
-  if (el) cellRefs.value[key] = el as { focus: () => void }
-  else delete cellRefs.value[key]
-}
-const focusCell = (rowIndex: number, col: string) => {
-  cellRefs.value[`${rowIndex}:${col}`]?.focus()
-}
-
-// 单元格键盘导航（与订单详情弹窗一致）：
-// - 回车：跳到下一列；末列回车 → 下一行首列；最后一行末列回车 → 新增一行并聚焦其首列
-// - 左右方向键：同列切换
-const onCellKeydown = (
-  _row: DetailTableRow,
-  rowIndex: number,
-  col: string,
-  e: KeyboardEvent,
-) => {
-  const idx = ROW_COLUMNS.indexOf(col)
-  if (idx < 0) return
-  if (e.key === 'Enter') {
-    e.preventDefault()
-    if (idx < ROW_COLUMNS.length - 1) {
-      focusCell(rowIndex, ROW_COLUMNS[idx + 1]!)
-    } else if (rowIndex < detailRows.value.length - 1) {
-      focusCell(rowIndex + 1, ROW_COLUMNS[0]!)
-    } else {
-      addDetailRow()
-    }
-  } else if (e.key === 'ArrowRight') {
-    e.preventDefault()
-    if (idx < ROW_COLUMNS.length - 1) focusCell(rowIndex, ROW_COLUMNS[idx + 1]!)
-  } else if (e.key === 'ArrowLeft') {
-    e.preventDefault()
-    if (idx > 0) focusCell(rowIndex, ROW_COLUMNS[idx - 1]!)
-  }
-}
+import OrderDetailEditor, { type DetailTableRow, createBlankRow } from './OrderDetailEditor.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -322,6 +159,9 @@ const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (e: 'submit', data: OrderSubmitPayload): void
 }>()
+
+// 设备明细只存在本地，暂不调用保存接口（编辑器在子组件内管理）
+const detailRows = ref<DetailTableRow[]>([createBlankRow()])
 
 const formRef = ref<FormInstance>()
 const isModalVisible = ref(false)
@@ -390,7 +230,6 @@ const resetForm = () => {
   contactName.value = ''
   selectedRegion.value = []
   detailRows.value = [createBlankRow()]
-  cellRefs.value = {}
   formRef.value?.clearValidate()
 }
 
@@ -550,47 +389,6 @@ const handleEnter = (event: KeyboardEvent) => {
   }
 }
 
-// 限制数量/单价输入：
-// - 数量：只能输入 0~9（纯整数）
-// - 单价：只能输入 0~9 和小数点，小数点后最多2位
-const filterNumberInput = (
-  row: DetailTableRow,
-  field: 'quantity' | 'unitPrice',
-  val: string,
-) => {
-  let cleaned: string
-  if (field === 'quantity') {
-    // 数量：只保留数字，纯整数
-    cleaned = val.replace(/[^\d]/g, '')
-  } else {
-    // 单价：保留数字和小数点，最多一个小数点，小数点后最多2位，.开头自动补0
-    cleaned = val
-      .replace(/[^\d.]/g, '')        // 只保留数字和小数点
-      .replace(/(\..*)\./g, '$1')    // 最多一个小数点
-      .replace(/^\./, '0.')          // .开头自动补0 → 0.
-      .replace(/(\.\d{2})\d+/, '$1') // 小数点后最多2位
-  }
-  if (cleaned !== val) {
-    row[field] = cleaned as never
-  }
-}
-
-// 按"分"整数计算金额，避免 JS 浮点误差（439 × 3466.8 = 1521925.2 而非 1521925.200000002）
-const calcAmountText = (
-  qty: string | number,
-  price: string | number,
-): string => {
-  const q = Number(qty)
-  const p = Number(price)
-  if (isNaN(q) || isNaN(p) || q <= 0 || p <= 0) return '0.00'
-  // 用"分"做整数运算（单价 × 100 = 单价分；数量是整数）
-  // 金额分 = 单价分 × 数量，金额元 = 金额分 / 100
-  // 这样避开浮点，精确到分
-  const priceCents = Math.round(p * 100)
-  const totalCents = Math.round(priceCents) * q
-  return (Math.round(totalCents) / 100).toFixed(2)
-}
-
 const handleSubmit = () => {
   if (isModalVisible.value) return
 
@@ -640,10 +438,9 @@ const handleSubmit = () => {
     const brandStr = r.brand.trim()
     const specStr = r.spec.trim()
     const qtyStr = String(r.quantity).trim()
-    const priceStr = String(r.unitPrice).trim()
 
     // 完全空行跳过
-    if (!name && !model && !typeStr && !brandStr && !specStr && !qtyStr && !priceStr) continue
+    if (!name && !model && !typeStr && !brandStr && !specStr && !qtyStr) continue
 
     // 品名为空
     if (!name) {
@@ -656,14 +453,7 @@ const handleSubmit = () => {
       detailErrors.push(`第 ${i + 1} 行：数量必须为正数（当前值："${r.quantity || ''}"）`)
       continue
     }
-    // 单价校验
-    const price = Number(priceStr)
-    if (!priceStr || isNaN(price) || price <= 0) {
-      detailErrors.push(`第 ${i + 1} 行：单价必须为正数（当前值："${r.unitPrice || ''}"）`)
-      continue
-    }
-
-    details.push({ name, model, type: typeStr, brand: brandStr, spec: specStr, number: qtyStr, price: priceStr })
+    details.push({ name, model, type: typeStr, brand: brandStr, spec: specStr, number: qtyStr })
   }
 
   if (detailErrors.length > 0) {
@@ -686,26 +476,12 @@ const handleSubmit = () => {
 }
 </script>
 <script lang="ts">
-import type { CreateOrderDetailInput } from '@/composables/order/useOrder'
+import type {
+  CreateOrderDetailInput,
+  OrderFormData,
+  OrderSubmitPayload,
+} from '@/api/order/types'
 
-export interface OrderFormData {
-  projectId?: string
-  name: string
-  type: string
-  manager: string
-  customer: string
-  contact: string
-  contactPhone: string
-  province: string
-  city: string
-  district: string
-  address: string
-}
-
-// 提交载荷：订单表单 + 可选的设备明细（供父组件接收并转交 createOrder）
-export interface OrderSubmitPayload extends OrderFormData {
-  details?: CreateOrderDetailInput[]
-}
 </script>
 
 <style scoped>
@@ -745,46 +521,5 @@ export interface OrderSubmitPayload extends OrderFormData {
   flex: 1;
   min-width: 0;
   margin-left: 8px;
-}
-
-.detail-table {
-  margin: 16px 0;
-}
-
-.detail-table :deep(.el-table__header-wrapper th) {
-  background-color: #f5f7fa;
-  color: #333;
-  font-weight: bold;
-  text-align: center;
-}
-
-.table-actions {
-  margin: 8px 0;
-}
-
-.form-footer {
-  border: 1px solid #dcdfe6;
-}
-
-.footer-row {
-  display: flex;
-}
-
-.footer-item {
-  flex: 1;
-  padding: 12px;
-  border-right: 1px solid #dcdfe6;
-}
-
-.footer-item:last-child {
-  border-right: none;
-}
-
-.footer-item div {
-  margin-bottom: 8px;
-}
-
-.footer-item div:last-child {
-  margin-bottom: 0;
 }
 </style>

@@ -16,7 +16,7 @@
     <div class="filter-section" v-if="isFilterVisible">
       <div class="filter-item">
         <label for="orderStatus">订单状态：</label>
-        <el-select id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态"
+        <el-select filterable id="orderStatus" aria-label="订单状态" v-model="filterForm.status" placeholder="全部状态"
           style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="编辑中" value="编辑中" />
@@ -25,7 +25,7 @@
       </div>
       <div class="filter-item">
         <label for="orderType">订单类型：</label>
-        <el-select id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
+        <el-select filterable id="orderType" aria-label="订单类型" v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
           <el-option label="全部类型" value="" />
           <el-option label="销售订单" value="销售" />
           <el-option label="采购订单" value="采购" />
@@ -39,7 +39,7 @@
       </div>
       <div class="filter-item">
         <label for="leader">负责人：</label>
-        <el-select id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人"
+        <el-select filterable id="leader" aria-label="负责人" v-model="filterForm.leaderAccount" placeholder="全部负责人"
           style="width: 150px">
           <el-option label="全部负责人" value="" />
           <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
@@ -47,7 +47,7 @@
       </div>
       <div class="filter-item">
         <label for="customer">客户：</label>
-        <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
+        <el-select filterable id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
           <el-option label="全部客户" value="" />
           <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
             :value="customer.name" />
@@ -55,14 +55,14 @@
       </div>
       <div class="filter-item">
         <label for="company">归属公司：</label>
-        <el-select id="company" aria-label="归属公司" v-model="filterForm.company" placeholder="全部公司" style="width: 200px">
+        <el-select filterable id="company" aria-label="归属公司" v-model="filterForm.company" placeholder="全部公司" style="width: 200px">
           <el-option label="全部公司" value="" />
           <el-option v-for="name in companyNames" :key="name" :label="name" :value="name" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="createTime">归属项目：</label>
-        <el-select style="width: 200px"></el-select>
+        <el-select filterable style="width: 200px"></el-select>
       </div>
       <div class="filter-item">
         <label for="createTime">创建时间:</label>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/project/useProject'
 import { useCompany } from '@/composables/admin/useCompany'
@@ -130,7 +130,8 @@ import { useOrder, type Order } from '@/composables/order/useOrder'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 import OrderForm from '@/components/order/AddOrderForm.vue'
 import OrderDetailDialog from '@/components/order/OrderDetailDialog.vue'
-import type { OrderSubmitPayload } from '@/components/order/AddOrderForm.vue'
+import type { OrderSubmitPayload } from '@/api/order/types'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 // 订单客户列表（从 /client/order/getInfoCustomer 获取，用于筛选栏下拉和表单自动补全）
 const orderCustomers = ref<OrderCustomer[]>([])
@@ -161,8 +162,6 @@ const fetchOrderManagers = async () => {
   }
 }
 
-const currentPage = ref(1)
-const pageSize = ref(8)
 const orderFormVisible = ref(false)
 const selectedRows = ref<Order[]>([])
 const detailDialogVisible = ref(false)
@@ -170,56 +169,35 @@ const currentOrder = ref<Order | null>(null)
 const isFilterVisible = ref(true)
 const loading = ref(false)
 
-const filterForm = reactive({
-  status: '',
-  type: '',
-  orderName: '',
-  leaderAccount: '',
-  customer: '',
-  company: '',
-  createTime: null as string | null,
-})
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  orderList,
+  (item: Order, form) => {
+    if (form.status && item.status !== form.status) return false
+    if (form.type && item.type !== form.type) return false
+    if (form.orderName && !item.name.includes(form.orderName)) return false
+    if (form.leaderAccount && item.leaderAccount !== form.leaderAccount) return false
+    if (form.customer && item.customer !== form.customer) return false
+    if (form.company && item.company !== form.company) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
+      const itemDate = new Date(item.createTime)
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
+    }
+    return true
+  },
+  { status: '', type: '', orderName: '', leaderAccount: '', customer: '', company: '', createTime: null },
+  8,
+)
+
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 
 const toggleFilter = () => {
   isFilterVisible.value = !isFilterVisible.value
 }
 
-const filteredData = computed(() => {
-  return orderList.value.filter((item) => {
-    if (filterForm.status && item.status !== filterForm.status) {
-      return false
-    }
-    if (filterForm.type && item.type !== filterForm.type) {
-      return false
-    }
-    if (filterForm.orderName && !item.name.includes(filterForm.orderName)) {
-      return false
-    }
-    if (filterForm.leaderAccount && item.leaderAccount !== filterForm.leaderAccount) {
-      return false
-    }
-    if (filterForm.customer && item.customer !== filterForm.customer) {
-      return false
-    }
-    if (filterForm.company && item.company !== filterForm.company) {
-      return false
-    }
-    if (filterForm.createTime) {
-      const filterDate = new Date(filterForm.createTime)
-      const itemDate = new Date(item.createTime)
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
-      }
-    }
-    return true
-  })
-})
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
 
 const getRowKey = (row: Order) => row.id
 
@@ -318,20 +296,6 @@ const handleBatchDelete = async () => {
   }
 }
 
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.status = ''
-  filterForm.type = ''
-  filterForm.orderName = ''
-  filterForm.leaderAccount = ''
-  filterForm.customer = ''
-  filterForm.company = ''
-  filterForm.createTime = null
-  currentPage.value = 1
-}
 
 const loadData = async () => {
   loading.value = true

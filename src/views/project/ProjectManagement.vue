@@ -14,7 +14,7 @@
     <div class="filter-section">
       <div class="filter-item">
         <label for="projectType">项目类型：</label>
-        <el-select id="projectType" aria-label="项目类型" v-model="filterForm.projectType" placeholder="全部类型"
+        <el-select filterable id="projectType" aria-label="项目类型" v-model="filterForm.projectType" placeholder="全部类型"
           style="width: 150px">
           <el-option label="全部类型" value="" />
           <el-option label="维修项目" value="维修" />
@@ -24,7 +24,7 @@
       </div>
       <div class="filter-item">
         <label for="customer">客户：</label>
-        <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+        <el-select filterable id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
           <el-option label="全部客户" value="" />
           <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
             :value="customer.name" />
@@ -32,7 +32,7 @@
       </div>
       <div class="filter-item">
         <label for="customerContact">客户联系人：</label>
-        <el-select id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
+        <el-select filterable id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
           style="width: 150px">
           <el-option label="全部联系人" value="" />
           <el-option v-for="customer in orderCustomers" :key="customer.contact" :label="customer.contact"
@@ -41,7 +41,7 @@
       </div>
       <div class="filter-item">
         <label for="projectLeader">项目负责人：</label>
-        <el-select id="projectLeader" aria-label="项目负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
+        <el-select filterable id="projectLeader" aria-label="项目负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
           style="width: 150px">
           <el-option label="全部负责人" value="" />
           <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.name" />
@@ -100,11 +100,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ProjectForm from '@/components/project/AddProjectForm.vue'
 import type { ProjectFormData } from '@/components/project/AddProjectForm.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 
 const { projectList, fetchProjects, createProject, deleteProject, batchDeleteProjects } =
@@ -133,8 +134,6 @@ const fetchOrderManagers = async () => {
   }
 }
 
-const currentPage = ref(1)
-const pageSize = ref(8)
 const projectFormVisible = ref(false)
 const selectedRows = ref<Project[]>([])
 const loading = ref(false)
@@ -258,72 +257,29 @@ const handleBatchDelete = async () => {
   }
 }
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  return projectList.value.filter((item) => {
-    if (filterForm.value.projectType && !item.projectType.includes(filterForm.value.projectType)) {
-      return false
-    }
-    if (filterForm.value.status && item.status !== filterForm.value.status) {
-      return false
-    }
-    if (filterForm.value.customer && item.customer !== filterForm.value.customer) {
-      return false
-    }
-    if (filterForm.value.contactPerson && item.contactPerson !== filterForm.value.contactPerson) {
-      return false
-    }
-    if (
-      filterForm.value.projectManager &&
-      item.projectManager !== filterForm.value.projectManager
-    ) {
-      return false
-    }
-    if (filterForm.value.createTime) {
-      const filterDate = new Date(filterForm.value.createTime)
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  projectList,
+  (item: Project, form) => {
+    if (form.projectType && !item.projectType.includes(form.projectType)) return false
+    if (form.status && item.status !== form.status) return false
+    if (form.customer && item.customer !== form.customer) return false
+    if (form.contactPerson && item.contactPerson !== form.contactPerson) return false
+    if (form.projectManager && item.projectManager !== form.projectManager) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
       const itemDate = new Date(item.createTime)
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
-      }
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
     }
     return true
-  })
-})
+  },
+  { projectType: '', status: '', customer: '', contactPerson: '', projectManager: '', createTime: null },
+  8,
+)
 
-// 分页后的数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
-
-// 筛选表单数据
-const filterForm = ref({
-  projectType: '',
-  status: '',
-  customer: '',
-  contactPerson: '',
-  projectManager: '',
-  createTime: null,
-})
-
-// 查询
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-// 重置
-const handleReset = () => {
-  filterForm.value = {
-    projectType: '',
-    status: '',
-    customer: '',
-    contactPerson: '',
-    projectManager: '',
-    createTime: null,
-  }
-  currentPage.value = 1
-}
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 </script>
 
 <style scoped>

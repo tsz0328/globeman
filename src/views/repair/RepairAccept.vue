@@ -10,7 +10,7 @@
     <div class="filter-section">
       <div class="filter-item">
         <label for="status">状态：</label>
-        <el-select id="status" aria-label="状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+        <el-select filterable id="status" aria-label="状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
           <el-option label="全部状态" value="" />
           <el-option label="维修中" value="维修中" />
           <el-option label="已完成" value="已完成" />
@@ -77,8 +77,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getTakenDetailsApi, type TakenDetailData } from '@/api/repair/RepairApi'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 interface TakenDetail {
   id: number
@@ -95,8 +96,6 @@ interface TakenDetail {
 }
 
 const takenList = ref<TakenDetail[]>([])
-const currentPage = ref(1)
-const pageSize = ref(8)
 const selectedRows = ref<TakenDetail[]>([])
 const loading = ref(false)
 
@@ -149,50 +148,24 @@ const handleSelectionChange = (val: TakenDetail[]) => {
   selectedRows.value = val
 }
 
-const filterForm = ref({
-  status: '',
-  name: '',
-  model: '',
-  sn: '',
-})
-
-const filteredData = computed(() => {
-  return takenList.value.filter((item) => {
-    if (filterForm.value.status && item.status !== filterForm.value.status) {
-      return false
-    }
-    if (filterForm.value.name && !item.name.includes(filterForm.value.name)) {
-      return false
-    }
-    if (filterForm.value.model && !item.model.includes(filterForm.value.model)) {
-      return false
-    }
-    if (filterForm.value.sn && !item.sn.includes(filterForm.value.sn)) {
-      return false
-    }
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  takenList,
+  (item: TakenDetail, form) => {
+    if (form.status && item.status !== form.status) return false
+    if (form.name && !item.name.includes(form.name)) return false
+    if (form.model && !item.model.includes(form.model)) return false
+    if (form.sn && !item.sn.includes(form.sn)) return false
     return true
-  })
-})
+  },
+  { status: '', name: '', model: '', sn: '' },
+  8,
+)
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.value = {
-    status: '',
-    name: '',
-    model: '',
-    sn: '',
-  }
-  currentPage.value = 1
-}
 </script>
 
 <style scoped>

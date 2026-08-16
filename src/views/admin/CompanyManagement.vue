@@ -63,28 +63,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCompany } from '@/composables/admin/useCompany'
 import type { CompanyData } from '@/api/admin/CompanyApi'
 import type { CompanyFormData } from '@/api/admin/CompanyApi'
 import CompanyForm from '@/components/admin/AddCompanyForm.vue'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } = useCompany()
 
 const companyFormVisible = ref(false)
 const loading = ref(false)
-
-const currentPage = ref(1)
-const pageSize = ref(8)
 const selectedRows = ref<CompanyData[]>([])
 
-// 过滤表单
-const filterForm = ref({
-  name: '',
-  account: '',
-  createTime: null,
-})
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  companyList,
+  (item: CompanyData, form) => {
+    if (form.name && !item.name.includes(form.name)) return false
+    if (form.account && !(item.account || '').includes(form.account)) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
+      const itemDate = new Date(item.time || '')
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
+    }
+    return true
+  },
+  { name: '', account: '', createTime: null },
+  8,
+)
+
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 
 const loadCompanies = async () => {
   loading.value = true
@@ -97,37 +109,6 @@ const loadCompanies = async () => {
 
 onMounted(loadCompanies)
 
-const filteredData = computed(() => {
-  return companyList.value.filter((item) => {
-    if (filterForm.value.name && !item.name.includes(filterForm.value.name)) {
-      return false
-    }
-    if (filterForm.value.account && !(item.account || '').includes(filterForm.value.account)) {
-      return false
-    }
-    if (filterForm.value.createTime) {
-      const filterDate = new Date(filterForm.value.createTime)
-      const itemDate = new Date(item.time || '')
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
-      }
-    }
-    return true
-  })
-})
-
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.value = {
-    name: '',
-    account: '',
-    createTime: null,
-  }
-  currentPage.value = 1
-}
 
 const addCompany = () => {
   companyFormVisible.value = true
@@ -213,11 +194,6 @@ const handleBatchDelete = async () => {
   }
 }
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
 </script>
 
 <style scoped>

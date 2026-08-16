@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import router from '@/router'
-import MenuComponent from '@/components/layout/MenuComponent.vue'
+import Menu from '@/components/layout/Menu.vue'
 import { ElMessage } from 'element-plus'
 import { Bell } from '@element-plus/icons-vue'
 import { useAvatar } from '@/composables/common/useAvatar'
 import logoPng from '@/assets/logo.png'
 
+// 顶栏头像依赖登录时通过 getInfoUser 写入 cookie 的值（useAvatar 单例）
 const { currentAvatarUrl } = useAvatar()
 const avatarUrl = computed(() => currentAvatarUrl.value)
 
@@ -38,7 +39,7 @@ function handleProfile() {
   </div>
   <div class="body">
     <div class="sidebar">
-      <MenuComponent />
+      <Menu />
     </div>
     <div class="work">
       <router-view />
@@ -134,11 +135,11 @@ function handleProfile() {
 
 .sidebar {
   width: 180px;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 80px);
 }
 
 .work {
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 80px);
 }
 </style>

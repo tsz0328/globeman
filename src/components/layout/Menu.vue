@@ -81,7 +81,7 @@
         <el-menu-item index="/work/inventory">库存管理</el-menu-item>
       </el-sub-menu>
 
-      <el-menu-item index="/work/asset">
+      <el-menu-item index="/work/fixedAsset">
         <el-icon>
           <Coin />
         </el-icon>
@@ -94,11 +94,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import Cookies from 'js-cookie'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const activePath = computed(() => route.path)
-const isAdmin = computed(() => (Cookies.get('role') || '').toLowerCase() === 'admin')
+const auth = useAuthStore()
+const isAdmin = computed(() => auth.isAdmin)
 </script>
 
 <style scoped>

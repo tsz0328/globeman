@@ -9,21 +9,13 @@ import {
 } from '@/api/order/OrderApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
-import type { OrderFormData } from '@/components/order/AddOrderForm.vue'
+import type {
+  OrderFormData,
+  OrderSubmitPayload,
+  CreateOrderDetailInput,
+} from '@/api/order/types'
 
 // === 导出类型 ===
-// 创建订单时一并提交的设备明细（字段对应后端 /client/order/createDetails 契约：name/model/type/brand/spec/number/price/remark）
-export interface CreateOrderDetailInput {
-  name: string
-  model: string
-  type?: string
-  brand?: string
-  spec?: string
-  number: string | number
-  price: string | number
-  remark?: string
-}
-
 export interface Order {
   id: string
   projectId: string

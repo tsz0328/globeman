@@ -93,19 +93,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CustomerForm from '@/components/admin/AddCustomerForm.vue'
 import type { CustomerFormData } from '@/components/admin/AddCustomerForm.vue'
 import { useCustomer, type Customer } from '@/composables/admin/useCustomer'
 import { useCompany } from '@/composables/admin/useCompany'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const { customerList, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, batchDeleteCustomers } =
   useCustomer()
 const { companyNames, fetchCompanyNames } = useCompany()
 
-const currentPage = ref(1)
-const pageSize = ref(10)
 const customerFormVisible = ref(false)
 const editData = ref<CustomerFormData | null>(null)
 const selectedRows = ref<Customer[]>([])
@@ -237,45 +236,21 @@ const handleBatchDelete = async () => {
   }
 }
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  return customerList.value.filter((item: Customer) => {
-    if (filterForm.value.name && !item.name.includes(filterForm.value.name)) {
-      return false
-    }
-    if (filterForm.value.contact && !item.contact.includes(filterForm.value.contact)) {
-      return false
-    }
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  customerList,
+  (item: Customer, form) => {
+    if (form.name && !item.name.includes(form.name)) return false
+    if (form.contact && !item.contact.includes(form.contact)) return false
     return true
-  })
-})
+  },
+  { name: '', contact: '' },
+  10,
+)
 
-// 分页后的数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
-
-// 筛选表单数据
-const filterForm = ref({
-  name: '',
-  contact: '',
-})
-
-// 查询
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-// 重置
-const handleReset = () => {
-  filterForm.value = {
-    name: '',
-    contact: '',
-  }
-  currentPage.value = 1
-}
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 </script>
 
 <style scoped>

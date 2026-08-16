@@ -12,7 +12,7 @@
       </el-form-item>
       <el-form-item prop="company" label="公司名称">
         <el-input v-if="companyNames.length === 1" :model-value="form.company" disabled />
-        <el-select
+        <el-select filterable
           v-else
           v-model="form.company"
           placeholder="请选择公司"

@@ -34,7 +34,7 @@
           <el-input :model-value="companyNames[0]" disabled />
         </template>
         <template v-else>
-          <el-select
+          <el-select filterable
             v-model="form.company"
             placeholder="请选择公司"
             @keyup.enter.prevent="handleEnter($event)"
@@ -51,7 +51,7 @@
         </template>
       </el-form-item>
       <el-form-item prop="department" label="部门">
-        <el-select
+        <el-select filterable
           v-model="form.department"
           placeholder="请选择部门"
           clearable
@@ -68,7 +68,7 @@
         </el-select>
       </el-form-item>
       <el-form-item prop="role" label="角色">
-  <el-select
+  <el-select filterable
           v-model="form.role"
           placeholder="请选择角色"
           @keyup.enter.prevent="handleSubmit"

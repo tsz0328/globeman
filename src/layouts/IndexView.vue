@@ -2,10 +2,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import 'vue3-carousel/carousel.css'
 import PlatformNoticeComponent from '@/components/Index/PlatformNotice.vue'
-import IntroductionComponent from '@/components/Index/IntroductionComponent.vue'
-import MessageComponent from '@/components/Index/MessageComponent.vue'
-import FootComponent from '@/components/Index/FootComponent.vue'
-import CarouselComponent from '@/components/Index/CarouselComponent.vue'
+import Introduction from '@/components/Index/Introduction.vue'
+import Message from '@/components/Index/Message.vue'
+import Foot from '@/components/Index/Foot.vue'
+import Carousel from '@/components/Index/Carousel.vue'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { Promotion } from '@element-plus/icons-vue'
@@ -69,7 +69,7 @@ onMounted(() => {
     <div class="body">
       <!--轮播图-->
       <div class="carousel">
-        <CarouselComponent/>
+        <Carousel />
       </div>
       <div class="notice idx-base">
         <div class="new">
@@ -86,7 +86,7 @@ onMounted(() => {
       </div>
       <div class="content">
         <div class="announcement">
-          <MessageComponent />
+          <Message />
         </div>
         <div class="side">
           <div class="login">
@@ -96,13 +96,13 @@ onMounted(() => {
             <PlatformNoticeComponent />
           </div>
           <div class="introduction">
-            <IntroductionComponent />
+            <Introduction />
           </div>
         </div>
       </div>
     </div>
     <div class="foot">
-      <FootComponent />
+      <Foot />
     </div>
   </div>
 </template>

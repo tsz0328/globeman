@@ -14,14 +14,14 @@
     <div class="filter-section">
       <div class="filter-item">
         <label for="company">公司：</label>
-        <el-select id="company" aria-label="公司" v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
+        <el-select filterable id="company" aria-label="公司" v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
           <el-option label="全部公司" value="" />
           <el-option v-for="name in companyNames" :key="name" :label="name" :value="name" />
         </el-select>
       </div>
       <div class="filter-item">
         <label for="department">部门：</label>
-        <el-select id="department" aria-label="部门" v-model="filterForm.department" placeholder="全部部门"
+        <el-select filterable id="department" aria-label="部门" v-model="filterForm.department" placeholder="全部部门"
           style="width: 150px">
           <el-option label="全部部门" value="" />
           <el-option v-for="name in departmentNames" :key="name" :label="name" :value="name" />
@@ -29,7 +29,7 @@
       </div>
       <div class="filter-item">
         <label for="role">角色：</label>
-        <el-select id="role" aria-label="角色" v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
+        <el-select filterable id="role" aria-label="角色" v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
           <el-option label="全部角色" value="" />
           <el-option v-for="role in roleList" :key="role.role" :label="role.name" :value="role.role" />
         </el-select>
@@ -93,25 +93,25 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import Cookies from 'js-cookie'
 import UserForm from '@/components/admin/AddUserForm.vue'
 import type { UserFormData } from '@/components/admin/AddUserForm.vue'
 import { useUser, type User } from '@/composables/admin/useUser'
 import { useRole } from '@/composables/admin/useRole'
 import { useCompany } from '@/composables/admin/useCompany'
+import { useTableQuery } from '@/composables/common/useTableQuery'
+import { useAuthStore } from '@/stores/auth'
 
 const { userList, createUser, fetchUsers, deleteUser, batchDeleteUsers, updateUserStatus } =
   useUser()
 const { roleList, fetchRoles } = useRole()
 const { companyNames, departmentNames, fetchCompanyNames, fetchDepartmentNames } = useCompany()
 
-const currentPage = ref(1)
-const pageSize = ref(10)
 const userFormVisible = ref(false)
 const selectedRows = ref<User[]>([])
 const loading = ref(false)
 
-const notAdminRole = computed(() => Cookies.get('role') !== 'admin')
+const auth = useAuthStore()
+const notAdminRole = computed(() => auth.role !== 'admin')
 
 // 查看用户详情（跳转到新页面，与项目管理/订单管理一致）
 const viewUser = (row: User) => {
@@ -250,63 +250,31 @@ const roleCodeMap = computed<Record<string, string>>(() => {
   return map
 })
 
-// 筛选后的数据
-const filteredData = computed(() => {
-  return userList.value.filter((item: User) => {
-    if (filterForm.value.company && !item.company.includes(filterForm.value.company)) {
-      return false
-    }
-    if (filterForm.value.department && !item.department.includes(filterForm.value.department)) {
-      return false
-    }
-    const selRole = filterForm.value.role
-    if (selRole) {
-      // 兼容：用户列表 role 可能是 code（admin）或中文名（超级管理员），二者任一匹配即保留
-      if (item.role !== selRole && roleCodeMap.value[selRole] !== item.role) {
-        return false
+// 筛选 + 分页（复用通用组合式，仅保留本视图的筛选谓词）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } =
+  useTableQuery(
+    userList,
+    (item: User, form) => {
+      if (form.company && !item.company.includes(form.company)) return false
+      if (form.department && !item.department.includes(form.department)) return false
+      const selRole = form.role
+      if (selRole) {
+        // 兼容：用户列表 role 可能是 code（admin）或中文名（超级管理员），二者任一匹配即保留
+        if (item.role !== selRole && roleCodeMap.value[selRole] !== item.role) return false
       }
-    }
-    if (filterForm.value.createTime) {
-      const filterDate = new Date(filterForm.value.createTime)
-      const itemDate = new Date(item.createTime)
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
+      if (form.createTime) {
+        const filterDate = new Date(form.createTime)
+        const itemDate = new Date(item.createTime)
+        if (filterDate.toDateString() !== itemDate.toDateString()) return false
       }
-    }
-    return true
-  })
-})
+      return true
+    },
+    { company: '', department: '', role: '', createTime: null },
+  )
 
-// 分页后的数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
-
-// 筛选表单数据
-const filterForm = ref({
-  company: '',
-  department: '',
-  role: '',
-  createTime: null,
-})
-
-// 查询
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-// 重置
-const handleReset = () => {
-  filterForm.value = {
-    company: '',
-    department: '',
-    role: '',
-    createTime: null,
-  }
-  currentPage.value = 1
-}
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 </script>
 
 <style scoped>

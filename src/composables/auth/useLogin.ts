@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { loginApi } from '@/api/auth/LoginApi'
 import { getInfoUserApi } from '@/api/admin/UserApi'
+import { useAvatar } from '@/composables/common/useAvatar'
 import Cookies from 'js-cookie'
 
 // === 导出类型 ===
@@ -91,6 +92,11 @@ export function useLogin() {
               (userInfoRes.data as UserDetailData)?.admin ??
               (userInfoRes.data as UserDetailData)
             setUserDetailInfo(userInfo as UserDetailData)
+            // 同步页头头像单例：登录写入 cookie 的 avatar 不会自动反应到 useAvatar 的响应式 ref，
+            // 必须显式 setAvatar，否则 WorkView 顶栏会停留在模块首次加载时的旧头像
+            if (userInfo.avatar) {
+              useAvatar().setAvatar(userInfo.avatar)
+            }
             const detailRole = userInfo.role
             if (!loginData.role && detailRole) {
               Cookies.set('role', detailRole, { expires: 7 })

@@ -10,7 +10,7 @@
     <div class="filter-section">
       <div class="filter-item">
         <label for="customer">客户：</label>
-        <el-select id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+        <el-select filterable id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
           <el-option label="全部客户" value="" />
           <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
             :value="customer.name" />
@@ -18,7 +18,7 @@
       </div>
       <div class="filter-item">
         <label for="customerContact">客户联系人：</label>
-        <el-select id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
+        <el-select filterable id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
           style="width: 150px">
           <el-option label="全部联系人" value="" />
           <el-option v-for="customer in orderCustomers" :key="customer.contact" :label="customer.contact"
@@ -27,7 +27,7 @@
       </div>
       <div class="filter-item">
         <label for="repairLeader">负责人：</label>
-        <el-select id="repairLeader" aria-label="负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
+        <el-select filterable id="repairLeader" aria-label="负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
           style="width: 150px">
           <el-option label="全部负责人" value="" />
           <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
@@ -81,12 +81,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
 import { repairTakeApi, getRepairOrdersApi, type RepairOrderData, type RepairOrderDetail } from '@/api/repair/RepairApi'
 import OrderDetailDialog from '@/components/order/OrderDetailDialog.vue'
 import type { Order } from '@/composables/order/useOrder'
 import { ElMessage } from 'element-plus'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const orderCustomers = ref<OrderCustomer[]>([])
 const fetchOrderCustomers = async () => {
@@ -125,8 +126,6 @@ const fetchRepairOrders = async () => {
   }
 }
 
-const currentPage = ref(1)
-const pageSize = ref(8)
 const selectedRows = ref<RepairOrderData[]>([])
 const snCode = ref('')
 const loading = ref(false)
@@ -185,54 +184,27 @@ const handleSelectionChange = (val: RepairOrderData[]) => {
   selectedRows.value = val
 }
 
-const filteredData = computed(() => {
-  return rawRepairOrders.value.filter((item) => {
-    if (filterForm.value.customer && item.customer !== filterForm.value.customer) {
-      return false
-    }
-    if (filterForm.value.contactPerson && item.contact !== filterForm.value.contactPerson) {
-      return false
-    }
-    if (filterForm.value.projectManager && item.manager !== filterForm.value.projectManager) {
-      return false
-    }
-    if (filterForm.value.createTime) {
-      const filterDate = new Date(filterForm.value.createTime)
+// 筛选 + 前端切片分页（统一 useTableQuery）
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+  rawRepairOrders,
+  (item: RepairOrderData, form) => {
+    if (form.customer && item.customer !== form.customer) return false
+    if (form.contactPerson && item.contact !== form.contactPerson) return false
+    if (form.projectManager && item.manager !== form.projectManager) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
       const itemDate = new Date(item.time)
-      if (filterDate.toDateString() !== itemDate.toDateString()) {
-        return false
-      }
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
     }
     return true
-  })
-})
+  },
+  { customer: '', contactPerson: '', projectManager: '', createTime: null },
+  8,
+)
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredData.value.slice(start, end)
-})
-
-const filterForm = ref({
-  customer: '',
-  contactPerson: '',
-  projectManager: '',
-  createTime: null,
-})
-
-const handleSearch = () => {
-  currentPage.value = 1
-}
-
-const handleReset = () => {
-  filterForm.value = {
-    customer: '',
-    contactPerson: '',
-    projectManager: '',
-    createTime: null,
-  }
-  currentPage.value = 1
-}
+// 兼容原模板绑定名
+const filteredData = filteredList
+const paginatedData = pagedList
 
 const handleTakeOrder = async () => {
   const sn = snCode.value.trim()

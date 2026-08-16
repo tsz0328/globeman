@@ -104,6 +104,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
 import { useOrder } from '@/composables/order/useOrder'
 import { isOrderLocked } from '@/composables/common/useOrderStatus'
+import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const route = useRoute()
 const { createDetail, fetchDetails, detailList, deleteDetail } = useDetail()
@@ -111,8 +112,6 @@ const { fetchOrders, orderList } = useOrder()
 
 const orderId = ref('')
 const orderName = ref('')
-const currentPage = ref(1)
-const pageSize = ref(8)
 const isAdding = ref(false)
 const editRows = ref<EditableDetailData[]>([])
 const orderStatus = ref('')
@@ -148,11 +147,10 @@ const displayData = computed(() => {
   return [...baseData, ...editRows.value]
 })
 
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return displayData.value.slice(start, end)
-})
+// 前端切片分页（统一 useTableQuery，本页无筛选，仅做分页）
+const { currentPage, pageSize, pagedList } = useTableQuery(displayData, () => true, {}, 8)
+// 兼容原模板绑定名
+const paginatedData = pagedList
 
 const goBack = () => {
   window.close()
