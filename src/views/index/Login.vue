@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import { useLogin } from '@/composables/auth/useLogin'
 import router from '@/router'
 import { User, Lock } from '@element-plus/icons-vue'
-import IndexCardHeader from '@/components/Index/IndexCardHeader.vue'
+import IndexCardHeader from '@/layouts/components/IndexCardHeader.vue'
 
 const { login } = useLogin()
 

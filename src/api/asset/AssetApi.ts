@@ -35,6 +35,9 @@ export interface AssetItem {
   time: unknown // 创建时间（LocalDateTime：可能字符串或 [y,m,d,h,min,s] 数组）
   company: string // 归属公司
   register: string // 登记人
+  status: string // 状态（正常 / 报废）
+  reason: string | null // 报废原因（未报废时为 null）
+  scrapTime: unknown // 报废时间（LocalDateTime：可能字符串或 [y,m,d,h,min,s] 数组；未报废时为 null）
 }
 
 // 列表响应 data 结构：{ number, total, assets }
@@ -80,12 +83,27 @@ export async function deleteAssetsApi(id: string): Promise<ApiResponse<void>> {
   })
 }
 
-// === 资产报废（接口地址/语义待确认，以下为推断）===
-// 注意：当前实体无 status 字段，"报废"语义（改状态 / 真删 / 独立逻辑）需后端确认
-export async function scrapAssetsApi(id: string): Promise<ApiResponse<void>> {
+// === 资产报废（POST /client/assets/scrapAssets）===
+// 请求体（application/json）：{ id, reason }
+export interface ScrapAssetInput {
+  id: string | number // 主键（列表返回 id）
+  reason: string // 报废原因
+}
+
+export async function scrapAssetsApi(data: ScrapAssetInput): Promise<ApiResponse<void>> {
   return request({
-    url: '/client/assets/scrapAssets', // TODO: 待确认真实地址
-    method: 'post', // TODO: 待确认
+    url: '/client/assets/scrapAssets',
+    method: 'post',
+    data,
+  })
+}
+
+// === 资产启用/恢复（POST /client/assets/enableAssets?id=xxx）===
+// 与报废反向：将 status 由「报废」恢复为「正常」；id 以 query 参数传递（同 deleteAssets）
+export async function enableAssetsApi(id: string): Promise<ApiResponse<void>> {
+  return request({
+    url: '/client/assets/enableAssets',
+    method: 'post',
     params: { id },
   })
 }

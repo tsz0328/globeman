@@ -1,53 +1,44 @@
 <template>
-  <div class="project-management" v-loading="loading">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h2 class="title">用户管理</h2>
-      <div class="action-buttons">
-        <el-button type="primary" @click="addUser">新建用户</el-button>
-        <el-button>导入Excel</el-button>
-        <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
-      </div>
-    </div>
+  <WorkPage :loading="loading">
+    <template #actions>
+      <el-button type="primary" @click="addUser">新建用户</el-button>
+      <el-button>导入Excel</el-button>
+      <el-button>导出Excel</el-button>
+      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
+    </template>
     <!-- 筛选区域 -->
-    <div class="filter-section">
-      <div class="filter-item">
-        <label for="company">公司：</label>
-        <el-select filterable id="company" aria-label="公司" v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
-          <el-option label="全部公司" value="" />
-          <el-option v-for="name in companyNames" :key="name" :label="name" :value="name" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="department">部门：</label>
-        <el-select filterable id="department" aria-label="部门" v-model="filterForm.department" placeholder="全部部门"
-          style="width: 150px">
-          <el-option label="全部部门" value="" />
-          <el-option v-for="name in departmentNames" :key="name" :label="name" :value="name" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="role">角色：</label>
-        <el-select filterable id="role" aria-label="角色" v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
-          <el-option label="全部角色" value="" />
-          <el-option v-for="role in roleList" :key="role.role" :label="role.name" :value="role.role" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="createTime">创建时间：</label>
-        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
-          style="width: 150px" />
-      </div>
-      <div class="filter-item">
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </div>
-    </div>
+    <template #filter>
+      <el-form :inline="true" @submit.prevent>
+        <el-form-item label="公司">
+          <el-select filterable v-model="filterForm.company" placeholder="全部公司" style="width: 150px">
+            <el-option label="全部公司" value="" />
+            <el-option v-for="name in companyNames" :key="name" :label="name" :value="name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="部门">
+          <el-select filterable v-model="filterForm.department" placeholder="全部部门" style="width: 150px">
+            <el-option label="全部部门" value="" />
+            <el-option v-for="name in departmentNames" :key="name" :label="name" :value="name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-select filterable v-model="filterForm.role" placeholder="全部角色" style="width: 150px">
+            <el-option label="全部角色" value="" />
+            <el-option v-for="role in roleList" :key="role.role" :label="role.name" :value="role.role" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
 
-    <!-- 表格区域 -->
-    <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+    <!-- 表格区域（落在 WorkPage 默认 slot 的白卡内） -->
+    <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
         :row-key="getRowKey">
         <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
         <el-table-column prop="account" label="账号" />
@@ -64,15 +55,13 @@
         <el-table-column prop="createTime" label="创建时间" :width="notAdminRole ? 'auto' : 180" />
         <el-table-column label="操作" width="193">
           <template #default="scope">
-            <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewUser(scope.row)">查看</el-button>
-              <el-button :type="scope.row.status === 0 ? 'success' : 'warning'" size="small"
-                @click="handleToggleStatus(scope.row)" :disabled="scope.row.role === 'admin'">
-                {{ scope.row.status === 0 ? '启用' : '禁用' }}
-              </el-button>
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
-                :disabled="scope.row.role === 'admin'">删除</el-button>
-            </div>
+            <el-button type="primary" size="small" @click="viewUser(scope.row)">查看</el-button>
+            <el-button :type="scope.row.status === 0 ? 'success' : 'warning'" size="small"
+              @click="handleToggleStatus(scope.row)" :disabled="scope.row.role === 'admin'">
+              {{ scope.row.status === 0 ? '启用' : '禁用' }}
+            </el-button>
+            <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+              :disabled="scope.row.role === 'admin'">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -82,17 +71,17 @@
         <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
           layout="total, prev, pager, next, jumper" :total="filteredData.length" />
       </div>
-    </div>
 
     <!-- 新增用户弹窗 -->
     <UserForm v-model:visible="userFormVisible" :role-list="roleList" :company-names="companyNames"
       :department-names="departmentNames" @submit="handleUserSubmit" />
-  </div>
+  </WorkPage>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import WorkPage from '@/components/common/WorkPage.vue'
 import UserForm from '@/components/admin/AddUserForm.vue'
 import type { UserFormData } from '@/components/admin/AddUserForm.vue'
 import { useUser, type User } from '@/composables/admin/useUser'
@@ -278,56 +267,10 @@ const paginatedData = pagedList
 </script>
 
 <style scoped>
-.project-management {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* 页面头部 */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid black;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-}
-
-/* 筛选区域 */
-.filter-section {
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  justify-content: space-between;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-}
-
-/* 表格区域 */
-.table-section {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-/* 分页区域 */
+/* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

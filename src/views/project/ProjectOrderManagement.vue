@@ -42,7 +42,8 @@
       :customer-list="orderCustomers" @submit="handleOrderSubmit" />
 
     <!-- 订单详情弹窗 -->
-    <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder" />
+    <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder"
+      @details-changed="handleDetailsChanged" />
   </div>
 </template>
 
@@ -129,6 +130,15 @@ const paginatedData = pagedList
 
 const goBack = () => {
   window.close()
+}
+
+// 详情弹窗内新增/删除设备明细后：重拉订单列表并同步 currentOrder，刷新内嵌 details
+const handleDetailsChanged = async () => {
+  await fetchOrders(projectId.value)
+  if (currentOrder.value) {
+    const updated = orderList.value.find((o) => o.id === currentOrder.value!.id)
+    if (updated) currentOrder.value = updated
+  }
 }
 
 const toggleFilter = () => {

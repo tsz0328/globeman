@@ -6,6 +6,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import '@/styles/index-common.css'
 import '@/styles/table-common.css'
+import '@/styles/workbench-common.css'
+import '@/styles/theme.css'
 import zhCn from 'element-plus/es/locale/lang/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 

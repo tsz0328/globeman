@@ -1,85 +1,63 @@
 <template>
-  <div class="customer-management" v-loading="loading">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h2 class="title">客户管理</h2>
-      <div class="action-buttons">
-        <el-button type="primary" @click="addCustomer">新建客户</el-button>
-        <el-button>导入Excel</el-button>
-        <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
-          >批量删除</el-button
-        >
-      </div>
-    </div>
-    <!-- 筛选区域 -->
-    <div class="filter-section">
-      <div class="filter-item">
-        <label for="customerName">客户名称：</label>
-        <el-input
-          id="customerName"
-          aria-label="客户名称"
-          v-model="filterForm.name"
-          placeholder="请输入客户名称"
-          style="width: 150px"
-          @keyup.enter.prevent="handleSearch"
-        />
-      </div>
-      <div class="filter-item">
-        <label for="contactPerson">联系人：</label>
-        <el-input
-          id="contactPerson"
-          aria-label="联系人"
-          v-model="filterForm.contact"
-          placeholder="请输入联系人"
-          style="width: 150px"
-          @keyup.enter.prevent="handleSearch"
-        />
-      </div>
-      <div class="filter-item">
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </div>
-    </div>
-
-    <!-- 表格区域 -->
-    <div class="table-section">
-      <el-table
-        :data="paginatedData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :row-key="getRowKey"
+  <WorkPage :loading="loading">
+    <template #actions>
+      <el-button type="primary" @click="addCustomer">新建客户</el-button>
+      <el-button>导入Excel</el-button>
+      <el-button>导出Excel</el-button>
+      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
+        >批量删除</el-button
       >
-        <el-table-column type="selection" width="50" />
-        <el-table-column prop="name" label="客户名称" />
-        <el-table-column prop="contact" label="联系人" />
-        <el-table-column prop="phone" label="联系电话" />
-        <el-table-column prop="createTime" label="创建时间" />
-        <el-table-column label="操作" width="193">
-          <template #default="scope">
-            <div class="action-buttons">
-              <el-button type="primary" size="small">查看</el-button>
-              <el-button type="warning" size="small" @click="editCustomer(scope.row)"
-                >编辑</el-button
-              >
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
-                >删除</el-button
-              >
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+    </template>
 
-      <!-- 分页 -->
-      <div class="pagination-section">
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          layout="total, prev, pager, next, jumper"
-          :total="filteredData.length"
-        />
-      </div>
+    <template #filter>
+      <el-form :inline="true" @submit.prevent>
+        <el-form-item label="客户名称">
+          <el-input v-model="filterForm.name" placeholder="请输入客户名称" style="width: 150px"
+            @keyup.enter.prevent="handleSearch" />
+        </el-form-item>
+        <el-form-item label="联系人">
+          <el-input v-model="filterForm.contact" placeholder="请输入联系人" style="width: 150px"
+            @keyup.enter.prevent="handleSearch" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+
+    <el-table
+      :data="paginatedData"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+      :row-key="getRowKey"
+    >
+      <el-table-column type="selection" width="50" />
+      <el-table-column prop="name" label="客户名称" />
+      <el-table-column prop="contact" label="联系人" />
+      <el-table-column prop="phone" label="联系电话" />
+      <el-table-column prop="createTime" label="创建时间" />
+      <el-table-column label="操作" width="193">
+        <template #default="scope">
+          <el-button type="primary" size="small">查看</el-button>
+          <el-button type="warning" size="small" @click="editCustomer(scope.row)"
+            >编辑</el-button
+          >
+          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+            >删除</el-button
+          >
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="pagination-section">
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="filteredData.length"
+      />
     </div>
 
     <!-- 新增/编辑客户弹窗 -->
@@ -89,7 +67,7 @@
       :company-names="companyNames"
       @submit="handleCustomerSubmit"
     />
-  </div>
+  </WorkPage>
 </template>
 
 <script setup lang="ts">
@@ -97,6 +75,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CustomerForm from '@/components/admin/AddCustomerForm.vue'
 import type { CustomerFormData } from '@/components/admin/AddCustomerForm.vue'
+import WorkPage from '@/components/common/WorkPage.vue'
 import { useCustomer, type Customer } from '@/composables/admin/useCustomer'
 import { useCompany } from '@/composables/admin/useCompany'
 import { useTableQuery } from '@/composables/common/useTableQuery'
@@ -254,58 +233,10 @@ const paginatedData = pagedList
 </script>
 
 <style scoped>
-.customer-management {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid black;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-}
-
-.filter-section {
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  gap: 20px;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.filter-item:last-child {
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.table-section {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
+/* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

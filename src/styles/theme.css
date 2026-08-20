@@ -1,0 +1,33 @@
+/*
+ * 全球人 · 品牌色体系
+ *
+ * 色阶以单一 hue 派生，保证任意两档搭配都和谐：
+ *   50  极浅底（页面/卡片底色）        #EEF3FF
+ *   100 浅蓝（侧栏文字 / 浅分隔线）      #D6E4FF
+ *   200 浅蓝                          #AEC8FF
+ *   300 中浅蓝                        #7E9FFF
+ *   400 亮蓝                          #4F76FF
+ *   500 主色·天际蓝（按钮/强调/顶栏条）   #2E5BFF
+ *   600 主色加深（hover/active 实填充）  #1E45E0
+ *   700 皇家蓝（渐变中段）              #1836B0
+ *   800 深蓝                          #142B85
+ *   900 深海蓝（渐变底/最深强调）      #0E1F5E
+ */
+
+:root {
+  --brand-50: #eef3ff;
+  --brand-100: #d6e4ff;
+  --brand-200: #aec8ff;
+  --brand-300: #7e9fff;
+  --brand-400: #4f76ff;
+  --brand-500: #2e5bff; /* 主色 */
+  --brand-600: #1e45e0;
+  --brand-700: #1836b0;
+  --brand-800: #142b85;
+  --brand-900: #0e1f5e; /* 最深 */
+
+  /* 侧栏渐变：天际蓝 → 皇家蓝 → 深海军蓝，自上而下制造纵深 */
+  --brand-sidebar-gradient: linear-gradient(165deg, #7e9fff 0%, #1e45e0 50%, #0e1f5e 100%);
+  /* 内容区浅蓝底 */
+  --brand-content-bg: linear-gradient(135deg, #eef3ff 0%,#aec8ff 50%, #4f76ff 100%);
+}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import IndexCardHeader from '@/components/Index/IndexCardHeader.vue'
+import IndexCardHeader from './IndexCardHeader.vue'
 
 const notices = [
   {

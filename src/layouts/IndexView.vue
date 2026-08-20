@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import 'vue3-carousel/carousel.css'
-import PlatformNoticeComponent from '@/components/Index/PlatformNotice.vue'
-import Introduction from '@/components/Index/Introduction.vue'
-import Message from '@/components/Index/Message.vue'
-import Foot from '@/components/Index/Foot.vue'
-import Carousel from '@/components/Index/Carousel.vue'
+import PlatformNoticeComponent from './components/IndexPlatformNotice.vue'
+import Introduction from './components/IndexIntroduction.vue'
+import Message from './components/IndexMessage.vue'
+import Foot from './components/IndexFoot.vue'
+import Carousel from './components/IndexCarousel.vue'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { Promotion } from '@element-plus/icons-vue'
@@ -66,28 +66,32 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
     <div class="body">
       <!--轮播图-->
       <div class="carousel">
         <Carousel />
       </div>
+
+      <!-- 公告 -->
       <div class="notice idx-base">
         <div class="new">
-          <h4>
             <el-icon class="notice-bell">
               <Promotion />
             </el-icon>
             最新公告
-          </h4>
         </div>
+        <!-- 公告内容 -->
         <div class="notice-content">
-          <!-- TODO: 接入动态最新公告数据 -->
         </div>
       </div>
+
       <div class="content">
+        <!-- 公告内容 -->
         <div class="announcement">
           <Message />
         </div>
+        <!-- 侧边栏 -->
         <div class="side">
           <div class="login">
             <router-view></router-view>
@@ -101,6 +105,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
     <div class="foot">
       <Foot />
     </div>
@@ -116,7 +121,8 @@ onMounted(() => {
 }
 
 .head {
-  width: 1440px;
+  max-width: 1440px;
+  width: 100%;
   height: 80px;
   display: flex;
   background-color: white;
@@ -174,6 +180,7 @@ onMounted(() => {
 
 .time {
   width: 36%;
+  min-width: 0;
   height: 100%;
   font-size: 16px;
   display: flex;
@@ -183,6 +190,7 @@ onMounted(() => {
 
 .search {
   width: 33%;
+  min-width: 0;
   height: 100%;
   display: flex;
   align-items: center;
@@ -219,7 +227,8 @@ onMounted(() => {
 }
 
 .body {
-  width: 1440px;
+  max-width: 1440px;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -241,12 +250,7 @@ onMounted(() => {
 }
 
 .new {
-  padding: 0;
   width: 105px;
-}
-
-.new h4 {
-  padding: 0;
   font-size: 14px;
   color: #0C1390;
   font-weight: 500;

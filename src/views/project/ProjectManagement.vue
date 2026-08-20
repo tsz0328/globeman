@@ -1,102 +1,87 @@
 <template>
-  <div class="project-management" v-loading="loading">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h2 class="title">项目管理</h2>
-      <div class="action-buttons">
-        <el-button type="primary" @click="addProject">新建项目</el-button>
-        <el-button>导入Excel</el-button>
-        <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
-      </div>
-    </div>
-    <!-- 筛选区域 -->
-    <div class="filter-section">
-      <div class="filter-item">
-        <label for="projectType">项目类型：</label>
-        <el-select filterable id="projectType" aria-label="项目类型" v-model="filterForm.projectType" placeholder="全部类型"
-          style="width: 150px">
-          <el-option label="全部类型" value="" />
-          <el-option label="维修项目" value="维修" />
-          <el-option label="销售项目" value="销售" />
-          <el-option label="采购项目" value="采购" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="customer">客户：</label>
-        <el-select filterable id="customer" aria-label="客户" v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
-          <el-option label="全部客户" value="" />
-          <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
-            :value="customer.name" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="customerContact">客户联系人：</label>
-        <el-select filterable id="customerContact" aria-label="客户联系人" v-model="filterForm.contactPerson" placeholder="全部联系人"
-          style="width: 150px">
-          <el-option label="全部联系人" value="" />
-          <el-option v-for="customer in orderCustomers" :key="customer.contact" :label="customer.contact"
-            :value="customer.contact" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="projectLeader">项目负责人：</label>
-        <el-select filterable id="projectLeader" aria-label="项目负责人" v-model="filterForm.projectManager" placeholder="全部负责人"
-          style="width: 150px">
-          <el-option label="全部负责人" value="" />
-          <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.name" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="createTime">创建时间:</label>
-        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
-          style="width: 150px" />
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </div>
-    </div>
+  <WorkPage :loading="loading">
+    <template #actions>
+      <el-button type="primary" @click="addProject">新建项目</el-button>
+      <el-button>导入Excel</el-button>
+      <el-button>导出Excel</el-button>
+      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
+    </template>
 
-    <!-- 表格区域 -->
-    <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
-        @row-dblclick="handleRowDblclick" :row-key="getRowKey">
-        <el-table-column type="selection" width="50" />
-        <el-table-column prop="projectName" label="项目名称" />
-        <el-table-column prop="customer" label="客户" width="120" />
-        <el-table-column prop="contactPerson" label="客户联系人" width="100" />
-        <el-table-column prop="projectManager" label="负责人" width="100" />
-        <el-table-column prop="creator" label="创建人" width="100" />
-        <el-table-column prop="projectType" label="项目类型" width="100" />
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)">
-              {{ scope.row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column prop="cooperativeUnit" label="归属公司" />
-        <el-table-column label="操作" width="133">
-          <template #default="scope">
-            <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewProject(scope.row)">查看</el-button>
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+    <template #filter>
+      <el-form :inline="true" @submit.prevent>
+        <el-form-item label="项目类型">
+          <el-select filterable v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
+            <el-option label="全部类型" value="" />
+            <el-option label="维修项目" value="维修" />
+            <el-option label="销售项目" value="销售" />
+            <el-option label="采购项目" value="采购" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="客户">
+          <el-select filterable v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+            <el-option label="全部客户" value="" />
+            <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
+              :value="customer.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="客户联系人">
+          <el-select filterable v-model="filterForm.contactPerson" placeholder="全部联系人" style="width: 150px">
+            <el-option label="全部联系人" value="" />
+            <el-option v-for="customer in orderCustomers" :key="customer.contact" :label="customer.contact"
+              :value="customer.contact" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="项目负责人">
+          <el-select filterable v-model="filterForm.projectManager" placeholder="全部负责人" style="width: 150px">
+            <el-option label="全部负责人" value="" />
+            <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
 
-      <!-- 分页 -->
-      <div class="pagination-section">
-        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
-          layout="total, prev, pager, next, jumper" :total="filteredData.length" />
-      </div>
+    <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+      @row-dblclick="handleRowDblclick" :row-key="getRowKey">
+      <el-table-column type="selection" width="50" />
+      <el-table-column prop="projectName" label="项目名称" />
+      <el-table-column prop="customer" label="客户" width="120" />
+      <el-table-column prop="contactPerson" label="客户联系人" width="100" />
+      <el-table-column prop="projectManager" label="负责人" width="100" />
+      <el-table-column prop="creator" label="创建人" width="100" />
+      <el-table-column prop="projectType" label="项目类型" width="100" />
+      <el-table-column prop="status" label="状态" width="100">
+        <template #default="scope">
+          <el-tag :type="getStatusType(scope.row.status)">
+            {{ scope.row.status }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column prop="cooperativeUnit" label="归属公司" />
+      <el-table-column label="操作" width="133">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="viewProject(scope.row)">查看</el-button>
+          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="pagination-section">
+      <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
+        layout="total, prev, pager, next, jumper" :total="filteredData.length" />
     </div>
 
     <!-- 新建项目弹窗 -->
     <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="managers"
       :customer-list="orderCustomers" />
-  </div>
+  </WorkPage>
 </template>
 
 <script setup lang="ts">
@@ -104,6 +89,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ProjectForm from '@/components/project/AddProjectForm.vue'
 import type { ProjectFormData } from '@/components/project/AddProjectForm.vue'
+import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
@@ -283,57 +269,10 @@ const paginatedData = pagedList
 </script>
 
 <style scoped>
-.project-management {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* 页面头部 */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid black;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-}
-
-/* 筛选区域 */
-.filter-section {
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  justify-content: space-between;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* 表格区域 */
-.table-section {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-/* 分页区域 */
+/* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

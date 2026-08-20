@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
 import { useAuthStore } from '@/stores/auth'
 import { getStatusTagType as getStatusType } from '@/composables/common/useOrderStatus'
-import type { DetailData } from '@/api/order/OrderDetailApi'
+import type { DetailData } from '@/api/order/OrderDeviceApi'
 
 const props = defineProps<{
   orderId: string
@@ -16,12 +16,7 @@ const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
 }>()
 
-const {
-  getRepairDetail,
-  addRepairSn,
-  acceptRepair,
-  fetchDetails: fetchRepairDetails,
-} = useDetail()
+const { getRepairDetail, addRepairSn, acceptRepair, fetchDetails: fetchRepairDetails } = useDetail()
 
 // 获取当前登录用户的账号
 const auth = useAuthStore()

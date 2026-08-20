@@ -9,7 +9,9 @@ export const useAuthStore = defineStore('auth', {
     token: Cookies.get('token') ?? '',
     role: Cookies.get('role') ?? '',
     account: Cookies.get('account') ?? '',
-    username: Cookies.get('username') ?? '',
+    // 登录时 useLogin.ts 写的是 name（真实姓名）；username 为兼容旧约定的回退；
+    // account 作为最后兜底，保证已登录状态不会误显示"未登录"
+    username: Cookies.get('name') ?? Cookies.get('username') ?? Cookies.get('account') ?? '',
   }),
   getters: {
     // 是否管理员（与 Menu.vue 原逻辑一致：忽略大小写）

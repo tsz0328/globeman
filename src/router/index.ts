@@ -13,20 +13,24 @@ const CustomerManagementComponent = () => import('@/views/admin/CustomerManageme
 const CompanyManagementComponent = () => import('@/views/admin/CompanyManagement.vue')
 const OrderDetailComponent = () => import('@/views/project/ProjectOrderDetail.vue')
 const RepairOrderDetailComponent = () => import('@/views/repair/RepairOrderDetail.vue')
-const ProjectOrderManagementComponent = () => import('@/views/project/ProjectOrderManagement.vue')
-const RepairManagementComponent = () => import('@/views/repair/RepairManagement.vue')
-const RepairOrderManagementComponent = () => import('@/views/repair/RepairOrderManagement.vue')
-const RepairAcceptComponent = () => import('@/views/repair/RepairAccept.vue')
+const ProjectOrderManagement = () => import('@/views/project/ProjectOrderManagement.vue')
+
+const RepairWarehousing = () => import('@/views/repair/RepairWarehousing.vue')
+const RepairList = () => import('@/views/repair/RepairList.vue')
+const RepairWarehouseOut = () => import('@/views/repair/RepairWarehouseOut.vue')
+const RepairAccept = () => import('@/views/repair/RepairAccept.vue')
+
 const EquipmentRepairInfo = () => import('@/views/repair/EquipmentRepairInfo.vue')
 const OutboundManagementComponent = () => import('@/views/inventory/OutboundManagement.vue')
 const InboundManagementComponent = () => import('@/views/inventory/InboundManagement.vue')
 const InventoryManagementComponent = () => import('@/views/inventory/InventoryManagement.vue')
 const OrderManagementComponent = () => import('@/views/order/OrderManagement.vue')
 const UserDetailComponent = () => import('@/views/admin/UserDetail.vue')
-const Profile = () => import('@/views/profile/Profile.vue')
+const PersonalCenter = () => import('@/views/profile/PersonalCenter.vue')
 const DepartmentManagementComponent = () => import('@/views/admin/DepartmentManagement.vue')
 const CompanyDetailComponent = () => import('@/views/admin/CompanyDetail.vue')
 const FixedAssetManagement = () => import('@/views/asset/FixedAssetManagement.vue')
+const ScrapAssetManagement = () => import('@/views/asset/ScrapAssetManagement.vue')
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -66,9 +70,9 @@ const router = createRouter({
           component: Home,
         },
         {
-          path: 'profile',
-          name: 'Profile',
-          component: Profile,
+          path: 'personalCenter',
+          name: 'PersonalCenter',
+          component: PersonalCenter,
         },
         {
           path: 'user',
@@ -101,14 +105,24 @@ const router = createRouter({
           component: DepartmentManagementComponent,
         },
         {
-          path: 'repair-management',
-          name: 'RepairManagement',
-          component: RepairManagementComponent,
+          path: 'repair-warehousing',
+          name: 'RepairWarehousing',
+          component: RepairWarehousing,
         },
         {
           path: 'repair-accept',
           name: 'RepairAccept',
-          component: RepairAcceptComponent,
+          component: RepairAccept,
+        },
+        {
+          path: 'repair-list',
+          name: 'RepairList',
+          component: RepairList,
+        },
+        {
+          path: 'repair-warehouse-out',
+          name: 'RepairWarehouseOut',
+          component: RepairWarehouseOut,
         },
         {
           path: 'outbound',
@@ -129,18 +143,18 @@ const router = createRouter({
           path: 'fixedAsset',
           name: 'FixedAssetManagement',
           component: FixedAssetManagement,
-        }
+        },
+        {
+          path: 'scrapAsset',
+          name: 'ScrapAssetManagement',
+          component: ScrapAssetManagement,
+        },
       ],
     },
     {
       path: '/project-order/:id',
       name: 'ProjectOrderManagement',
-      component: ProjectOrderManagementComponent,
-    },
-    {
-      path: '/repair-order/:id',
-      name: 'RepairOrderManagement',
-      component: RepairOrderManagementComponent,
+      component: ProjectOrderManagement,
     },
     {
       path: '/repair-order-detail/:id',

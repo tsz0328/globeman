@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import type { ApiResponse } from '@/api/types'
-import type { DetailResponseData } from '@/api/order/OrderDetailApi'
+import type { DetailResponseData } from '@/api/order/OrderDeviceApi'
 
 // === 维修设备===
 export interface RepairOrderDetail {
@@ -15,12 +15,23 @@ export interface RepairOrderDetail {
 }
 
 // === 维修订单列表（GET /client/repair/getOrder）===
+// 字段对应后端实际响应（与 /client/order/getOrder 同构：完整表头 + 内嵌 details）
 export interface RepairOrderData {
   id: string
   name: string
+  type: string
+  manager: string
+  creator: string
   customer: string
   contact: string
-  manager: string
+  contactPhone: string
+  province: string
+  city: string
+  district: string
+  address: string
+  company: string
+  project: string | null
+  status: string
   time: string
   details: RepairOrderDetail[]
 }
@@ -92,13 +103,13 @@ export async function addRepairSnApi(sn: string, id: number): Promise<ApiRespons
   })
 }
 
-// === 新增 SN（订单详情弹窗 SN 子表空白行失焦提交）===
-// 注意：后端参数名为大写 SN；id 传设备明细 id
+// === 新增 SN（维修入库设备清单「添加SN码」按钮 / 订单详情弹窗 SN 子表）===
+// 后端契约：POST /client/repair/addSN，JSON body { sn, id }，id 为设备明细 id
 export async function addSnApi(sn: string, id: number | string): Promise<ApiResponse<void>> {
   return request({
     url: '/client/repair/addSN',
     method: 'post',
-    params: { SN: sn, id },
+    data: { sn, id },
   })
 }
 

@@ -3,7 +3,7 @@ import Cookies from 'js-cookie'
 import { useAvatar } from '@/composables/common/useAvatar'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import IndexCardHeader from '@/components/Index/IndexCardHeader.vue'
+import IndexCardHeader from '@/layouts/components/IndexCardHeader.vue'
 
 function clearUserInfo() {
   const allCookies = Cookies.get()

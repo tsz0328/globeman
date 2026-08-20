@@ -1,26 +1,23 @@
 <template>
-  <div class="profile-management">
-    <div class="page-header">
-      <h2 class="title">个人中心</h2>
-    </div>
-    <el-card v-loading="loading" class="profile-card">
-      <!-- 头像板块 -->
-      <div class="avatar-section">
-        <el-image class="avatar-image" v-if="person.avatar" :src="getAvatarUrl(person.avatar)" />
-        <el-avatar v-else :icon="UserFilled" />
-        <div class="avatar-info">
-          <span class="avatar-info-name">{{ person.name || '-' }}</span>
-          <span class="avatar-info-secondary">{{ person.company || '-' }}</span>
-          <span class="avatar-info-secondary">{{ person.department || '-' }}</span>
-        </div>
-        <div class="avatar-actions">
-          <el-upload ref="avatarUploadRef" action="." :show-file-list="false" accept="image/*" :auto-upload="false"
-            :on-change="handleAvatarChange" class="avatar-upload">
-            <el-button type="primary" size="large" :icon="Upload">上传头像</el-button>
-          </el-upload>
-          <el-button type="warning" size="large" :icon="Lock" @click="showPasswordDialog = true">修改密码</el-button>
-        </div>
+  <WorkPage :loading="loading">
+    <template #actions>
+      <el-upload ref="avatarUploadRef" action="." :show-file-list="false" accept="image/*" :auto-upload="false"
+        :on-change="handleAvatarChange" class="avatar-upload">
+        <el-button type="primary" :icon="Upload">上传头像</el-button>
+      </el-upload>
+      <el-button type="warning" :icon="Lock" @click="showPasswordDialog = true">修改密码</el-button>
+    </template>
+
+    <!-- 头像板块 -->
+    <div class="avatar-section">
+      <el-image class="avatar-image" v-if="person.avatar" :src="getAvatarUrl(person.avatar)" />
+      <el-avatar v-else :icon="UserFilled" />
+      <div class="avatar-info">
+        <span class="avatar-info-name">{{ person.name || '-' }}</span>
+        <span class="avatar-info-secondary">{{ person.company || '-' }}</span>
+        <span class="avatar-info-secondary">{{ person.department || '-' }}</span>
       </div>
+    </div>
 
       <div class="profile-grid">
         <!-- 账户名 -->
@@ -142,7 +139,10 @@
           <span v-else>-</span>
         </div>
       </div>
-    </el-card>
+
+
+
+
 
     <!-- 修改密码弹窗 -->
     <el-dialog v-model="showPasswordDialog" title="修改密码" width="420px" :close-on-click-modal="false">
@@ -159,7 +159,7 @@
         <el-button type="primary" :loading="passwordLoading" @click="handleChangePassword">确认修改</el-button>
       </template>
     </el-dialog>
-  </div>
+  </WorkPage>
 </template>
 
 <script setup lang="ts">
@@ -172,6 +172,7 @@ import {
 } from '@element-plus/icons-vue'
 import { getPersonApi, updateAvatarApi, updatePasswordApi, type PersonData } from '@/api/admin/PersonApi'
 import { useAvatar } from '@/composables/common/useAvatar'
+import WorkPage from '@/components/common/WorkPage.vue'
 
 const loading = ref(false)
 const person = ref<PersonData>({})
@@ -294,46 +295,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.profile-management {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #e4e7ed;
-  padding-bottom: 12px;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  margin: 0;
-}
-
-.profile-card {
-  border-radius: 4px;
-}
-
+/* 头像区：头像 + 基本信息靠左排列，与下方信息网格留出间距 */
 .avatar-section {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 0 0 20px;
-  border-bottom: 1px solid #ebeef5;
-  margin-bottom: 0;
-}
-
-.avatar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .avatar-info {

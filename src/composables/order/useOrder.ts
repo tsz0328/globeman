@@ -4,14 +4,16 @@ import {
   getOrdersApi,
   deleteOrderApi,
   submitOrderApi,
+  updateOrderHeadApi,
   type OrderData,
+  type OrderItem,
   type CreateOrderData,
+  type UpdateOrderHeadData,
 } from '@/api/order/OrderApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
 import { generateTypedId } from '@/utils/idGenerator'
 import type {
   OrderFormData,
-  OrderSubmitPayload,
   CreateOrderDetailInput,
 } from '@/api/order/types'
 
@@ -23,7 +25,6 @@ export interface Order {
   type: string
   leaderAccount: string
   creator: string
-  creatorAccount: string
   customer: string
   contact: string
   contactPhone: string
@@ -34,6 +35,7 @@ export interface Order {
   company: string
   status: string
   createTime: string
+  details: OrderItem[]
 }
 
 // === 共享状态（模块级单例）===
@@ -49,9 +51,24 @@ export function useOrder() {
     try {
       // 生成订单 id：2位 订单类型首字母 + 时间(YYYYMMDDHHmmssSSS) + 5 位随机字母数字
       const orderId = generateTypedId(data.type)
-      // 把设备明细一并提交到订单创建接口
-      const orderPayload: CreateOrderData = { ...data, id: orderId } as CreateOrderData
+      // 组装 addOrder 契约载荷：project 映射自表单 projectId；time/status 由后端自动生成，前端传空串
+      const orderPayload: CreateOrderData = {
+        id: orderId,
+        project: data.projectId ?? '',
+        name: data.name,
+        type: data.type,
+        time: '',
+        manager: data.manager,
+        customer: data.customer,
+        contact: data.contact,
+        contactPhone: data.contactPhone,
+        province: data.province,
+        city: data.city,
+        district: data.district,
+        address: data.address,
+      }
       if (details && details.length > 0) {
+        // 明细字段对齐后端实体契约（同 addOrderDetail）：name/model/type/brand/spec/number
         orderPayload.details = details.map((d) => ({
           name: d.name,
           model: d.model,
@@ -59,8 +76,6 @@ export function useOrder() {
           brand: d.brand ?? '',
           spec: d.spec ?? '',
           number: String(d.number ?? ''),
-          price: String(d.price ?? ''),
-          remark: d.remark ?? '',
         }))
       }
       const response = await createOrderApi(orderPayload)
@@ -87,22 +102,22 @@ export function useOrder() {
         if (typeof data === 'object' && data !== null) {
           const orders: Order[] = data.map((item: OrderData) => ({
             id: item.id,
-            projectId: item.project_id,
+            projectId: item.project ?? '',
             name: item.name,
             type: item.type,
             leaderAccount: item.manager,
-            creator: item.creator,
-            creatorAccount: item.creator_account,
+            creator: item.creator ?? '',
             customer: item.customer,
             contact: item.contact,
-            contactPhone: item.contactPhone ?? item.contact_phone ?? '',
+            contactPhone: item.contactPhone ?? '',
             province: item.province,
             city: item.city,
             district: item.district,
             address: item.address || '',
-            company: item.company,
+            company: item.company ?? '',
             status: item.status || '无状态',
             createTime: formatDateTime(item.time),
+            details: item.details ?? [],
           }))
           // 按项目本地过滤（getOrdersApi 不支持服务端筛选项）
           const filtered = projectId
@@ -155,11 +170,27 @@ export function useOrder() {
     }
   }
 
+  // === 更新订单表头（编辑中订单可修改）===
+  const updateOrderHead = async (data: UpdateOrderHeadData): Promise<boolean> => {
+    try {
+      const response = await updateOrderHeadApi(data)
+
+      if (response.code === 200) {
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('更新订单表头失败:', error)
+      return false
+    }
+  }
+
   return {
     orderList,
     createOrder,
     fetchOrders,
     deleteOrder,
     submitOrder,
+    updateOrderHead,
   }
 }

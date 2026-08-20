@@ -1,47 +1,41 @@
 <template>
-  <div class="repair-accept" v-loading="loading">
-    <div class="page-header">
-      <h2 class="title">维修接单</h2>
-      <div class="action-buttons">
-        <el-button>导入Excel</el-button>
-        <el-button>导出Excel</el-button>
-      </div>
-    </div>
-    <div class="filter-section">
-      <div class="filter-item">
-        <label for="status">状态：</label>
-        <el-select filterable id="status" aria-label="状态" v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
-          <el-option label="全部状态" value="" />
-          <el-option label="维修中" value="维修中" />
-          <el-option label="已完成" value="已完成" />
-        </el-select>
-      </div>
-      <div class="filter-item">
-        <label for="equipmentName">设备名称：</label>
-        <el-input id="equipmentName" aria-label="设备名称" v-model="filterForm.name" placeholder="请输入设备名称" style="width: 150px" />
-      </div>
-      <div class="filter-item">
-        <label for="equipmentModel">设备型号：</label>
-        <el-input id="equipmentModel" aria-label="设备型号" v-model="filterForm.model" placeholder="请输入设备型号" style="width: 150px" />
-      </div>
-      <div class="filter-item">
-        <label for="snCode">SN码：</label>
-        <el-input id="snCode" aria-label="SN码" v-model="filterForm.sn" placeholder="请输入SN码" style="width: 150px" />
-      </div>
-      <div class="filter-item">
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </div>
-    </div>
+  <WorkPage :loading="loading">
+    <template #actions>
+      <el-button>导入Excel</el-button>
+      <el-button>导出Excel</el-button>
+    </template>
+    <template #filter>
+      <el-form :inline="true" @submit.prevent>
+        <el-form-item label="状态">
+          <el-select filterable v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+            <el-option label="全部状态" value="" />
+            <el-option label="维修中" value="维修中" />
+            <el-option label="已完成" value="已完成" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="设备名称">
+          <el-input v-model="filterForm.name" placeholder="请输入设备名称" clearable style="width: 150px" />
+        </el-form-item>
+        <el-form-item label="设备型号">
+          <el-input v-model="filterForm.model" placeholder="请输入设备型号" clearable style="width: 150px" />
+        </el-form-item>
+        <el-form-item label="SN码">
+          <el-input v-model="filterForm.sn" placeholder="请输入SN码" clearable style="width: 150px" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
 
-    <div class="table-section">
-      <el-table
-        :data="paginatedData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :row-key="getRowKey"
-      >
+    <el-table
+      :data="paginatedData"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+      :row-key="getRowKey"
+    >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="name" label="设备名称" />
         <el-table-column prop="model" label="设备型号" />
@@ -57,9 +51,7 @@
         <el-table-column prop="repairman" label="维修人" width="100" />
         <el-table-column label="操作" width="73">
           <template #default="scope">
-            <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewRepair(scope.row)">查看</el-button>
-            </div>
+            <el-button type="primary" size="small" @click="viewRepair(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -72,14 +64,14 @@
           :total="filteredData.length"
         />
       </div>
-    </div>
-  </div>
+  </WorkPage>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getTakenDetailsApi, type TakenDetailData } from '@/api/repair/RepairApi'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import WorkPage from '@/components/common/WorkPage.vue'
 
 interface TakenDetail {
   id: number
@@ -169,52 +161,10 @@ const paginatedData = pagedList
 </script>
 
 <style scoped>
-.repair-accept {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid black;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-}
-
-.filter-section {
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  justify-content: space-between;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-}
-
-.table-section {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
+/* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

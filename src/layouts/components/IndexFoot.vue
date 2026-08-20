@@ -90,8 +90,11 @@ import { Phone, Message } from '@element-plus/icons-vue'
 
 .footer-content {
   color: #181818;
-  width: 1410px;
+  max-width: 1410px;
+  width: 100%;
   margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
   background: #e8e8e8;
 }
 

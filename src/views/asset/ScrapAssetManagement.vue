@@ -1,10 +1,10 @@
 <template>
   <WorkPage :loading="loading">
     <template #actions>
-      <el-button type="primary" @click="openAddForm">新增固定资产</el-button>
       <el-button>导入Excel</el-button>
       <el-button>导出Excel</el-button>
     </template>
+
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="名称">
@@ -29,7 +29,6 @@
       </el-form>
     </template>
 
-    <!-- 新增/修改固定资产弹窗 -->
     <AddAssetForm v-model:visible="addVisible" :edit-data="editData" @submit="fetchAssets" />
 
     <!-- 表格 -->
@@ -49,26 +48,35 @@
           </template>
         </el-table-column>
         <el-table-column prop="sn" label="SN码" min-width="140" />
-        <el-table-column prop="account" label="使用人" min-width="110" />
         <el-table-column prop="location" label="放置位置" min-width="130" />
         <el-table-column prop="register" label="登记人" min-width="100" />
+        <el-table-column prop="reason" label="报废原因" min-width="120" show-overflow-tooltip>
+          <template #default="scope">
+            {{ scope.row.reason || '-' }}
+          </template>
+        </el-table-column>
                 <el-table-column label="创建时间" width="136">
           <template #default="scope">
             {{ formatTime(scope.row.time) }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" min-width="90" align="center">
+        <el-table-column label="报废时间" min-width="136">
+          <template #default="scope">
+            {{ formatTime(scope.row.scrapTime) }}
+          </template>
+        </el-table-column>
+                <el-table-column prop="status" label="状态" min-width="90" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === '报废' ? 'danger' : 'success'" disable-transitions>
               {{ scope.row.status || '正常' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="193" fixed="right">
+        <el-table-column label="操作" width="213" fixed="right">
           <template #default="scope">
-            <el-button size="small" type="warning" @click="handleScrap(scope.row)">报废</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button size="small" type="success" @click="handleEnable(scope.row)">启用</el-button>
             <el-button size="small" type="primary" @click="handleEdit(scope.row)">修改</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -89,7 +97,7 @@ import WorkPage from '@/components/common/WorkPage.vue'
 import {
   getAssetListApi,
   deleteAssetsApi,
-  scrapAssetsApi,
+  enableAssetsApi,
   type AssetItem,
 } from '@/api/asset/AssetApi'
 import { getOrderManagersApi, type OrderManager } from '@/api/order/OrderApi'
@@ -107,7 +115,7 @@ const fetchManagerOptions = async () => {
   if (res.code === 200 && res.data) managerOptions.value = res.data
 }
 
-// 筛选 + 前端切片分页（统一 useTableQuery）
+// 筛选 + 前端切片分页（统一 useTableQuery）：本视图仅展示「报废」资产
 const { filterForm, currentPage, pageSize, filteredList, pagedList, total: totalCount, handleSearch, handleReset } = useTableQuery(
   assetList,
   (item: AssetItem, form) => {
@@ -117,8 +125,8 @@ const { filterForm, currentPage, pageSize, filteredList, pagedList, total: total
     const sn = kw(form.sn)
     const account = kw(form.account)
     return (
-      // 本视图仅展示「正常」资产（状态缺失时按正常兜底，与状态标签显示一致）
-      (item.status ?? '正常') === '正常' &&
+      // 本视图仅展示「报废」资产
+      (item.status ?? '正常') === '报废' &&
       (!name || String(item.name ?? '').toLowerCase().includes(name)) &&
       (!model || String(item.model ?? '').toLowerCase().includes(model)) &&
       (!sn || String(item.sn ?? '').toLowerCase().includes(sn)) &&
@@ -129,23 +137,19 @@ const { filterForm, currentPage, pageSize, filteredList, pagedList, total: total
   10,
 )
 
+// 新增/修改固定资产弹窗：editData 为 null 表示新增，否则为编辑行
+const addVisible = ref(false)
+const editData = ref<AssetItem | null>(null)
+const handleEdit = (row: AssetItem) => {
+  editData.value = row
+  addVisible.value = true
+}
+
 // 统计行：资产总价值基于筛选结果实时计算
 const totalAmount = computed(() =>
   filteredList.value.reduce((sum, item) => sum + Number(item.price ?? 0), 0),
 )
 
-
-// 新增/修改固定资产弹窗：editData 为 null 表示新增，否则为编辑行
-const addVisible = ref(false)
-const editData = ref<AssetItem | null>(null)
-const openAddForm = () => {
-  editData.value = null
-  addVisible.value = true
-}
-const handleEdit = (row: AssetItem) => {
-  editData.value = row
-  addVisible.value = true
-}
 
 // 删除（二次确认）
 const handleDelete = async (row: AssetItem) => {
@@ -170,30 +174,25 @@ const handleDelete = async (row: AssetItem) => {
   }
 }
 
-// 报废（二次确认 + 填写报废原因）
-const handleScrap = async (row: AssetItem) => {
+// 启用（二次确认）：将报废资产恢复为正常
+const handleEnable = async (row: AssetItem) => {
   try {
     await ElMessageBox.confirm(
-      `确定要将资产「${row.name}」（SN: ${row.sn}）标记为报废吗？`,
-      '报废确认',
+      `确定要将资产「${row.name}」（SN: ${row.sn}）恢复为正常状态吗？`,
+      '启用确认',
       { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' },
     )
-    const { value: reason } = await ElMessageBox.prompt('请填写报废原因（可选）', '报废原因', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      inputType: 'textarea',
-    })
-    const res = await scrapAssetsApi({ id: String(row.id ?? ''), reason: reason.trim() })
+    const res = await enableAssetsApi(String(row.id ?? ''))
     if (res.code === 200) {
-      ElMessage.success('已报废')
+      ElMessage.success('已启用')
       fetchAssets()
     } else {
-      ElMessage.error(res.msg || '报废失败')
+      ElMessage.error(res.msg || '启用失败')
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('报废资产失败:', error)
-      ElMessage.error('报废失败')
+      console.error('启用资产失败:', error)
+      ElMessage.error('启用失败')
     }
   }
 }
@@ -229,7 +228,7 @@ const fetchAssets = async () => {
     const res = await getAssetListApi()
     if (res.code === 200 && res.data) {
       assetList.value = res.data.assets ?? []
-      // 数据量变化（新增/删除后）确保当前页不越界，避免表格空白
+      // 数据量变化（删除后）确保当前页不越界，避免表格空白
       const maxPage = Math.max(1, Math.ceil(filteredList.value.length / pageSize.value))
       if (currentPage.value > maxPage) currentPage.value = maxPage
     } else {

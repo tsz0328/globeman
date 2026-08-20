@@ -1,65 +1,52 @@
 <template>
-  <div class="company-management" v-loading="loading">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h2 class="title">公司管理</h2>
-      <div class="action-buttons">
-        <el-button type="primary" @click="addCompany">新建公司</el-button>
-        <el-button>导入Excel</el-button>
-        <el-button>导出Excel</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
-      </div>
+  <WorkPage :loading="loading">
+    <template #actions>
+      <el-button type="primary" @click="addCompany">新建公司</el-button>
+      <el-button>导入Excel</el-button>
+      <el-button>导出Excel</el-button>
+      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
+    </template>
+
+    <template #filter>
+      <el-form :inline="true" @submit.prevent>
+        <el-form-item label="公司名称">
+          <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px"
+            @keyup.enter.prevent="handleSearch" />
+        </el-form-item>
+        <el-form-item label="负责人">
+          <el-input v-model="filterForm.account" placeholder="请输入负责人" style="width: 150px"
+            @keyup.enter.prevent="handleSearch" />
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </template>
+
+    <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
+      :row-key="getRowKey">
+      <el-table-column type="selection" width="50"></el-table-column>
+      <el-table-column prop="name" label="公司名称"></el-table-column>
+      <el-table-column prop="account" label="负责人" width="120"></el-table-column>
+      <el-table-column prop="time" label="创建时间" width="180"></el-table-column>
+      <el-table-column label="操作" width="133">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="viewCompany(scope.row)">编辑</el-button>
+          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="pagination-section">
+      <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
+        layout="total, prev, pager, next, jumper" :total="filteredData.length"></el-pagination>
     </div>
 
-    <!-- 筛选栏 -->
-    <div class="filter-section">
-      <div class="filter-item">
-        <label for="companyName">公司名称:</label>
-        <el-input id="companyName" aria-label="公司名称" v-model="filterForm.name" placeholder="请输入公司名称"
-          style="width: 200px" @keyup.enter.prevent="handleSearch" />
-      </div>
-      <div class="filter-item">
-        <label for="account">负责人:</label>
-        <el-input id="account" aria-label="负责人" v-model="filterForm.account" placeholder="请输入负责人"
-          style="width: 150px" @keyup.enter.prevent="handleSearch" />
-      </div>
-      <div class="filter-item">
-        <label for="createTime">创建时间:</label>
-        <el-date-picker id="createTime" aria-label="创建时间" v-model="filterForm.createTime" type="date" placeholder="选择日期"
-          style="width: 150px" />
-      </div>
-      <div class="filter-item">
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </div>
-    </div>
-
-    <!-- 表格 -->
-    <div class="table-section">
-      <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
-        :row-key="getRowKey">
-        <el-table-column type="selection" width="50"></el-table-column>
-        <el-table-column prop="name" label="公司名称"></el-table-column>
-        <el-table-column prop="account" label="负责人" width="120"></el-table-column>
-        <el-table-column prop="time" label="创建时间" width="180"></el-table-column>
-        <el-table-column label="操作" width="133">
-          <template #default="scope">
-            <div class="action-buttons">
-              <el-button type="primary" size="small" @click="viewCompany(scope.row)">编辑</el-button>
-              <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-      <!-- 分页 -->
-      <div class="pagination-section">
-        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
-          layout="total, prev, pager, next, jumper" :total="filteredData.length"></el-pagination>
-      </div>
-    </div>
-  </div>
-
-  <CompanyForm v-model:visible="companyFormVisible" @submit="handleCompanySubmit" />
+    <CompanyForm v-model:visible="companyFormVisible" @submit="handleCompanySubmit" />
+  </WorkPage>
 </template>
 
 <script setup lang="ts">
@@ -69,6 +56,7 @@ import { useCompany } from '@/composables/admin/useCompany'
 import type { CompanyData } from '@/api/admin/CompanyApi'
 import type { CompanyFormData } from '@/api/admin/CompanyApi'
 import CompanyForm from '@/components/admin/AddCompanyForm.vue'
+import WorkPage from '@/components/common/WorkPage.vue'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 
 const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } = useCompany()
@@ -197,58 +185,10 @@ const handleBatchDelete = async () => {
 </script>
 
 <style scoped>
-.company-management {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid black;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-}
-
-.filter-section {
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  gap: 20px;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.filter-item:last-child {
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.table-section {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
+/* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>
