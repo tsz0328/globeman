@@ -41,7 +41,6 @@
           <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -65,10 +64,10 @@
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="180" />
       <el-table-column prop="cooperativeUnit" label="归属公司" />
-      <el-table-column label="操作" width="133">
+      <el-table-column label="操作" width="133" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewProject(scope.row)">查看</el-button>
-          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
+          <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -123,6 +122,7 @@ const fetchOrderManagers = async () => {
 const projectFormVisible = ref(false)
 const selectedRows = ref<Project[]>([])
 const loading = ref(false)
+const deleteLoadingId = ref<string | number | null>(null)
 
 // 组件挂载时获取项目列表
 const loadData = async () => {
@@ -177,7 +177,7 @@ const handleDelete = async (row: Project) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-
+    deleteLoadingId.value = row.id
     const success = await deleteProject(row.id)
     if (success) {
       ElMessage.success('删除成功')
@@ -189,6 +189,8 @@ const handleDelete = async (row: Project) => {
       console.error('删除项目失败:', error)
       ElMessage.error('删除失败')
     }
+  } finally {
+    deleteLoadingId.value = null
   }
 }
 
@@ -244,7 +246,7 @@ const handleBatchDelete = async () => {
 }
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   projectList,
   (item: Project, form) => {
     if (form.projectType && !item.projectType.includes(form.projectType)) return false

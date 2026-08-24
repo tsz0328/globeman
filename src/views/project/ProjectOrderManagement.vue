@@ -17,7 +17,6 @@
       :filter-form="filterForm"
       :managers="managers"
       :customers="orderCustomers"
-      @search="handleSearch"
       @reset="handleReset"
     />
 
@@ -105,7 +104,7 @@ const parseProjectId = (id: unknown): string => {
 }
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   orderList,
   (item: Order, form) => {
     if (form.status && item.status !== form.status) return false

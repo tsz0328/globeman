@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import 'vue3-carousel/carousel.css'
 import PlatformNoticeComponent from './components/IndexPlatformNotice.vue'
 import Introduction from './components/IndexIntroduction.vue'
@@ -10,6 +10,15 @@ import Cookies from 'js-cookie'
 import router from '@/router'
 import { Promotion } from '@element-plus/icons-vue'
 import logoPng from '@/assets/logo.png'
+import { announcements, type AnnouncementItem } from '@/api/platform/Announcement'
+
+// 首页「最新公告」区：取 type=latest 且已发布的最新一条
+const latestAnnouncement = computed<AnnouncementItem | null>(() => {
+  const list = announcements.value
+    .filter((i) => i.type === 'latest' && i.enabled)
+    .sort((a, b) => b.publishTime.localeCompare(a.publishTime))
+  return list[0] ?? null
+})
 
 const time = ref('')
 const pad = (n: number):string => n.toString().padStart(2, '0')
@@ -83,11 +92,15 @@ onMounted(() => {
         </div>
         <!-- 公告内容 -->
         <div class="notice-content">
+          <template v-if="latestAnnouncement">
+            <div class="notice-title">{{ latestAnnouncement.title }}</div>
+            <div class="notice-text">{{ latestAnnouncement.content.join(' ') }}</div>
+          </template>
+          <div v-else class="notice-empty">暂无最新公告</div>
         </div>
       </div>
 
       <div class="content">
-        <!-- 公告内容 -->
         <div class="announcement">
           <Message />
         </div>
@@ -235,7 +248,7 @@ onMounted(() => {
 
 .carousel {
   width: 100%;
-  height: 380px;
+  height: 450px;
 }
 
 .notice {

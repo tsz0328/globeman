@@ -20,7 +20,7 @@ const RepairList = () => import('@/views/repair/RepairList.vue')
 const RepairWarehouseOut = () => import('@/views/repair/RepairWarehouseOut.vue')
 const RepairAccept = () => import('@/views/repair/RepairAccept.vue')
 
-const EquipmentRepairInfo = () => import('@/views/repair/EquipmentRepairInfo.vue')
+const RepairDeviceDetail = () => import('@/views/repair/RepairDeviceDetail.vue')
 const OutboundManagementComponent = () => import('@/views/inventory/OutboundManagement.vue')
 const InboundManagementComponent = () => import('@/views/inventory/InboundManagement.vue')
 const InventoryManagementComponent = () => import('@/views/inventory/InventoryManagement.vue')
@@ -31,6 +31,8 @@ const DepartmentManagementComponent = () => import('@/views/admin/DepartmentMana
 const CompanyDetailComponent = () => import('@/views/admin/CompanyDetail.vue')
 const FixedAssetManagement = () => import('@/views/asset/FixedAssetManagement.vue')
 const ScrapAssetManagement = () => import('@/views/asset/ScrapAssetManagement.vue')
+const CarouselManagement = () => import('@/views/platform/CarouselManagement.vue')
+const AnnouncementManagement = () => import('@/views/platform/AnnouncementManagement.vue')
 
 // path: 'xxx' → 相对路径 → 拼在父路由后面
 // path: '/xxx' → 绝对路径 → 直接跟在域名后面，无视父路由
@@ -149,6 +151,16 @@ const router = createRouter({
           name: 'ScrapAssetManagement',
           component: ScrapAssetManagement,
         },
+        {
+          path: 'platform-carousel',
+          name: 'PlatformCarousel',
+          component: CarouselManagement,
+        },
+        {
+          path: 'platform-announcement',
+          name: 'PlatformAnnouncement',
+          component: AnnouncementManagement,
+        },
       ],
     },
     {
@@ -167,9 +179,9 @@ const router = createRouter({
       component: OrderDetailComponent,
     },
     {
-      path: '/equipment-repair-information/:id',
-      name: 'EquipmentRepairInformation',
-      component: EquipmentRepairInfo,
+      path: '/repair-device-detail/:id',
+      name: 'RepairDeviceDetail',
+      component: RepairDeviceDetail,
     },
     {
       path: '/user-detail/:id',

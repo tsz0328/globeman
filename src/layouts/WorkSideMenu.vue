@@ -64,7 +64,7 @@ const visibleMenus = computed(() => menuConfig.filter((item) => !item.adminOnly 
 
 :deep(.el-menu-item),
 :deep(.el-sub-menu__title) {
-  border-radius: 8px;
+  border-radius: 16px;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;

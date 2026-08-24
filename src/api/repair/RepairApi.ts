@@ -54,26 +54,29 @@ export async function getRepairDetailApi(
   })
 }
 
-// === 接单列表 ===
-export interface TakenDetailData {
-  id: number
-  details_id: number
-  project_id: string
-  order_id: string
-  name: string
-  model: string
-  manufacturer: string
-  sn: string
-  status: string
-  repairman: string
-  repairman_account: string
+// === 接单列表（GET /client/repair/getAcceptInfo）===
+// 后端返回数组，每项即一条待接单 / 处理中的维修明细
+export interface RepairAcceptItem {
+  id: number // 维修记录主键
+  account: string // 接单人
+  brand: string // 品牌
+  description: string | null // 故障描述
+  name: string | null // 设备名称
+  dispose: string | null // 处置
+  headName: string // 工单 / 订单名称
+  model: string // 型号
+  repairTime: string | null // 维修时间
+  result: string | null // 结果
+  sn: string // SN码
+  spec: string // 参数
+  status: string // 状态（如：处理中）
+  time: string | null // 登记 / 创建时间
+  type: string // 类型
 }
 
-export async function getTakenDetailsApi(): Promise<
-  ApiResponse<{ [key: string]: TakenDetailData }>
-> {
+export async function getAcceptInfoApi(): Promise<ApiResponse<RepairAcceptItem[]>> {
   return request({
-    url: '/take/get',
+    url: '/client/repair/getAcceptInfo',
     method: 'get',
   })
 }
@@ -87,10 +90,11 @@ export async function acceptRepairApi(sn: string, account: string): Promise<ApiR
   })
 }
 
+// 后端契约：POST /client/repair/acceptSN?sn=...，sn 为设备序列号（快速接单）
 export async function repairTakeApi(sn: string): Promise<ApiResponse<void>> {
   return request({
-    url: '/repair/take',
-    method: 'put',
+    url: '/client/repair/acceptSN',
+    method: 'post',
     params: { sn },
   })
 }
@@ -109,6 +113,16 @@ export async function addSnApi(sn: string, id: number | string): Promise<ApiResp
   return request({
     url: '/client/repair/addSN',
     method: 'post',
+    data: { sn, id },
+  })
+}
+
+// === 删除 SN（维修订单详情设备表格「删除」按钮）===
+// 后端契约：DELETE /client/repair/deleteSN，JSON body { sn, id }，id 为设备明细 id
+export async function deleteSnApi(sn: string, id: number | string): Promise<ApiResponse<void>> {
+  return request({
+    url: '/client/repair/deleteSN',
+    method: 'delete',
     data: { sn, id },
   })
 }
@@ -237,12 +251,4 @@ export interface RepairDetailData {
   order_id: string
   status: string
   done_time: string
-}
-
-export async function getRepairByIdApi(id: number): Promise<ApiResponse<RepairDetailData>> {
-  return request({
-    url: '/take/getById',
-    method: 'get',
-    params: { id },
-  })
 }

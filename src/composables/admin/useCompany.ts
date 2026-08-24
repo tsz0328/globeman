@@ -45,11 +45,11 @@ export function useCompany() {
     }
   }
 
-  // 删除公司
+  // 删除公司（单条：包装成 [id] 数组，匹配后端 List<Integer> 契约）
   const deleteCompany = async (id: number): Promise<boolean> => {
     loading.value = true
     try {
-      const res = await deleteCompanyApi(id)
+      const res = await deleteCompanyApi([id])
       if (res.code === 200) {
         companyList.value = companyList.value.filter((c) => c.id !== id)
         return true
@@ -63,13 +63,12 @@ export function useCompany() {
     }
   }
 
-  // 批量删除公司（移除数组型批量接口，改为逐个调用单删接口）
+  // 批量删除公司（后端 /client/company/delete 接收 List<Integer>，单次请求传 id 数组）
   const batchDeleteCompanies = async (ids: number[]): Promise<boolean> => {
     loading.value = true
     try {
-      const results = await Promise.all(ids.map((id) => deleteCompanyApi(id)))
-      const allOk = results.every((r) => r.code === 200)
-      if (allOk) {
+      const res = await deleteCompanyApi(ids)
+      if (res.code === 200) {
         await fetchCompanies()
         return true
       }

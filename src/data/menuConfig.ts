@@ -11,6 +11,7 @@ import {
   Tools,
   Box,
   Coin,
+  Promotion,
 } from '@element-plus/icons-vue'
 
 // 侧边菜单的【唯一数据源】：
@@ -63,6 +64,15 @@ export const menuConfig: MenuItem[] = [
     children: [
       { path: '/work/fixedAsset', title: '固定资产管理' },
       { path: '/work/scrapAsset', title: '报废资产管理' },
+    ],
+  },
+  {
+    path: 'platform',
+    title: '平台管理',
+    icon: Promotion,
+    children: [
+      { path: '/work/platform-carousel', title: '轮播图管理' },
+      { path: '/work/platform-announcement', title: '公告管理' },
     ],
   },
 ]

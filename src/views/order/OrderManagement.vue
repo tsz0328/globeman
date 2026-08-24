@@ -42,7 +42,6 @@
             v-model="filterForm.orderName"
             placeholder="请输入订单名称"
             style="width: 150px"
-            @keyup.enter.prevent="handleSearch"
           />
         </el-form-item>
         <el-form-item label="负责人">
@@ -95,7 +94,6 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -127,17 +125,18 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="136" />
-      <el-table-column label="操作" width="193">
+      <el-table-column label="操作" width="193" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewOrder(scope.row)">查看</el-button>
           <el-button
             type="primary"
             size="small"
-            :disabled="scope.row.status !== SUBMITTED_STATUS"
+            :loading="submitLoadingId === scope.row.id"
+            :disabled="scope.row.status == SUBMITTED_STATUS"
             @click="handleSubmitBtn(scope.row)"
             >提交</el-button
           >
-          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
+          <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" :disabled="scope.row.status == SUBMITTED_STATUS" @click="handleDeleteBtn(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -222,9 +221,11 @@ const detailDialogVisible = ref(false)
 const currentOrder = ref<Order | null>(null)
 const isFilterVisible = ref(true)
 const loading = ref(false)
+const deleteLoadingId = ref<string | number | null>(null)
+const submitLoadingId = ref<string | number | null>(null)
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } =
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } =
   useTableQuery(
     orderList,
     (item: Order, form) => {
@@ -310,6 +311,7 @@ const handleSubmitBtn = async (row: Order) => {
       cancelButtonText: '取消',
       type: 'info',
     })
+    submitLoadingId.value = row.id
     const success = await submitOrder(row.id)
     if (success) {
       ElMessage.success('提交成功')
@@ -321,6 +323,8 @@ const handleSubmitBtn = async (row: Order) => {
     if (error !== 'cancel') {
       ElMessage.error('提交失败')
     }
+  } finally {
+    submitLoadingId.value = null
   }
 }
 
@@ -341,6 +345,7 @@ const handleDelete = async (row: Order) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
+    deleteLoadingId.value = row.id
     const success = await deleteOrder(row.id)
     if (success) {
       ElMessage.success('删除成功')
@@ -351,6 +356,8 @@ const handleDelete = async (row: Order) => {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
     }
+  } finally {
+    deleteLoadingId.value = null
   }
 }
 

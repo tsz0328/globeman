@@ -19,28 +19,15 @@ import {
   deleteTestImageApi,
   submitRepairApi,
   saveRepairApi,
-  getRepairByIdApi,
-  getTakenDetailsApi,
-  type RepairDetailData,
-  type TakenDetailData,
+  getAcceptInfoApi,
+  type RepairAcceptItem,
   type RepairImageData,
   type SubmitRepairData,
 } from '@/api/repair/RepairApi'
 
 // === 导出类型 ===
-export interface TakenDetail {
-  id: number
-  detailsId: number
-  projectId: string
-  orderId: string
-  name: string
-  model: string
-  manufacturer: string
-  sn: string
-  status: string
-  repairman: string
-  repairmanAccount: string
-}
+// 接单列表项直接复用 RepairAcceptItem（与 /client/repair/getAcceptInfo 响应一致，含 id）
+export type TakenDetail = RepairAcceptItem
 
 export interface RepairImageItem {
   id: number
@@ -181,19 +168,6 @@ export function useDetail() {
     }
   }
 
-  const getRepairById = async (id: number): Promise<RepairDetailData | null> => {
-    try {
-      const res = await getRepairByIdApi(id)
-      if (res.code === 200 && res.data) {
-        return res.data
-      }
-      return null
-    } catch (error) {
-      console.error('获取维修工单失败:', error)
-      return null
-    }
-  }
-
   // === 维修图片 ===
   const getRepairImages = async (id: number): Promise<RepairImageItem[]> => {
     try {
@@ -292,21 +266,9 @@ export function useDetail() {
   // === 接单列表 ===
   const getTakenDetails = async (): Promise<TakenDetail[]> => {
     try {
-      const res = await getTakenDetailsApi()
-      if (res.code === 200 && res.data && typeof res.data === 'object') {
-        return Object.values(res.data).map((item: TakenDetailData) => ({
-          id: item.id,
-          detailsId: item.details_id,
-          projectId: item.project_id,
-          orderId: item.order_id,
-          name: item.name,
-          model: item.model,
-          manufacturer: item.manufacturer,
-          sn: item.sn,
-          status: item.status,
-          repairman: item.repairman,
-          repairmanAccount: item.repairman_account,
-        }))
+      const res = await getAcceptInfoApi()
+      if (res.code === 200 && Array.isArray(res.data)) {
+        return res.data
       }
       return []
     } catch (error) {
@@ -325,7 +287,6 @@ export function useDetail() {
     addRepairSn,
     addSn,
     acceptRepair,
-    getRepairById,
     getRepairImages,
     uploadRepairImages,
     deleteRepairImage,

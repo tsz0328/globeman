@@ -1,23 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import IndexCardHeader from './IndexCardHeader.vue'
+import { announcements } from '@/api/platform/Announcement'
 
-const notices = [
-  {
-    title: '各供应商：',
-    paragraphs: [
-      '根据中国铁塔一码到底全国推广工作要求，在线商务平台已于2023年8月4日上线全国全品类主设备一码到底。即2023年8月5日起接收的主设备订单需贴签扫码后才能发货。请涉及的各主设备供应商根据近期实际供货量提前备签，避免因标签问题影响发货。',
-      '一码到底相关要求、培训视频、操作手册详见铁塔在线商务平台-下载专区。',
-    ],
-  },
-  {
-    title: '各供应商：',
-    paragraphs: [
-      '中国铁塔秉承开放、平等和诚信原则与广大供应商开展合作。如有下列相关问题，可通过相关渠道反映，感谢配合！',
-      '1.进行欠款清理申诉，推动中小企业应付款清理工作。',
-      '2.采购履约需要反馈的情形（如未履行采购手续向供应商进行借货等）。',
-    ],
-  },
-]
+// 平台公告：取 type=platform 且已发布的列表，按发布时间倒序
+const notices = computed(() =>
+  announcements.value
+    .filter((i) => i.type === 'platform' && i.enabled)
+    .sort((a, b) => b.publishTime.localeCompare(a.publishTime))
+    .map((i) => ({ title: i.title, paragraphs: i.content })),
+)
 </script>
 
 <template>

@@ -49,7 +49,7 @@ const isRowSelectable = (row: Order) => {
       </template>
     </el-table-column>
     <el-table-column prop="createTime" label="创建时间" width="160" />
-    <el-table-column label="操作" width="300">
+    <el-table-column label="操作" width="300" fixed="right">
       <template #default="scope">
         <div class="action-buttons">
           <el-button type="primary" size="small" @click="emit('view', scope.row.id)">查看</el-button>

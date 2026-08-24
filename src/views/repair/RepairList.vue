@@ -20,7 +20,6 @@
           <el-input v-model="filterForm.manager" placeholder="请输入负责人" clearable style="width: 150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -32,7 +31,7 @@
       <el-table-column prop="manager" label="负责人" width="120" />
       <el-table-column prop="status" label="状态" width="100" />
       <el-table-column prop="time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="73">
+      <el-table-column label="操作" width="73" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewDetail(scope.row)">查看</el-button>
         </template>
@@ -66,7 +65,7 @@ const loading = ref(false)
 const list = ref<RepairListItem[]>([])
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   list,
   (item: RepairListItem, form) => {
     if (form.status && item.status !== form.status) return false

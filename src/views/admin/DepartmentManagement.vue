@@ -8,11 +8,9 @@
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="部门名称">
-          <el-input v-model="filterForm.name" placeholder="请输入部门名称" style="width: 200px"
-            @keyup.enter.prevent="handleSearch" />
+          <el-input v-model="filterForm.name" placeholder="请输入部门名称" style="width: 200px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -22,7 +20,7 @@
       :row-key="getRowKey">
       <el-table-column type="selection" width="50" />
       <el-table-column prop="name" label="部门名称" />
-      <el-table-column label="操作" width="150">
+      <el-table-column label="操作" width="150" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
@@ -55,7 +53,7 @@ const selectedRows = ref<DepartmentData[]>([])
 const addDialogVisible = ref(false)
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   tableData,
   (item: DepartmentData, form) => {
     if (form.name && !item.name.includes(form.name)) return false

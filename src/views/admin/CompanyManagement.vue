@@ -4,45 +4,64 @@
       <el-button type="primary" @click="addCompany">新建公司</el-button>
       <el-button>导入Excel</el-button>
       <el-button>导出Excel</el-button>
-      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
+      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
+        >批量删除</el-button
+      >
     </template>
 
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="公司名称">
-          <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px"
-            @keyup.enter.prevent="handleSearch" />
+          <el-input v-model="filterForm.name" placeholder="请输入公司名称" style="width: 200px" />
         </el-form-item>
         <el-form-item label="负责人">
-          <el-input v-model="filterForm.account" placeholder="请输入负责人" style="width: 150px"
-            @keyup.enter.prevent="handleSearch" />
+          <el-input v-model="filterForm.account" placeholder="请输入负责人" style="width: 150px" />
         </el-form-item>
         <el-form-item label="创建时间">
-          <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
+          <el-date-picker
+            v-model="filterForm.createTime"
+            type="date"
+            placeholder="选择日期"
+            style="width: 150px"
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </template>
 
-    <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
-      :row-key="getRowKey">
+    <el-table
+      :data="paginatedData"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+      :row-key="getRowKey"
+    >
       <el-table-column type="selection" width="50"></el-table-column>
       <el-table-column prop="name" label="公司名称"></el-table-column>
       <el-table-column prop="account" label="负责人" width="120"></el-table-column>
       <el-table-column prop="time" label="创建时间" width="180"></el-table-column>
-      <el-table-column label="操作" width="133">
+      <el-table-column label="操作" width="133" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewCompany(scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)">删除</el-button>
+          <el-button
+            type="danger"
+            size="small"
+            :loading="deleteLoadingId === scope.row.id"
+            @click="handleDeleteBtn(scope.row)"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
     <div class="pagination-section">
-      <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
-        layout="total, prev, pager, next, jumper" :total="filteredData.length"></el-pagination>
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="filteredData.length"
+      ></el-pagination>
     </div>
 
     <CompanyForm v-model:visible="companyFormVisible" @submit="handleCompanySubmit" />
@@ -59,14 +78,16 @@ import CompanyForm from '@/components/admin/AddCompanyForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 
-const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } = useCompany()
+const { companyList, fetchCompanies, deleteCompany, batchDeleteCompanies, createCompany } =
+  useCompany()
 
 const companyFormVisible = ref(false)
 const loading = ref(false)
+const deleteLoadingId = ref<string | number | null>(null)
 const selectedRows = ref<CompanyData[]>([])
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   companyList,
   (item: CompanyData, form) => {
     if (form.name && !item.name.includes(form.name)) return false
@@ -97,7 +118,6 @@ const loadCompanies = async () => {
 
 onMounted(loadCompanies)
 
-
 const addCompany = () => {
   companyFormVisible.value = true
 }
@@ -125,7 +145,7 @@ const handleDelete = async (row: CompanyData) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-
+    deleteLoadingId.value = row.id ?? null
     const success = await deleteCompany(row.id || 0)
     if (success) {
       ElMessage.success('删除成功')
@@ -136,6 +156,8 @@ const handleDelete = async (row: CompanyData) => {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
     }
+  } finally {
+    deleteLoadingId.value = null
   }
 }
 
@@ -181,7 +203,6 @@ const handleBatchDelete = async () => {
     }
   }
 }
-
 </script>
 
 <style scoped>

@@ -23,11 +23,12 @@ export async function getInfoCompanyApi(): Promise<ApiResponse<string[]>> {
   })
 }
 
-export async function deleteCompanyApi(id: number): Promise<ApiResponse<unknown>> {
+// 请求体是 JSON 整数数组 [id]
+export async function deleteCompanyApi(ids: number[]): Promise<ApiResponse<unknown>> {
   return request({
     url: '/client/company/delete',
     method: 'post',
-    data: id,
+    data: ids,
   })
 }
 

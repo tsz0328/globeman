@@ -333,7 +333,7 @@ onMounted(() => {
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 120px 1fr 120px 1fr;
+  grid-template-columns: 150px 1fr 150px 1fr;
   align-items: center;
   border: 1px solid #e4e7ed;
   border-radius: 4px;

@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import logoPng from '@/assets/logo.png'
 import contentBg from '@/assets/contentBg.png'
+import { intro } from '@/api/platform/Announcement'
+
+// 公司介绍：默认 logo，标题/正文取 store（可在「公告管理 - 公司介绍」维护）
+const introTitle = computed(() => intro.value.title || '湖南全球人信息技术有限公司')
+const introContent = computed(() => intro.value.content || '')
 </script>
 
 <template>
@@ -9,17 +15,14 @@ import contentBg from '@/assets/contentBg.png'
     :style="{ backgroundImage: `url(${contentBg})` }"
   >
     <div class="title">
-      <img :src="logoPng" alt="湖南全球人logo" />
+      <img :src="intro.logoUrl || logoPng" alt="湖南全球人logo" />
       <div class="title-text">
-        湖南全球人信息技术有限公司
+        {{ introTitle }}
         <br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;（简称湖南全球人）
       </div>
     </div>
-    <!-- TODO: 以下公司介绍为中国铁塔占位文案，需替换为湖南全球人实际介绍 -->
-    <div class="intro-content">
-      是按照中央和国务院有关要求，在国资委、工信部联合组成的铁塔公司协调组的直接领导和协调推动下，由中国移动、中国联通和中国电信共同出资设立的大型通信基础设施综合服务企业。公司主营铁塔的建设、维护和运营，兼营基站机房、电源、空调等配套设施和室内分布系统的建设、维护和运营以及基站设备的维护。公司于2014年3月26日酝酿筹建，经过三个多月周密有序的部署筹备，于7月18日顺利揭牌成立。公司实行总分架构，总部设在北京，同时在全国设立了31个省级分公司和各地市分公司。公司注册资本金为100亿元人民币由中国移动、中国联通和中国电信按三家电信企业分别按40%、30.1%和29.9%的比例出资组成...
-    </div>
+    <div class="intro-content">{{ introContent }}</div>
   </div>
 </template>
 

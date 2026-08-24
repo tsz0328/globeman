@@ -30,7 +30,7 @@ import { getMenuTitle } from '@/data/menuConfig'
 // 各管理页只通过 slot 注入内容，结构天然一致；后续统一调样式只改这一处。
 // 标题默认取当前路由路径对应的菜单名（与侧边菜单、顶栏面包屑同源联动），
 // 页面若需要自定义标题（如带返回按钮），仍可用 #title 槽覆盖。
-const props = withDefaults(defineProps<{ loading?: boolean }>(), { loading: false })
+withDefaults(defineProps<{ loading?: boolean }>(), { loading: false })
 
 const route = useRoute()
 const fallbackTitle = computed(() => getMenuTitle(route.path))

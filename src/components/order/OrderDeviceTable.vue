@@ -79,12 +79,7 @@
             <span v-else>{{ scope.row.spec }}</span>
           </template>
         </el-table-column>
-        <el-table-column v-if="isRepair" label="SN码" min-width="140">
-          <template #default="scope">
-            <span>{{ scope.row.sn || '—' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="!isRepair" label="数量" width="80" align="center">
+        <el-table-column label="数量" width="80" align="center">
           <template #default="scope">
             <el-input
               v-if="scope.row.isNew"
@@ -100,13 +95,14 @@
             <span v-else>{{ scope.row.quantity }}</span>
           </template>
         </el-table-column>
-        <!-- 操作列：已有明细行删除；新增行 / 已提交（锁定态）/ 维修订单（只读）不显示 -->
-        <el-table-column label="操作" width="80" align="center">
+        <!-- 操作列：已有明细行可删除；空白新增行（isNew）删除禁用；已提交（锁定态）全部禁用 -->
+        <el-table-column label="操作" width="80" align="center" fixed="right">
           <template #default="scope">
             <el-button
-              :disabled="scope.row.isNew && scope.row.id && scope.row.id > 0 && !isSubmitted "
+              :disabled="isSubmitted || scope.row.isNew"
               type="danger"
               size="small"
+              :loading="deleteLoadingId === scope.row.id"
               @click.stop="handleRowDelete(scope.row)"
               >删除</el-button
             >
@@ -137,8 +133,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
 import { type Order } from '@/composables/order/useOrder'
 import type { OrderItem } from '@/api/order/OrderApi'
-import type { RepairOrderDetail } from '@/api/repair/RepairApi'
-import type { DetailData } from '@/api/order/OrderDeviceApi'
 
 const props = defineProps<{
   // 弹窗打开状态（与父组件 el-dialog 的 modelValue 同步）
@@ -146,8 +140,6 @@ const props = defineProps<{
   order: Order | null
   // 父组件已计算的派生状态，作为只读 prop 传入，避免子组件重复计算订单状态
   isSubmitted: boolean
-  // 维修订单：明细已随列表接口内联返回，传入后直接映射、不再二次请求订单明细接口
-  details?: RepairOrderDetail[]
 }>()
 
 // 明细变更（新增/删除）后通知父组件重新拉取订单列表，刷新内嵌 details
@@ -157,8 +149,8 @@ const emit = defineEmits<{
 
 const { detailList, createDetail, deleteDetail } = useDetail()
 
-// 是否维修订单明细：由父组件是否传入 details（维修单内联明细）决定；维修模式下列表按数量展开 + 展示 SN 列
-const isRepair = computed(() => !!props.details && props.details.length > 0)
+// 删除按钮 loading 标识
+const deleteLoadingId = ref<string | number | null>(null)
 
 interface DetailTableRow {
   rowKey: string
@@ -299,7 +291,7 @@ const detailTableData = computed<DetailTableRow[]>(() => {
     unitPrice: item.unitPrice,
     total: item.total,
   }))
-  // 已提交（锁定态）普通订单不再展示新增行；维修订单（isRepair）保留新增行以便新添设备
+  // 已提交（锁定态）不再展示新增行；编辑中展示可编辑新增行
   if (!props.isSubmitted) rows.push(...blankRows.value)
   return rows
 })
@@ -320,7 +312,29 @@ const prefillFirstPage = () => {
   blankRows.value = []
   ensurePageFilled(1)
   currentPage.value = 1
+  // 编辑中（展示空白新增行）：聚焦首个空白新增行（位于已有明细正下方），打开即可直接录入
+  if (!props.isSubmitted) {
+    nextTick(() => focusFirstBlankRow())
+  }
 }
+
+// 聚焦首个空白新增行（位于已有明细正下方，可能跨页）
+const focusFirstBlankRow = () => {
+  const existing = detailList.value.length
+  const page = Math.floor(existing / pageSize.value) + 1
+  if (page !== currentPage.value) {
+    currentPage.value = page
+    ensurePageFilled(page)
+  }
+  nextTick(() => {
+    const local = existing - (currentPage.value - 1) * pageSize.value
+    focusCell(local, NEW_ROW_COLUMNS[0]!)
+  })
+}
+
+// 暴露给父组件：父组件在 el-dialog 的 @opened（打开动画结束、布局就绪）时调用，
+// 此时测量高度最可靠，避免首开时过渡未结束导致测量的行数偏小、空白行铺不满
+defineExpose({ prefillFirstPage })
 
 // 分页：每页行数由「弹窗可容纳行数」动态决定（参考 AddOrderForm 的 OrderAddDeviceEditor），
 // 但不自动补空白行铺满——仅按实际行数分页展示
@@ -411,6 +425,7 @@ const handleRowDelete = async (row: DetailTableRow) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
+    deleteLoadingId.value = row.id
     const success = await deleteDetail(row.id)
     if (success) {
       ElMessage.success('删除成功')
@@ -423,6 +438,8 @@ const handleRowDelete = async (row: DetailTableRow) => {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
     }
+  } finally {
+    deleteLoadingId.value = null
   }
 }
 
@@ -502,64 +519,25 @@ const mapOrderDetails = (details: OrderItem[]) => {
   }))
 }
 
-// 维修订单：明细与 SN 均随列表接口内联返回；按实际已扫 SN 码数量展开为多行，
-// 仅展示 SN 非空的行（空 SN 不展示，扫几条 SN 就显示几行）
-const mapRepairDetails = (details: RepairOrderDetail[]) => {
-  if (!props.order) return
-  const rows: DetailData[] = []
-  for (const d of details) {
-    const snList = (d.SN || [])
-      .map((s) => (s || '').trim())
-      .filter((s) => s)
-    snList.forEach((sn, i) => {
-      rows.push({
-        id: d.id,
-        projectId: props.order!.id,
-        belongProject: '',
-        equipmentName: d.name,
-        equipmentModel: d.model,
-        manufacturer: d.brand,
-        sn: sn,
-        status: '',
-        quantity: d.number,
-        unitPrice: 0,
-        total: 0,
-        type: d.type || '',
-        spec: d.spec || '',
-        rowKey: `${d.id}-${i}`,
-      })
-    })
-  }
-  detailList.value = rows
-}
-
-// 监听 modelValue，当对话框打开时（含 destroy-on-close 每次重新挂载），获取/映射订单明细与 SN
+// 监听 modelValue，当对话框打开时（含 destroy-on-close 每次重新挂载），映射订单明细
 watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen && props.order) {
-      if (props.details && props.details.length) {
-        mapRepairDetails(props.details)
-      } else {
-        mapOrderDetails(props.order.details ?? [])
-      }
-      // 弹窗打开动画结束、布局就绪后再测量并铺满首页空白行（参考 AddOrderForm）
-      nextTick(() => setTimeout(() => prefillFirstPage(), 60))
+      mapOrderDetails(props.order.details ?? [])
+      // 铺满首页空白行由父组件在 el-dialog @opened（布局就绪）时调 prefillFirstPage，
+      // 避免首开过渡未结束导致测量行数偏小
     }
   },
   { immediate: true },
 )
 
-// 明细变更（新增/删除）后父组件重拉订单并更新 order/details 引用 → 弹窗打开时重新映射
+// 明细变更（新增/删除）后父组件重拉订单并更新 order 引用 → 弹窗打开时重新映射
 watch(
-  () => [props.order, props.details],
+  () => props.order,
   () => {
     if (!props.modelValue || !props.order) return
-    if (props.details && props.details.length) {
-      mapRepairDetails(props.details)
-    } else {
-      mapOrderDetails(props.order.details ?? [])
-    }
+    mapOrderDetails(props.order.details ?? [])
   },
 )
 </script>

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import Menu from './WorkSideMenu.vue'
+import WorkSideMenu from './WorkSideMenu.vue'
 import { ElMessage } from 'element-plus'
 import { Bell } from '@element-plus/icons-vue'
 import { useAvatar } from '@/composables/common/useAvatar'
@@ -42,7 +42,7 @@ function handleProfile() {
         <img :src="logoPng" class="side-logo" @click="handleIndex" alt="" />
       </div>
       <div class="side-menu">
-        <Menu />
+        <WorkSideMenu />
       </div>
     </div>
     <!-- 右侧列：head 只覆盖内容区（不再压在 logo 上方），下方为内容 -->
@@ -88,9 +88,8 @@ function handleProfile() {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  /* 右侧阴影只加在蓝色菜单区（见 .side-menu），不要加在整个左列，
-     否则阴影会沿 logo 盒右侧上探到 head 区域，切出突兀的竖线 */
   z-index: 1;
+  background: var(--brand-sidebar-gradient);
 }
 
 /* 左侧列顶部品牌区：白色底、与菜单同宽、居中 logo；
@@ -101,7 +100,6 @@ function handleProfile() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff;
 }
 
 .side-logo {
@@ -121,8 +119,6 @@ function handleProfile() {
   min-height: 0;
   /* 菜单项过多时允许内部滚动，避免被裁切 */
   overflow-y: auto;
-  /* 品牌天际蓝渐变侧边栏：让导航成为蓝色主题的视觉主体，与白顶栏、浅色内容形成层次 */
-  background: var(--brand-sidebar-gradient);
 }
 
 /* 右侧列：顶栏 + 内容，占满剩余宽度 */

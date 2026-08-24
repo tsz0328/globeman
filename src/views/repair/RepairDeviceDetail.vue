@@ -11,20 +11,17 @@
         <span class="section-title">工单基础信息</span>
       </template>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="项目名称">{{
-          repairDetail.project_name
-        }}</el-descriptions-item>
-        <el-descriptions-item label="订单名称">{{ repairDetail.order_name }}</el-descriptions-item>
-        <el-descriptions-item label="设备SN">{{ repairDetail.sn }}</el-descriptions-item>
-        <el-descriptions-item label="维修员">{{ repairDetail.repairman }}</el-descriptions-item>
-        <el-descriptions-item label="设备名称">{{ repairDetail.name }}</el-descriptions-item>
-        <el-descriptions-item label="设备型号">{{ repairDetail.model }}</el-descriptions-item>
-        <el-descriptions-item label="生产厂家">{{
-          repairDetail.manufacturer
-        }}</el-descriptions-item>
-        <el-descriptions-item label="所属公司">{{ repairDetail.company }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ repairDetail.status }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ repairDetail.time }}</el-descriptions-item>
+        <el-descriptions-item label="项目名称">{{ repairDetail.project_name || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="订单名称">{{ acceptInfo?.headName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="设备名称">{{ acceptInfo?.name || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="生产厂家">{{ acceptInfo?.brand || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="设备型号">{{ acceptInfo?.model || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ acceptInfo?.type || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="参数">{{ acceptInfo?.spec || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="设备SN">{{ acceptInfo?.sn || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="维修员">{{ acceptInfo?.account || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ acceptInfo?.status || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="登记时间">{{ acceptInfo?.time || '-' }}</el-descriptions-item>
         <el-descriptions-item label="接单时间">{{ repairDetail.take_time }}</el-descriptions-item>
         <el-descriptions-item label="完成时间">{{ repairDetail.done_time }}</el-descriptions-item>
       </el-descriptions>
@@ -36,14 +33,14 @@
       </template>
 
       <el-form :model="form" label-width="100px" :inline="false">
-        <el-form-item label="故障原因">
+        <el-form-item label="故障描述">
           <el-input
             type="textarea"
             v-model="form.faultReason"
             :readonly="isReadOnly"
             :rows="3"
             style="width: 100%"
-            aria-label="故障原因"
+            aria-label="故障描述"
           />
         </el-form-item>
 
@@ -118,14 +115,14 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
-import type { RepairDetailData } from '@/api/repair/RepairApi'
-import { formatDateTime } from '@/utils/sort'
+import { getAcceptInfoApi, type RepairDetailData, type RepairAcceptItem } from '@/api/repair/RepairApi'
 import RepairImageUploader from './RepairImageUploader.vue'
 
-const { getRepairById, submitRepair, saveRepair } = useDetail()
+const { submitRepair, saveRepair } = useDetail()
 
 const route = useRoute()
 const repairId = ref(0)
+const acceptInfo = ref<RepairAcceptItem | null>(null)
 const submitLoading = ref(false)
 const loading = ref(false)
 
@@ -169,19 +166,15 @@ const goBack = () => {
 
 const isReadOnly = computed(() => repairDetail.status === '已完成')
 
-// 获取详情
-const fetchRepairById = async () => {
-  const data = await getRepairById(repairId.value)
-  if (data) {
-    Object.assign(repairDetail, data)
-    // 时间字段统一格式化为 "YYYY-MM-DD HH:mm:ss"（后端可能返回 ISO 带 T 格式）
-    repairDetail.time = formatDateTime(data.time)
-    repairDetail.take_time = formatDateTime(data.take_time)
-    repairDetail.done_time = formatDateTime(data.done_time)
-    form.faultReason = data.reason
-    form.handleMethod = data.solve
-    form.repairResult = data.result
-    form.testResult = data.test
+// 接单列表信息（GET /client/repair/getAcceptInfo），按 id 找到本维修项，用于工单基础信息补充展示
+const fetchAcceptInfo = async () => {
+  try {
+    const res = await getAcceptInfoApi()
+    if (res.code === 200 && Array.isArray(res.data)) {
+      acceptInfo.value = res.data.find((item) => item.id === repairId.value) ?? null
+    }
+  } catch (error) {
+    console.error('获取接单信息失败:', error)
   }
 }
 
@@ -192,8 +185,8 @@ onMounted(async () => {
   }
   loading.value = true
   try {
-    // 先拉维修记录主数据 /client/repair/getById
-    await fetchRepairById()
+    // 接单列表信息（/client/repair/getAcceptInfo）
+    await fetchAcceptInfo()
   } finally {
     loading.value = false
   }
@@ -226,8 +219,6 @@ const handleSubmit = async () => {
         })
         if (success) {
           ElMessage.success('工单提交成功')
-          // 重新拉取最新工单状态，使表单立即进入只读、按钮立即消失（无需刷新页面）
-          await fetchRepairById()
           repairUploaderRef.value?.refresh()
           testUploaderRef.value?.refresh()
         } else {
@@ -256,7 +247,6 @@ const submitWorkOrder = async () => {
         const success = await saveRepair(repairId.value)
         if (success) {
           ElMessage.success('提交成功')
-          await fetchRepairById()
           repairUploaderRef.value?.refresh()
           testUploaderRef.value?.refresh()
         } else {
@@ -274,31 +264,54 @@ const submitWorkOrder = async () => {
 
 <style scoped>
 .equipment-repair-info-page {
-  padding: 20px;
+  /* 与 WorkView .work 一致的品牌蓝内容场：白卡直接浮于其上，形成"蓝场白卡"层次。
+     min-height: 100vh 让裸详情页（无侧栏/顶栏外壳）铺满视口，而非贴边一小块。 */
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-image: var(--brand-content-bg);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .page-header {
+  /* 去掉原 border-bottom: 1px solid black（项目约定：白卡靠蓝底对比区分，不加黑色分隔线）。
+     返回按钮与标题左对齐成一组，间距 12px。 */
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid black;
-  gap: 20px;
+  gap: 12px;
 }
 
 .page-title {
   font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  margin-right: auto;
+  font-weight: 600;
+  color: var(--brand-700, #1836b0);
 }
 
 .section-title {
   font-size: 18px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: var(--brand-700, #1836b0);
+}
+
+/* 白卡统一：去掉 el-card 默认阴影与灰边，圆角对齐 WorkPage 内容卡（10px），浮于蓝底。
+   overflow: hidden 让 header/body 的圆角裁切干净，不溢出。 */
+.equipment-repair-info-page :deep(.el-card) {
+  border: none;
+  border-radius: 10px;
+  box-shadow: none;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.equipment-repair-info-page :deep(.el-card__header) {
+  border-bottom: none;
+  padding: 16px 18px;
+}
+
+.equipment-repair-info-page :deep(.el-card__body) {
+  padding: 16px 18px;
 }
 
 :deep(.el-descriptions__label) {

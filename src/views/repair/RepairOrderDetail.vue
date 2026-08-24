@@ -14,7 +14,7 @@
         <el-table-column prop="quantity" label="数量" width="100" />
         <el-table-column prop="unitPrice" label="单价" width="150" />
         <el-table-column prop="total" label="总价" width="150" />
-        <el-table-column label="操作" width="73">
+        <el-table-column label="操作" width="73" fixed="right">
           <template #default="scope">
             <el-button type="info" size="small" @click="openDetail(scope.row)"> 查看 </el-button>
           </template>

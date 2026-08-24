@@ -31,7 +31,6 @@
           <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -53,14 +52,14 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" :width="notAdminRole ? 'auto' : 180" />
-        <el-table-column label="操作" width="193">
+        <el-table-column label="操作" width="193" fixed="right">
           <template #default="scope">
             <el-button type="primary" size="small" @click="viewUser(scope.row)">查看</el-button>
             <el-button :type="scope.row.status === 0 ? 'success' : 'warning'" size="small"
-              @click="handleToggleStatus(scope.row)" :disabled="scope.row.role === 'admin'">
+              :loading="statusLoadingId === scope.row.id" @click="handleToggleStatus(scope.row)" :disabled="scope.row.role === 'admin'">
               {{ scope.row.status === 0 ? '启用' : '禁用' }}
             </el-button>
-            <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+            <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)"
               :disabled="scope.row.role === 'admin'">删除</el-button>
           </template>
         </el-table-column>
@@ -98,6 +97,8 @@ const { companyNames, departmentNames, fetchCompanyNames, fetchDepartmentNames }
 const userFormVisible = ref(false)
 const selectedRows = ref<User[]>([])
 const loading = ref(false)
+const deleteLoadingId = ref<string | number | null>(null)
+const statusLoadingId = ref<string | number | null>(null)
 
 const auth = useAuthStore()
 const notAdminRole = computed(() => auth.role !== 'admin')
@@ -148,7 +149,7 @@ const handleDelete = async (row: User) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-
+    deleteLoadingId.value = row.id
     const success = await deleteUser(row.id, row.account)
     if (success) {
       ElMessage.success('删除成功')
@@ -160,6 +161,8 @@ const handleDelete = async (row: User) => {
       console.error('删除用户失败:', error)
       ElMessage.error('删除失败')
     }
+  } finally {
+    deleteLoadingId.value = null
   }
 }
 
@@ -178,6 +181,7 @@ const handleDeleteBtn = (row: unknown) => {
 // 状态切换：禁用 <-> 启用 共用同一接口（只传 account，后端翻转状态并返回最新状态）
 const handleToggleStatus = async (row: User) => {
   try {
+    statusLoadingId.value = row.id
     const ok = await updateUserStatus(row.account)
     if (ok) {
       // 本地状态已由 updateUserStatus 根据后端返回值更新（row 与列表项为同一引用）
@@ -187,6 +191,8 @@ const handleToggleStatus = async (row: User) => {
     }
   } catch {
     ElMessage.error('操作失败，请重试')
+  } finally {
+    statusLoadingId.value = null
   }
 }
 
@@ -240,7 +246,7 @@ const roleCodeMap = computed<Record<string, string>>(() => {
 })
 
 // 筛选 + 分页（复用通用组合式，仅保留本视图的筛选谓词）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } =
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } =
   useTableQuery(
     userList,
     (item: User, form) => {

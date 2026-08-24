@@ -32,6 +32,7 @@ const dialogVisible = computed({
 const detailDataList = ref<EditableDetailData[]>([])
 const detailCurrentPage = ref(1)
 const detailPageSize = ref(10)
+const acceptLoadingSn = ref<string>('')
 // 当前打开弹窗的父设备行 ID（用于提交 SN / 接单后刷新弹窗内表格）
 const currentDetailParentId = ref(0)
 
@@ -220,14 +221,21 @@ const handleAccept = async (row: EditableDetailData) => {
     ElMessage.error('未获取到登录用户信息')
     return
   }
-  const success = await acceptRepair(sn, account)
-  if (success) {
-    ElMessage.success('接单成功')
-    row.accepted = true
-    await fetchRepairDetails(props.orderId)
-    await refreshDetailData()
-  } else {
+  acceptLoadingSn.value = sn
+  try {
+    const success = await acceptRepair(sn, account)
+    if (success) {
+      ElMessage.success('接单成功')
+      row.accepted = true
+      await fetchRepairDetails(props.orderId)
+      await refreshDetailData()
+    } else {
+      ElMessage.error('接单失败')
+    }
+  } catch (error) {
     ElMessage.error('接单失败')
+  } finally {
+    acceptLoadingSn.value = ''
   }
 }
 </script>
@@ -279,11 +287,12 @@ const handleAccept = async (row: EditableDetailData) => {
           </template>
         </el-table-column>
         <!-- 操作列 -->
-        <el-table-column label="操作" width="73">
+        <el-table-column label="操作" width="73" fixed="right">
           <template #default="scope">
             <el-button
               type="primary"
               size="small"
+              :loading="acceptLoadingSn === scope.row.sn"
               @click="handleAccept(scope.row)"
               :disabled="scope.row.status !== '待维修' || scope.row.accepted"
             >

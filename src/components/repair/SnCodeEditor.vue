@@ -58,17 +58,33 @@ const measure = () => {
   pageSize.value = Math.max(1, fit)
 }
 
-// 打开表单时调用：已存在 SN 全部铺入（跨页），末尾补空白行铺满整页
+// 打开表单时调用：已存在 SN 全部铺入（跨页），末尾补空白行铺满整页，并始终保证至少 1 个空白新增行
 const prefillFirstPage = () => {
   measure()
   const seeded = props.existingSn.map((sn) => ({ sn, isExisting: true }))
-  // 已存在 SN 全部铺入；若不足一页，补空白行把首页填满
-  const totalNeeded = Math.max(seeded.length, pageSize.value)
-  const blanks = totalNeeded - seeded.length
+  // 已存在 SN 全部铺入；若不足一页，补空白行把首页填满；保证末尾至少 1 个空白行便于继续录入
+  const totalNeeded = Math.max(seeded.length + 1, pageSize.value)
   rows.value = seeded.concat(
-    Array.from({ length: blanks }, () => createBlankSnRow()),
+    Array.from({ length: totalNeeded - seeded.length }, () => createBlankSnRow()),
   )
   currentPage.value = 1
+  // 聚焦首个空白行（位于已存在 SN 正下方），打开即可直接录入
+  nextTick(() => focusFirstBlank())
+}
+
+// 聚焦首个空白新增行（位于已存在 SN 正下方，可能跨页）
+const focusFirstBlank = () => {
+  const firstBlank = props.existingSn.length
+  const page = Math.floor(firstBlank / pageSize.value) + 1
+  // 跳到其它页时，先把该页用空白行铺满（与 OrderDeviceTable 一致），避免“第二页只躺两行数据+一行空白”未铺满
+  if (page !== currentPage.value) {
+    currentPage.value = page
+    ensurePageFilled(page)
+  }
+  nextTick(() => {
+    const local = firstBlank - (currentPage.value - 1) * pageSize.value
+    focusCell(local)
+  })
 }
 
 // 批量提交剩余未提交的新行（供父组件「确定」时兜底；与即时提交共用 submittedKeys 去重）

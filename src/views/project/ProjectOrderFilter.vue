@@ -118,7 +118,6 @@ const f = computed(() => props.filterForm as unknown as ProjectOrderFilterForm)
         placeholder="选择日期"
         style="width: 150px"
       />
-      <el-button type="primary" @click="emit('search')">查询</el-button>
       <el-button @click="emit('reset')">重置</el-button>
     </div>
   </div>

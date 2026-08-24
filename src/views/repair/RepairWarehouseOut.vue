@@ -4,6 +4,8 @@
       <el-button>导入Excel</el-button>
       <el-button>导出Excel</el-button>
     </template>
+
+    <!-- 筛选条件 -->
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="出库单号">
@@ -19,19 +21,19 @@
           <el-date-picker v-model="filterForm.time" type="date" placeholder="选择日期" style="width: 150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </template>
 
+    <!-- 表格数据 -->
     <el-table :data="paginatedData" border style="width: 100%" :row-key="getRowKey">
       <el-table-column prop="orderNo" label="出库单号" width="180" />
       <el-table-column prop="name" label="设备名称" />
       <el-table-column prop="customer" label="客户" />
       <el-table-column prop="manager" label="负责人" width="120" />
       <el-table-column prop="time" label="出库时间" width="180" />
-      <el-table-column label="操作" width="73">
+      <el-table-column label="操作" width="73" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewDetail(scope.row)">查看</el-button>
         </template>
@@ -65,7 +67,7 @@ const loading = ref(false)
 const list = ref<RepairWarehouseOutItem[]>([])
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   list,
   (item: RepairWarehouseOutItem, form) => {
     if (form.orderNo && !item.orderNo.includes(form.orderNo)) return false

@@ -6,13 +6,12 @@
     destroy-on-close
     class="order-detail-dialog"
     @update:model-value="emit('update:modelValue', $event)"
+    @opened="onDialogOpened"
   >
     <!-- 订单详情 -->
     <div class="order-detail-form" v-if="order">
       <div class="form-header">
-        <div class="form-title">
-          <span v-if="isRepair" class="form-title-repair">维修</span>订单详情
-        </div>
+        <div class="form-title">订单详情</div>
       </div>
       <!-- 订单信息 -->
       <div class="form-info">
@@ -125,11 +124,11 @@
       </div>
 
       <!-- 设备表格（抽出为独立子组件，内含新设备行键盘录入） -->
-      <OrderDetailDeviceTable
+      <OrderDeviceTable
+        ref="deviceTableRef"
         :model-value="modelValue"
         :order="order"
         :is-submitted="isSubmitted"
-        :details="details"
         @changed="emit('details-changed')"
       />
 
@@ -162,19 +161,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
 import { useOrder, type Order } from '@/composables/order/useOrder'
 import type { UpdateOrderHeadData } from '@/api/order/OrderApi'
-import type { RepairOrderDetail } from '@/api/repair/RepairApi'
-import OrderDetailDeviceTable from './OrderDetailDeviceTable.vue'
+import OrderDeviceTable from './OrderDeviceTable.vue'
 
 const props = defineProps<{
   modelValue: boolean
   order: Order | null
-  // 维修订单：明细已随列表接口内联返回，传入后弹窗直接用、不再二次请求订单明细接口；且为只读查看
-  details?: RepairOrderDetail[]
 }>()
 
 const emit = defineEmits<{
@@ -182,17 +178,23 @@ const emit = defineEmits<{
   (e: 'details-changed'): void
 }>()
 
+// 设备表格引用：弹窗 @opened（布局就绪）时触发其按表单高度铺满空白行
+const deviceTableRef = ref<InstanceType<typeof OrderDeviceTable>>()
+
+// 弹窗打开动画结束、布局就绪后再铺满，避免首开过渡未结束导致测量行数偏小
+const onDialogOpened = () => {
+  nextTick(() => deviceTableRef.value?.prefillFirstPage())
+}
+
 const { updateOrderHead } = useOrder()
 
 // 订单是否已提交（锁定态）：由 props.order.status 驱动（隐藏新增设备行、只读查看）
 import { SUBMITTED_STATUS, EDITING_STATUS } from '@/composables/common/useOrderStatus'
 const isSubmitted = computed(() => props.order?.status === SUBMITTED_STATUS)
-// 维修订单（通过 details 传入）为只读查看：不展示新增设备行、不显示「提交」按钮
-const isRepair = computed(() => !!props.details && props.details.length > 0)
-// 编辑中（草稿态）：设备明细行不可展开，避免在未提交时误触 SN 子表
+// 编辑中（草稿态）：表头可编辑
 const isEditing = computed(() => props.order?.status === EDITING_STATUS)
-// 表头可编辑：编辑中且非维修订单（维修订单只读查看）
-const isEditable = computed(() => isEditing.value && !isRepair.value)
+// 表头可编辑：编辑中订单
+const isEditable = computed(() => isEditing.value)
 
 // 表头编辑表单（POST /client/order/updateOrderHead）
 const editForm = ref<UpdateOrderHeadData>({
@@ -330,11 +332,6 @@ const printOrder = () => {
   font-size: 20px;
   font-weight: bold;
   letter-spacing: 4px;
-}
-
-.form-title-repair {
-  font-size: 20px;
-  font-weight: bold;
 }
 
 .form-info {

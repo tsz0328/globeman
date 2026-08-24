@@ -1,8 +1,8 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue'
+import { ref, computed, watch, type Ref, type ComputedRef } from 'vue'
 
 /**
  * 通用表格「筛选 + 前端切片分页」组合式。
- * 用于消除各管理视图中重复手写的 filteredData / paginatedData / handleSearch / handleReset。
+ * 用于消除各管理视图中重复手写的 filteredData / paginatedData / handleReset。
  *
  * 入参：
  * - source：原始全量数据（ref 或计算属性）
@@ -15,7 +15,7 @@ import { ref, computed, type Ref, type ComputedRef } from 'vue'
  * - filteredList：筛选后的全量结果
  * - pagedList：当前页切片（直接绑 el-table :data）
  * - total：筛选后总数（绑 el-pagination :total）
- * - handleSearch / handleReset
+ * - handleReset（筛选实时生效；filterForm 变化自动归位第 1 页，无需查询按钮）
  */
 export function useTableQuery<T>(
   source: Ref<T[]> | ComputedRef<T[]>,
@@ -38,9 +38,11 @@ export function useTableQuery<T>(
 
   const total = computed(() => filteredList.value.length)
 
-  const handleSearch = () => {
+  // 筛选条件变化即自动回到第 1 页（替代原「查询」按钮的归位作用，配合实时筛选）。
+  // 这样删掉查询按钮后，改条件仍从头展示结果，体验不退化。
+  watch(filterForm, () => {
     currentPage.value = 1
-  }
+  })
 
   const handleReset = () => {
     filterForm.value = { ...initialForm }
@@ -54,7 +56,6 @@ export function useTableQuery<T>(
     filteredList,
     pagedList,
     total,
-    handleSearch,
     handleReset,
   }
 }

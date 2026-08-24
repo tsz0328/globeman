@@ -12,15 +12,12 @@
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="客户名称">
-          <el-input v-model="filterForm.name" placeholder="请输入客户名称" style="width: 150px"
-            @keyup.enter.prevent="handleSearch" />
+          <el-input v-model="filterForm.name" placeholder="请输入客户名称" style="width: 150px" />
         </el-form-item>
         <el-form-item label="联系人">
-          <el-input v-model="filterForm.contact" placeholder="请输入联系人" style="width: 150px"
-            @keyup.enter.prevent="handleSearch" />
+          <el-input v-model="filterForm.contact" placeholder="请输入联系人" style="width: 150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -38,13 +35,13 @@
       <el-table-column prop="contact" label="联系人" />
       <el-table-column prop="phone" label="联系电话" />
       <el-table-column prop="createTime" label="创建时间" />
-      <el-table-column label="操作" width="193">
+      <el-table-column label="操作" width="193" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small">查看</el-button>
           <el-button type="warning" size="small" @click="editCustomer(scope.row)"
             >编辑</el-button
           >
-          <el-button type="danger" size="small" @click="handleDeleteBtn(scope.row)"
+          <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)"
             >删除</el-button
           >
         </template>
@@ -88,6 +85,7 @@ const customerFormVisible = ref(false)
 const editData = ref<CustomerFormData | null>(null)
 const selectedRows = ref<Customer[]>([])
 const loading = ref(false)
+const deleteLoadingId = ref<string | number | null>(null)
 
 // 组件挂载时获取客户列表和公司列表
 const loadData = async () => {
@@ -150,7 +148,7 @@ const handleDelete = async (row: Customer) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-
+    deleteLoadingId.value = row.id
     const success = await deleteCustomer(row.id)
     if (success) {
       await fetchCustomers(true)
@@ -163,6 +161,8 @@ const handleDelete = async (row: Customer) => {
       console.error('删除客户失败:', error)
       ElMessage.error('删除失败')
     }
+  } finally {
+    deleteLoadingId.value = null
   }
 }
 
@@ -216,7 +216,7 @@ const handleBatchDelete = async () => {
 }
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   customerList,
   (item: Customer, form) => {
     if (form.name && !item.name.includes(form.name)) return false

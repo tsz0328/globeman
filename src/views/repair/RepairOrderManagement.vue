@@ -51,7 +51,6 @@
           <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -83,7 +82,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="73">
+        <el-table-column label="操作" width="73" fixed="right">
           <template #default="scope">
             <el-button
               type="primary"
@@ -172,7 +171,7 @@ const parseRepairId = (id: unknown): string => {
 }
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleSearch, handleReset } = useTableQuery(
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
   repairOrderList,
   (item: Order, form) => {
     if (form.status && item.status !== form.status) return false

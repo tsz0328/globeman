@@ -71,11 +71,12 @@
             {{ scope.row.total || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="73">
+        <el-table-column label="操作" width="73" fixed="right">
           <template #default="scope">
             <el-button
               type="danger"
               size="small"
+              :loading="deleteLoadingId === scope.row.id"
               @click="handleDelete(scope.row)"
               :disabled="isLocked"
             >
@@ -114,6 +115,7 @@ const orderId = ref('')
 const orderName = ref('')
 const isAdding = ref(false)
 const editRows = ref<EditableDetailData[]>([])
+const deleteLoadingId = ref<string | number | null>(null)
 const orderStatus = ref('')
 
 // 订单状态是否锁定（已确认，无法修改）
@@ -201,6 +203,7 @@ const handleDelete = async (row: EditableDetailData) => {
         type: 'warning',
       })
 
+      deleteLoadingId.value = row.id
       const success = await deleteDetail(row.id)
       if (success) {
         ElMessage.success('删除成功')
@@ -211,6 +214,8 @@ const handleDelete = async (row: EditableDetailData) => {
       if (error !== 'cancel') {
         ElMessage.error('删除失败')
       }
+    } finally {
+      deleteLoadingId.value = null
     }
   }
 }
