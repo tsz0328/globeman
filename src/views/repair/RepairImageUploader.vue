@@ -14,17 +14,15 @@ const props = defineProps<{
 
 const {
   getRepairImages,
-  uploadRepairImages,
+  uploadBefore,
   deleteRepairImage,
   getTestImages,
-  uploadTestImages,
+  uploadAfter,
   deleteTestImage,
 } = useDetail()
 
 const uploadRef = ref()
 const images = ref<RepairImageItem[]>([])
-const fileList = ref<UploadFile[]>([])
-const files = ref<File[]>([])
 
 // 获取图片的完整 URL
 const getImageUrl = (imgPath: string): string => {
@@ -62,19 +60,37 @@ watch(
   },
 )
 
-const handleFileChange = (file: UploadFile, _fileList: UploadFile[]) => {
-  if (file.status === 'ready' && file.raw) {
-    if (!checkImageSize(file)) {
-      uploadRef.value?.handleRemove(file)
-      return
-    }
-    files.value.push(file.raw as File)
+// 选完图片即自动上传（去掉独立的「上传图片」按钮）：
+// 校验大小 -> 调新接口 uploadBefore/uploadAfter -> 刷新服务器图片列表 -> 清空 el-upload 暂存
+const handleFileChange = async (file: UploadFile, _fileList: UploadFile[]) => {
+  if (file.status !== 'ready' || !file.raw) return
+  if (!checkImageSize(file)) {
+    uploadRef.value?.clearFiles()
+    return
   }
-}
-
-const handleFileRemove = (file: UploadFile, _fileList: UploadFile[]) => {
-  const rawFile = file.raw as File | undefined
-  files.value = files.value.filter((f) => f !== rawFile)
+  if (!props.repairId) {
+    ElMessage.error('维修单 ID 缺失，无法上传')
+    uploadRef.value?.clearFiles()
+    return
+  }
+  const raw = file.raw as File
+  try {
+    const success =
+      props.type === 'repair'
+        ? await uploadBefore(raw, props.repairId)
+        : await uploadAfter(raw, props.repairId)
+    if (success) {
+      ElMessage.success('上传成功')
+      await refresh()
+    } else {
+      ElMessage.error('上传失败')
+    }
+  } catch {
+    ElMessage.error('上传失败')
+  } finally {
+    // 选完即传，不再暂存，清空 el-upload 内部列表，避免与下方服务器图片列表重复展示
+    uploadRef.value?.clearFiles()
+  }
 }
 
 const handleDeleteImage = async (index: number) => {
@@ -100,29 +116,6 @@ const handleDeleteImage = async (index: number) => {
     .catch(() => {
       ElMessage.info('已取消删除')
     })
-}
-
-const submitImages = async () => {
-  if (files.value.length === 0) {
-    ElMessage.warning('请选择图片')
-    return
-  }
-  try {
-    const success =
-      props.type === 'repair'
-        ? await uploadRepairImages(files.value, props.repairId)
-        : await uploadTestImages(files.value, props.repairId)
-    if (success) {
-      ElMessage.success('图片上传成功')
-      await refresh()
-      files.value = []
-      fileList.value = []
-    } else {
-      ElMessage.error('图片上传失败')
-    }
-  } catch {
-    ElMessage.error('图片上传失败')
-  }
 }
 </script>
 
@@ -150,11 +143,9 @@ const submitImages = async () => {
     </div>
     <el-upload
       ref="uploadRef"
-      action="."
+      action="#"
       list-type="picture-card"
       :on-change="handleFileChange"
-      :on-remove="handleFileRemove"
-      :file-list="fileList"
       accept="image/*"
       multiple
       :auto-upload="false"
@@ -162,18 +153,9 @@ const submitImages = async () => {
     >
       <template #default>
         <el-icon><Plus /></el-icon>
-        <div>上传图片</div>
+        <div>选择图片</div>
       </template>
     </el-upload>
-    <el-button
-      type="primary"
-      :size="size || 'small'"
-      style="margin-top: 10px"
-      @click="submitImages"
-      :disabled="files.length === 0 || readonly"
-    >
-      上传图片
-    </el-button>
   </div>
 </template>
 

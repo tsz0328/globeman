@@ -54,7 +54,7 @@ export async function getRepairDetailApi(
   })
 }
 
-// === 接单列表（GET /client/repair/getAcceptInfo）===
+// === 接单列表（GET /client/repair/getAllAcceptInfo）===
 // 后端返回数组，每项即一条待接单 / 处理中的维修明细
 export interface RepairAcceptItem {
   id: number // 维修记录主键
@@ -71,12 +71,13 @@ export interface RepairAcceptItem {
   spec: string // 参数
   status: string // 状态（如：处理中）
   time: string | null // 登记 / 创建时间
+  takeTime: string | null // 接单时间
   type: string // 类型
 }
 
-export async function getAcceptInfoApi(): Promise<ApiResponse<RepairAcceptItem[]>> {
+export async function getAllAcceptInfoApi(): Promise<ApiResponse<RepairAcceptItem[]>> {
   return request({
-    url: '/client/repair/getAcceptInfo',
+    url: '/client/repair/getAllAcceptInfo',
     method: 'get',
   })
 }
@@ -159,20 +160,33 @@ export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void
   })
 }
 
-export async function uploadRepairImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
-  const formData = new FormData()
-  files.forEach((file) => {
-    formData.append('files', file)
+// File -> 纯 base64 字符串（去掉 data:image/...;base64, 前缀）。
+// 接口为 application/x-www-form-urlencoded，无法承载二进制，故图片以 base64 文本传输；
+// 后端按纯 base64 解码（若后端期望带前缀的完整 dataURL，去掉下面的 slice 即可）。
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      const commaIdx = result.indexOf(',')
+      resolve(commaIdx >= 0 ? result.slice(commaIdx + 1) : result)
+    }
+    reader.onerror = () => reject(new Error('读取文件失败'))
+    reader.readAsDataURL(file)
   })
-  formData.append('id', id.toString())
+}
 
+// === 上传修复实拍照片（POST /client/repair/uploadBefore，form-urlencoded: file=base64&id）===
+export async function uploadBeforeApi(file: File, id: number): Promise<ApiResponse<void>> {
+  const base64 = await fileToBase64(file)
+  const params = new URLSearchParams()
+  params.append('file', base64)
+  params.append('id', String(id))
   return request({
-    url: '/take/uploadImgs',
+    url: '/client/repair/uploadBefore',
     method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    data: params,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
 
@@ -194,20 +208,17 @@ export async function deleteTestImageApi(id: number): Promise<ApiResponse<void>>
   })
 }
 
-export async function uploadTestImagesApi(files: File[], id: number): Promise<ApiResponse<void>> {
-  const formData = new FormData()
-  files.forEach((file) => {
-    formData.append('files', file)
-  })
-  formData.append('id', id.toString())
-
+// === 上传测试实拍照片（POST /client/repair/uploadAfter，form-urlencoded: file=base64&id）===
+export async function uploadAfterApi(file: File, id: number): Promise<ApiResponse<void>> {
+  const base64 = await fileToBase64(file)
+  const params = new URLSearchParams()
+  params.append('file', base64)
+  params.append('id', String(id))
   return request({
-    url: '/take/uploadImgsTest',
+    url: '/client/repair/uploadAfter',
     method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    data: params,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
 

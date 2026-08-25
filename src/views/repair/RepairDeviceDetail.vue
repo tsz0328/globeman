@@ -22,7 +22,7 @@
         <el-descriptions-item label="维修员">{{ acceptInfo?.account || '-' }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ acceptInfo?.status || '-' }}</el-descriptions-item>
         <el-descriptions-item label="登记时间">{{ acceptInfo?.time || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="接单时间">{{ repairDetail.take_time }}</el-descriptions-item>
+        <el-descriptions-item label="接单时间">{{ acceptInfo?.takeTime || '-' }}</el-descriptions-item>
         <el-descriptions-item label="完成时间">{{ repairDetail.done_time }}</el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -115,7 +115,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
-import { getAcceptInfoApi, type RepairDetailData, type RepairAcceptItem } from '@/api/repair/RepairApi'
+import { getAllAcceptInfoApi, type RepairDetailData, type RepairAcceptItem } from '@/api/repair/RepairApi'
 import RepairImageUploader from './RepairImageUploader.vue'
 
 const { submitRepair, saveRepair } = useDetail()
@@ -166,10 +166,10 @@ const goBack = () => {
 
 const isReadOnly = computed(() => repairDetail.status === '已完成')
 
-// 接单列表信息（GET /client/repair/getAcceptInfo），按 id 找到本维修项，用于工单基础信息补充展示
+// 接单列表信息（GET /client/repair/getAllAcceptInfo），按 id 找到本维修项，用于工单基础信息补充展示
 const fetchAcceptInfo = async () => {
   try {
-    const res = await getAcceptInfoApi()
+    const res = await getAllAcceptInfoApi()
     if (res.code === 200 && Array.isArray(res.data)) {
       acceptInfo.value = res.data.find((item) => item.id === repairId.value) ?? null
     }
@@ -185,7 +185,7 @@ onMounted(async () => {
   }
   loading.value = true
   try {
-    // 接单列表信息（/client/repair/getAcceptInfo）
+    // 接单列表信息（/client/repair/getAllAcceptInfo）
     await fetchAcceptInfo()
   } finally {
     loading.value = false

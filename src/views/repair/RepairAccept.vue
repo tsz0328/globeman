@@ -88,6 +88,11 @@
           {{ scope.row.time || '-' }}
         </template>
       </el-table-column>
+      <el-table-column label="接单时间" min-width="160" show-overflow-tooltip>
+        <template #default="scope">
+          {{ scope.row.takeTime || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="80" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewRepair(scope.row)">查看</el-button>
@@ -110,7 +115,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getAcceptInfoApi, repairTakeApi, type RepairAcceptItem } from '@/api/repair/RepairApi'
+import { getAllAcceptInfoApi, repairTakeApi, type RepairAcceptItem } from '@/api/repair/RepairApi'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 import WorkPage from '@/components/common/WorkPage.vue'
 
@@ -123,7 +128,7 @@ const snCode = ref('')
 
 const fetchTakenDetails = async () => {
   try {
-    const response = await getAcceptInfoApi()
+    const response = await getAllAcceptInfoApi()
     if (response.code === 200) {
       takenList.value = Array.isArray(response.data) ? response.data : []
     }

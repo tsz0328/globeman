@@ -70,6 +70,7 @@ export const menuConfig: MenuItem[] = [
     path: 'platform',
     title: '平台管理',
     icon: Promotion,
+    adminOnly: true,
     children: [
       { path: '/work/platform-carousel', title: '轮播图管理' },
       { path: '/work/platform-announcement', title: '公告管理' },

@@ -37,7 +37,7 @@
           <span>性别</span>
         </div>
         <div class="grid-cell value">
-          <el-tag v-if="person.sex" :type="person.sex === '男' ? 'primary' : 'danger'" size="small" round>
+          <el-tag v-if="person.sex" :type="person.sex === '男' ? 'primary' : 'danger'" round>
             {{ person.sex }}
           </el-tag>
           <span v-else>-</span>
@@ -133,7 +133,7 @@
           <span>状态</span>
         </div>
         <div class="grid-cell value">
-          <el-tag v-if="person.status !== undefined" :type="person.status === 1 ? 'success' : 'danger'" size="small">
+          <el-tag v-if="person.status !== undefined" :type="person.status === 1 ? 'success' : 'danger'" size="large">
             {{ person.status === 1 ? '正常' : '禁用' }}
           </el-tag>
           <span v-else>-</span>

@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Cookies from 'js-cookie'
+import { menuConfig } from '@/data/menuConfig'
+import { useAuthStore } from '@/stores/auth'
 
 // 路由级代码分割：全部视图改为动态 import，避免首屏加载全部 14k 行代码
 const IndexView = () => import('@/layouts/IndexView.vue')
@@ -196,11 +198,34 @@ const router = createRouter({
   ],
 })
 
+// 由 menuConfig 的 adminOnly 标记推导「仅管理员可访问」的完整路由路径集合。
+// 作为与侧边菜单一致的单一数据源：新增/调整管理员专属页只需改 menuConfig.ts，
+// 菜单显隐与路由拦截两处自动联动，无需在路由里重复写 meta。
+const adminOnlyPaths = new Set<string>()
+for (const item of menuConfig) {
+  if (!item.adminOnly) continue
+  // 顶层项自身若就是可导航路由（如 /work/company）
+  if (item.path.startsWith('/work')) adminOnlyPaths.add(item.path)
+  // 子项（如 /work/platform-carousel、/work/platform-announcement）
+  for (const child of item.children ?? []) {
+    if (child.path.startsWith('/work')) adminOnlyPaths.add(child.path)
+  }
+}
+
 router.beforeEach((to, from, next) => {
   const token = Cookies.get('token')
   if (!token && to.name !== 'Login') {
     next({ name: 'Login' })
     return
+  }
+
+  // 管理员专属路由拦截：已登录但非管理员直访时，重定向到工作区首页
+  if (token && adminOnlyPaths.has(to.path)) {
+    const auth = useAuthStore()
+    if (!auth.isAdmin) {
+      next({ name: 'Home' })
+      return
+    }
   }
 
   next()

@@ -11,22 +11,22 @@ import {
   getRepairDetailApi,
   addRepairSnApi,
   addSnApi,
-  uploadRepairImagesApi,
+  uploadBeforeApi,
   getRepairImagesApi,
   deleteRepairImageApi,
   getTestImagesApi,
-  uploadTestImagesApi,
+  uploadAfterApi,
   deleteTestImageApi,
   submitRepairApi,
   saveRepairApi,
-  getAcceptInfoApi,
+  getAllAcceptInfoApi,
   type RepairAcceptItem,
   type RepairImageData,
   type SubmitRepairData,
 } from '@/api/repair/RepairApi'
 
 // === 导出类型 ===
-// 接单列表项直接复用 RepairAcceptItem（与 /client/repair/getAcceptInfo 响应一致，含 id）
+// 接单列表项直接复用 RepairAcceptItem（与 /client/repair/getAllAcceptInfo 响应一致，含 id）
 export type TakenDetail = RepairAcceptItem
 
 export interface RepairImageItem {
@@ -185,12 +185,12 @@ export function useDetail() {
     }
   }
 
-  const uploadRepairImages = async (files: File[], id: number): Promise<boolean> => {
+  const uploadBefore = async (file: File, id: number): Promise<boolean> => {
     try {
-      const res = await uploadRepairImagesApi(files, id)
+      const res = await uploadBeforeApi(file, id)
       return res.code === 200
     } catch (error) {
-      console.error('上传维修图片失败:', error)
+      console.error('上传修复实拍照片失败:', error)
       return false
     }
   }
@@ -222,12 +222,12 @@ export function useDetail() {
     }
   }
 
-  const uploadTestImages = async (files: File[], id: number): Promise<boolean> => {
+  const uploadAfter = async (file: File, id: number): Promise<boolean> => {
     try {
-      const res = await uploadTestImagesApi(files, id)
+      const res = await uploadAfterApi(file, id)
       return res.code === 200
     } catch (error) {
-      console.error('上传测试图片失败:', error)
+      console.error('上传测试实拍照片失败:', error)
       return false
     }
   }
@@ -266,7 +266,7 @@ export function useDetail() {
   // === 接单列表 ===
   const getTakenDetails = async (): Promise<TakenDetail[]> => {
     try {
-      const res = await getAcceptInfoApi()
+      const res = await getAllAcceptInfoApi()
       if (res.code === 200 && Array.isArray(res.data)) {
         return res.data
       }
@@ -288,10 +288,10 @@ export function useDetail() {
     addSn,
     acceptRepair,
     getRepairImages,
-    uploadRepairImages,
+    uploadBefore,
     deleteRepairImage,
     getTestImages,
-    uploadTestImages,
+    uploadAfter,
     deleteTestImage,
     submitRepair,
     saveRepair,
