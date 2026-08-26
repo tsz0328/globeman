@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { Plus, Delete, Loading, Picture } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus'
 import { useDetail, type RepairImageItem } from '@/composables/detail/useDetail'
 import { checkImageSize } from '@/utils/imageUpload'
@@ -10,19 +10,18 @@ const props = defineProps<{
   type: 'repair' | 'test'
   readonly: boolean
   size?: 'small' | 'default' | 'large'
+  // 由父组件统一调用一次 getAcceptImg 后按 imagePhase 拆分传入，避免重复请求
+  images: RepairImageItem[]
 }>()
 
-const {
-  getRepairImages,
-  uploadBefore,
-  deleteRepairImage,
-  getTestImages,
-  uploadAfter,
-  deleteTestImage,
-} = useDetail()
+const emit = defineEmits<{
+  // 上传/删除成功后通知父组件统一重拉前后图列表
+  (e: 'changed'): void
+}>()
+
+const { uploadBefore, deleteRepairImage, uploadAfter } = useDetail()
 
 const uploadRef = ref()
-const images = ref<RepairImageItem[]>([])
 
 // 获取图片的完整 URL
 const getImageUrl = (imgPath: string): string => {
@@ -36,33 +35,9 @@ const getImageUrl = (imgPath: string): string => {
   return `/api/${imgPath}`
 }
 
-const refresh = async () => {
-  if (!props.repairId) {
-    images.value = []
-    return
-  }
-  images.value =
-    props.type === 'repair'
-      ? await getRepairImages(props.repairId)
-      : await getTestImages(props.repairId)
-}
-
-defineExpose({ refresh })
-
-onMounted(() => {
-  if (props.repairId) refresh()
-})
-// 父组件在 onMounted 中才拿到真实 repairId，靠 watch 触发首刷
-watch(
-  () => props.repairId,
-  (id) => {
-    if (id) refresh()
-  },
-)
-
 // 选完图片即自动上传（去掉独立的「上传图片」按钮）：
-// 校验大小 -> 调新接口 uploadBefore/uploadAfter -> 刷新服务器图片列表 -> 清空 el-upload 暂存
-const handleFileChange = async (file: UploadFile, _fileList: UploadFile[]) => {
+// 校验大小 -> 调新接口 uploadBefore/uploadAfter -> 通知父组件统一重拉图片列表
+const handleFileChange = async (file: UploadFile) => {
   if (file.status !== 'ready' || !file.raw) return
   if (!checkImageSize(file)) {
     uploadRef.value?.clearFiles()
@@ -81,7 +56,7 @@ const handleFileChange = async (file: UploadFile, _fileList: UploadFile[]) => {
         : await uploadAfter(raw, props.repairId)
     if (success) {
       ElMessage.success('上传成功')
-      await refresh()
+      emit('changed')
     } else {
       ElMessage.error('上传失败')
     }
@@ -100,15 +75,12 @@ const handleDeleteImage = async (index: number) => {
     type: 'warning',
   })
     .then(async () => {
-      const imgItem = images.value[index]
+      const imgItem = props.images[index]
       if (!imgItem) return
-      const success =
-        props.type === 'repair'
-          ? await deleteRepairImage(imgItem.id)
-          : await deleteTestImage(imgItem.id)
+      const success = await deleteRepairImage(imgItem.id)
       if (success) {
-        images.value.splice(index, 1)
         ElMessage.success('删除成功')
+        emit('changed')
       } else {
         ElMessage.error('删除失败')
       }
@@ -128,7 +100,18 @@ const handleDeleteImage = async (index: number) => {
           :preview-src-list="images.map((img) => getImageUrl(img.address))"
           class="preview-image"
           fit="cover"
-        />
+        >
+          <template #placeholder>
+            <div class="image-loading">
+              <el-icon class="image-loading-icon"><Loading /></el-icon>
+            </div>
+          </template>
+          <template #error>
+            <div class="image-error">
+              <el-icon><Picture /></el-icon>
+            </div>
+          </template>
+        </el-image>
         <div
           class="image-delete-btn"
           @click="handleDeleteImage(index)"
@@ -140,22 +123,26 @@ const handleDeleteImage = async (index: number) => {
           <el-icon><Delete /></el-icon>
         </div>
       </div>
+      <!-- 选择图片卡片与图片同处一个 flex 容器，内联排列、空间不足才换行；
+           只读模式（已完成状态）整体隐藏 -->
+      <el-upload
+        ref="uploadRef"
+        class="image-upload-trigger"
+        v-show="!readonly"
+        action="#"
+        list-type="picture-card"
+        :on-change="handleFileChange"
+        accept="image/*"
+        multiple
+        :auto-upload="false"
+        :disabled="readonly"
+      >
+        <template #default>
+          <el-icon><Plus /></el-icon>
+          <div>选择图片</div>
+        </template>
+      </el-upload>
     </div>
-    <el-upload
-      ref="uploadRef"
-      action="#"
-      list-type="picture-card"
-      :on-change="handleFileChange"
-      accept="image/*"
-      multiple
-      :auto-upload="false"
-      :disabled="readonly"
-    >
-      <template #default>
-        <el-icon><Plus /></el-icon>
-        <div>选择图片</div>
-      </template>
-    </el-upload>
   </div>
 </template>
 
@@ -185,6 +172,37 @@ const handleDeleteImage = async (index: number) => {
   height: 100%;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.image-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+.image-loading-icon {
+  font-size: 28px;
+  color: var(--el-color-primary);
+  animation: rotating 2s linear infinite;
+}
+
+.image-error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+.image-error .el-icon {
+  font-size: 28px;
+  color: var(--el-text-color-secondary);
 }
 
 .image-delete-btn {

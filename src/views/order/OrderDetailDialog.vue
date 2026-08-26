@@ -420,7 +420,6 @@ const printOrder = () => {
 
 <style>
 /* 弹窗高度控制：class 落到 .el-dialog 上，用非 scoped 样式避开 teleport 导致的 scoped 失效。
-   与创建订单表单（AddOrderForm）保持一致：固定 80vh 高度、内容区内部滚动。
    垂直居中由组件上已有的 align-center 负责，无需在此覆盖 --el-dialog-margin-top。 */
 .order-detail-dialog {
   height: 80vh;
@@ -454,7 +453,7 @@ const printOrder = () => {
   flex: none;
 }
 
-/* 设备表格弹性占满弹窗剩余空间，使内部按高度动态计算每页行数（与 AddOrderForm 一致） */
+/* 设备表格弹性占满弹窗剩余空间，使内部按高度动态计算每页行数 */
 .order-detail-dialog .detail-editor {
   flex: 1;
   min-height: 0;

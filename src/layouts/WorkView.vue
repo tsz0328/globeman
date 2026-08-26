@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import WorkSideMenu from './WorkSideMenu.vue'
+import WorkSideMenu from './components/WorkSideMenu.vue'
 import { ElMessage } from 'element-plus'
 import { Bell } from '@element-plus/icons-vue'
 import { useAvatar } from '@/composables/common/useAvatar'
@@ -65,7 +65,7 @@ function handleProfile() {
           </div>
         </div>
       </div>
-      <div class="work">
+      <div class="work-content">
         <router-view />
       </div>
     </div>
@@ -190,13 +190,11 @@ function handleProfile() {
   object-fit: cover;
 }
 
-.work {
+.work-content {
   flex: 1;
   min-height: 0;
   /* 关键修复：内容超过可视高度时，在内容区内部滚动，而不是裁掉底部 */
   overflow-y: auto;
-  /* 品牌蓝内容背景（支持渐变）：linear-gradient 是 <image> 类型，必须走 background-image，
-     不能写进 background-color（否则声明被丢弃，背景回退为 transparent） */
   background-image: var(--brand-content-bg);
   /* 白卡片容器的外间距，统一呼吸感，避免业务页贴边 */
   padding: 24px;

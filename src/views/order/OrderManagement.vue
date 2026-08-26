@@ -109,13 +109,15 @@
     >
       <el-table-column type="selection" width="39"></el-table-column>
       <el-table-column prop="name" label="订单名称" />
-      <el-table-column prop="type" label="订单类型" width="81" />
+      <el-table-column prop="type" label="订单类型" width="80" />
       <el-table-column prop="customer" label="客户" />
       <el-table-column prop="contact" label="客户联系人" />
       <el-table-column prop="leaderAccount" label="负责人" />
-      <el-table-column prop="province" label="执行省份" />
-      <el-table-column prop="city" label="执行市" />
-      <el-table-column prop="district" label="执行区" />
+      <el-table-column label="执行地">
+        <template #default="scope">
+          {{ [scope.row.province, scope.row.city, scope.row.district].filter(Boolean).join('-') }}
+        </template>
+      </el-table-column>
       <el-table-column prop="address" label="送修地址" />
       <el-table-column prop="status" label="状态" width="81">
         <template #default="scope">
@@ -181,8 +183,8 @@ import {
   type OrderManager,
   type OrderCustomer,
 } from '@/api/order/OrderApi'
-import OrderForm from '@/components/order/AddOrderForm.vue'
-import OrderDetailDialog from '@/components/order/OrderDetailDialog.vue'
+import OrderForm from '@/views/order/AddOrderForm.vue'
+import OrderDetailDialog from '@/views/order/OrderDetailDialog.vue'
 import type { OrderSubmitPayload } from '@/api/order/types'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 

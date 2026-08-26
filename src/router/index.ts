@@ -6,10 +6,10 @@ import { useAuthStore } from '@/stores/auth'
 // 路由级代码分割：全部视图改为动态 import，避免首屏加载全部 14k 行代码
 const IndexView = () => import('@/layouts/IndexView.vue')
 const WorkView = () => import('@/layouts/WorkView.vue')
-const Login = () => import('@/views/index/Login.vue')
+const Login = () => import('@/views/index/LoginPage.vue')
 const LoginSuccessComponent = () => import('@/views/index/LoginSuccess.vue')
 const UserManagementComponent = () => import('@/views/admin/UserManagement.vue')
-const Home = () => import('@/views/home/Home.vue')
+const Home = () => import('@/views/home/HomePage.vue')
 const ProjectManagementComponent = () => import('@/views/project/ProjectManagement.vue')
 const CustomerManagementComponent = () => import('@/views/admin/CustomerManagement.vue')
 const CompanyManagementComponent = () => import('@/views/admin/CompanyManagement.vue')

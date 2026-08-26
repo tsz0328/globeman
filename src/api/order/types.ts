@@ -1,5 +1,4 @@
 // 订单相关前端类型（表单数据 / 提交载荷 / 创单设备明细输入）
-// 从 AddOrderForm.vue 迁出，消除 composable 反向依赖组件的层倒置
 
 // 订单创建表单数据
 export interface OrderFormData {

@@ -86,8 +86,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ProjectForm from '@/components/project/AddProjectForm.vue'
-import type { ProjectFormData } from '@/components/project/AddProjectForm.vue'
+import ProjectForm from '@/views/project/AddProjectForm.vue'
+import type { ProjectFormData } from '@/views/project/AddProjectForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { useTableQuery } from '@/composables/common/useTableQuery'

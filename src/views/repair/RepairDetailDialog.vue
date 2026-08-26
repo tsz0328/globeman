@@ -232,7 +232,7 @@ const handleAccept = async (row: EditableDetailData) => {
     } else {
       ElMessage.error('接单失败')
     }
-  } catch (error) {
+  } catch {
     ElMessage.error('接单失败')
   } finally {
     acceptLoadingSn.value = ''

@@ -2,7 +2,7 @@
 import { getStatusTagType as getStatusType, isOrderLocked } from '@/composables/common/useOrderStatus'
 import type { Order } from '@/composables/order/useOrder'
 
-const props = defineProps<{
+defineProps<{
   orders: Order[]
 }>()
 

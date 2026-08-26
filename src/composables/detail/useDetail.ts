@@ -12,16 +12,12 @@ import {
   addRepairSnApi,
   addSnApi,
   uploadBeforeApi,
-  getRepairImagesApi,
   deleteRepairImageApi,
-  getTestImagesApi,
   uploadAfterApi,
-  deleteTestImageApi,
   submitRepairApi,
   saveRepairApi,
   getAllAcceptInfoApi,
   type RepairAcceptItem,
-  type RepairImageData,
   type SubmitRepairData,
 } from '@/api/repair/RepairApi'
 
@@ -168,23 +164,7 @@ export function useDetail() {
     }
   }
 
-  // === 维修图片 ===
-  const getRepairImages = async (id: number): Promise<RepairImageItem[]> => {
-    try {
-      const res = await getRepairImagesApi(id)
-      if (res.code === 200 && res.data) {
-        return Object.values(res.data).map((item: RepairImageData) => ({
-          id: item.id,
-          address: item.address,
-        }))
-      }
-      return []
-    } catch (error) {
-      console.error('获取维修图片失败:', error)
-      return []
-    }
-  }
-
+  // === 维修图片（父组件统一调一次 getRepairImagesApi 后按 imagePhase 拆分前后图）===
   const uploadBefore = async (file: File, id: number): Promise<boolean> => {
     try {
       const res = await uploadBeforeApi(file, id)
@@ -205,39 +185,12 @@ export function useDetail() {
     }
   }
 
-  // === 测试实拍图片 ===
-  const getTestImages = async (id: number): Promise<RepairImageItem[]> => {
-    try {
-      const res = await getTestImagesApi(id)
-      if (res.code === 200 && res.data) {
-        return Object.values(res.data).map((item: RepairImageData) => ({
-          id: item.id,
-          address: item.address,
-        }))
-      }
-      return []
-    } catch (error) {
-      console.error('获取测试图片失败:', error)
-      return []
-    }
-  }
-
   const uploadAfter = async (file: File, id: number): Promise<boolean> => {
     try {
       const res = await uploadAfterApi(file, id)
       return res.code === 200
     } catch (error) {
       console.error('上传测试实拍照片失败:', error)
-      return false
-    }
-  }
-
-  const deleteTestImage = async (id: number): Promise<boolean> => {
-    try {
-      const res = await deleteTestImageApi(id)
-      return res.code === 200
-    } catch (error) {
-      console.error('删除测试图片失败:', error)
       return false
     }
   }
@@ -287,12 +240,9 @@ export function useDetail() {
     addRepairSn,
     addSn,
     acceptRepair,
-    getRepairImages,
     uploadBefore,
     deleteRepairImage,
-    getTestImages,
     uploadAfter,
-    deleteTestImage,
     submitRepair,
     saveRepair,
     getTakenDetails,

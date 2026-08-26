@@ -16,7 +16,7 @@
     </template>
 
     <div class="inbound-dialog__body">
-      <!-- 设备清单：已有明细只读 + 末尾多行可编辑新增行，每页行数随弹窗高度自动铺满（与 AddOrderForm/OrderDetailDialog 一致） -->
+      <!-- 设备清单：已有明细只读 + 末尾多行可编辑新增行，每页行数随弹窗高度自动铺满 -->
       <div class="inbound-table-wrap" ref="tableRegionRef">
         <el-table
           :data="pageRows"
@@ -328,7 +328,7 @@ const focusCell = (rowIndex: number, col: string) => {
   cellRefs.value[`${rowIndex}:${col}`]?.focus()
 }
 
-// 单元格键盘导航（与 AddOrderForm/OrderDetailDialog 一致的走迷宫式）：
+// 单元格键盘导航走迷宫式：
 // - 回车：跳到下一列；末列 → 下一行首列；最后一行末列 → 提交本行 + 跳下一页
 // - 左/右方向键：切换列；首列 → 上一行末列 / 末列 → 下一行首列，跨页回绕
 // - 上/下方向键：切换行；页边界时向上→上一页、向下→下一页
@@ -384,7 +384,7 @@ const onCellKeydown = (row: TableRow, rowIndex: number, col: string, e: Keyboard
   }
 }
 
-// 分页：每页行数由「弹窗可容纳行数」动态决定（与 AddOrderForm/OrderDetailDialog 一致），自动铺满空白行
+// 分页：每页行数由「弹窗可容纳行数」动态决定，自动铺满空白行
 const currentPage = ref(1)
 const pageSize = ref(10)
 const pageRows = computed(() => {

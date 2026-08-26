@@ -1,12 +1,12 @@
 <template>
-  <div class="equipment-repair-info-page" v-loading="loading">
+  <div class="equipment-repair-info-page">
     <div class="page-header">
       <el-button @click="goBack">← 返回</el-button>
       <h2 class="page-title">设备维修信息详情</h2>
     </div>
 
-    <!-- 工单基础信息 -->
-    <el-card>
+    <!-- 工单基础信息：仅本卡片在拉取接单信息时显示加载圈 -->
+    <el-card v-loading="loading">
       <template #header>
         <span class="section-title">工单基础信息</span>
       </template>
@@ -36,7 +36,7 @@
         <el-form-item label="故障描述">
           <el-input
             type="textarea"
-            v-model="form.faultReason"
+            v-model="form.description"
             :readonly="isReadOnly"
             :rows="3"
             style="width: 100%"
@@ -47,7 +47,7 @@
         <el-form-item label="解决方式">
           <el-input
             type="textarea"
-            v-model="form.handleMethod"
+            v-model="form.diagnosis"
             :readonly="isReadOnly"
             :rows="4"
             style="width: 100%"
@@ -58,7 +58,7 @@
         <el-form-item label="修复结果">
           <el-input
             type="textarea"
-            v-model="form.repairResult"
+            v-model="form.dispose"
             placeholder="填写修复结果描述"
             :rows="3"
             style="width: 100%"
@@ -69,18 +69,19 @@
 
         <el-form-item label="修复实拍照片">
           <RepairImageUploader
-            ref="repairUploaderRef"
             :repair-id="repairId"
             type="repair"
+            :images="beforeImages"
             :readonly="isReadOnly"
             size="small"
+            @changed="fetchImages"
           />
         </el-form-item>
 
         <el-form-item label="测试结果">
           <el-input
             type="textarea"
-            v-model="form.testResult"
+            v-model="form.result"
             placeholder="填写测试结果描述"
             :rows="3"
             style="width: 100%"
@@ -91,11 +92,12 @@
 
         <el-form-item label="测试实拍照片">
           <RepairImageUploader
-            ref="testUploaderRef"
             :repair-id="repairId"
             type="test"
+            :images="afterImages"
             :readonly="isReadOnly"
             size="large"
+            @changed="fetchImages"
           />
         </el-form-item>
 
@@ -114,8 +116,13 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useDetail } from '@/composables/detail/useDetail'
-import { getAllAcceptInfoApi, type RepairDetailData, type RepairAcceptItem } from '@/api/repair/RepairApi'
+import { useDetail, type RepairImageItem } from '@/composables/detail/useDetail'
+import {
+  getAllAcceptInfoApi,
+  getRepairImagesApi,
+  type RepairDetailData,
+  type RepairAcceptItem,
+} from '@/api/repair/RepairApi'
 import RepairImageUploader from './RepairImageUploader.vue'
 
 const { submitRepair, saveRepair } = useDetail()
@@ -126,8 +133,31 @@ const acceptInfo = ref<RepairAcceptItem | null>(null)
 const submitLoading = ref(false)
 const loading = ref(false)
 
-const repairUploaderRef = ref<InstanceType<typeof RepairImageUploader>>()
-const testUploaderRef = ref<InstanceType<typeof RepairImageUploader>>()
+// 维修图片：一次 GET /client/repair/getAcceptImg 返回前后两批图，按 imagePhase 拆分
+const beforeImages = ref<RepairImageItem[]>([])
+const afterImages = ref<RepairImageItem[]>([])
+
+const fetchImages = async () => {
+  if (!repairId.value) return
+  try {
+    const res = await getRepairImagesApi(repairId.value)
+    if (res.code === 200 && Array.isArray(res.data)) {
+      beforeImages.value = res.data
+        .filter((item) => item.imagePhase === '维修前')
+        .map((item) => ({ id: item.id, address: item.url }))
+      afterImages.value = res.data
+        .filter((item) => item.imagePhase === '维修后')
+        .map((item) => ({ id: item.id, address: item.url }))
+    } else {
+      beforeImages.value = []
+      afterImages.value = []
+    }
+  } catch (error) {
+    console.error('获取维修图片失败:', error)
+    beforeImages.value = []
+    afterImages.value = []
+  }
+}
 
 const repairDetail = reactive<RepairDetailData>({
   repairman: '',
@@ -154,10 +184,10 @@ const repairDetail = reactive<RepairDetailData>({
 })
 
 const form = reactive({
-  faultReason: '',
-  handleMethod: '',
-  repairResult: '',
-  testResult: '',
+  description: '',
+  diagnosis: '',
+  dispose: '',
+  result: '',
 })
 
 const goBack = () => {
@@ -183,22 +213,24 @@ onMounted(async () => {
   if (typeof id === 'string') {
     repairId.value = parseInt(id, 10)
   }
+  // 工单基础信息卡片的加载圈：仅跟随接单信息拉取
   loading.value = true
   try {
-    // 接单列表信息（/client/repair/getAllAcceptInfo）
     await fetchAcceptInfo()
   } finally {
     loading.value = false
   }
+  // 维修前后图片独立拉取，各自在 RepairImageUploader 内带占位加载圈，不阻塞整页
+  fetchImages()
 })
 
 // 保存修改
 const handleSubmit = async () => {
-  if (!form.repairResult.trim()) {
+  if (!form.dispose.trim()) {
     ElMessage.warning('请填写修复结果')
     return
   }
-  if (!form.testResult.trim()) {
+  if (!form.result.trim()) {
     ElMessage.warning('请填写测试结果')
     return
   }
@@ -212,15 +244,14 @@ const handleSubmit = async () => {
       try {
         const success = await submitRepair({
           id: repairId.value,
-          reason: form.faultReason,
-          solve: form.handleMethod,
-          result: form.repairResult,
-          test: form.testResult,
+          description: form.description,
+          diagnosis: form.diagnosis,
+          dispose: form.dispose,
+          result: form.result,
         })
         if (success) {
           ElMessage.success('工单提交成功')
-          repairUploaderRef.value?.refresh()
-          testUploaderRef.value?.refresh()
+          await fetchImages()
         } else {
           ElMessage.error('工单提交失败')
         }
@@ -247,8 +278,7 @@ const submitWorkOrder = async () => {
         const success = await saveRepair(repairId.value)
         if (success) {
           ElMessage.success('提交成功')
-          repairUploaderRef.value?.refresh()
-          testUploaderRef.value?.refresh()
+          await fetchImages()
         } else {
           ElMessage.error('提交失败')
         }

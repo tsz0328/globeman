@@ -97,7 +97,7 @@
       />
     </div>
 
-    <RepairDetailDialog
+    <RepairOrderViewDialog
       v-model="dialogVisible"
       :order="selectedOrder"
       :details="selectedOrderDetails"
@@ -126,8 +126,8 @@ import {
   type RepairOrderData,
   type RepairOrderDetail,
 } from '@/api/repair/RepairApi'
-import RepairDetailDialog from '@/components/repair/RepairDetailDialog.vue'
-import RepairInboundDialog from '@/components/repair/RepairInboundDialog.vue'
+import RepairOrderViewDialog from '@/views/repair/RepairOrderViewDialog.vue'
+import RepairInboundDialog from '@/views/repair/RepairInboundDialog.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import type { Order } from '@/composables/order/useOrder'
 import { useTableQuery } from '@/composables/common/useTableQuery'

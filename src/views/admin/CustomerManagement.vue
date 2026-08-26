@@ -70,8 +70,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import CustomerForm from '@/components/admin/AddCustomerForm.vue'
-import type { CustomerFormData } from '@/components/admin/AddCustomerForm.vue'
+import CustomerForm from '@/views/admin/AddCustomerForm.vue'
+import type { CustomerFormData } from '@/views/admin/AddCustomerForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useCustomer, type Customer } from '@/composables/admin/useCustomer'
 import { useCompany } from '@/composables/admin/useCompany'

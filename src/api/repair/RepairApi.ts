@@ -15,7 +15,6 @@ export interface RepairOrderDetail {
 }
 
 // === 维修订单列表（GET /client/repair/getOrder）===
-// 字段对应后端实际响应（与 /client/order/getOrder 同构：完整表头 + 内嵌 details）
 export interface RepairOrderData {
   id: string
   name: string
@@ -43,7 +42,7 @@ export async function getRepairOrdersApi(): Promise<ApiResponse<RepairOrderData[
   })
 }
 
-// === 维修明细（按项目/维修单 id；明细项类型定义于 @/api/order/OrderDetailApi）===
+// === 维修明细（按项目/维修单 id）===
 export async function getRepairDetailApi(
   id: number,
 ): Promise<ApiResponse<{ [key: string]: DetailResponseData }>> {
@@ -54,7 +53,7 @@ export async function getRepairDetailApi(
   })
 }
 
-// === 接单列表（GET /client/repair/getAllAcceptInfo）===
+// === 接单列表===
 // 后端返回数组，每项即一条待接单 / 处理中的维修明细
 export interface RepairAcceptItem {
   id: number // 维修记录主键
@@ -109,7 +108,6 @@ export async function addRepairSnApi(sn: string, id: number): Promise<ApiRespons
 }
 
 // === 新增 SN（维修入库设备清单「添加SN码」按钮 / 订单详情弹窗 SN 子表）===
-// 后端契约：POST /client/repair/addSN，JSON body { sn, id }，id 为设备明细 id
 export async function addSnApi(sn: string, id: number | string): Promise<ApiResponse<void>> {
   return request({
     url: '/client/repair/addSN',
@@ -119,7 +117,6 @@ export async function addSnApi(sn: string, id: number | string): Promise<ApiResp
 }
 
 // === 删除 SN（维修订单详情设备表格「删除」按钮）===
-// 后端契约：DELETE /client/repair/deleteSN，JSON body { sn, id }，id 为设备明细 id
 export async function deleteSnApi(sn: string, id: number | string): Promise<ApiResponse<void>> {
   return request({
     url: '/client/repair/deleteSN',
@@ -128,113 +125,84 @@ export async function deleteSnApi(sn: string, id: number | string): Promise<ApiR
   })
 }
 
+// 完成接单（POST /client/repair/finishAccept?id=...，原名 /take/save）
 export async function saveRepairApi(id: number): Promise<ApiResponse<void>> {
   return request({
-    url: '/take/save',
-    method: 'put',
+    url: '/client/repair/finishAccept',
+    method: 'post',
     params: { id },
   })
 }
 
 // === 维修图片（含测试实拍，共用 RepairImageData）===
-export interface RepairImageData {
+// 获取修复/测试实拍照片
+// 新响应：数组 [{id, imagePhase('维修前'|'维修后'), url}]
+export interface RepairAcceptImageData {
   id: number
-  address: string
+  imagePhase: string
+  url: string
 }
 
 export async function getRepairImagesApi(
   id: number,
-): Promise<ApiResponse<{ [key: string]: RepairImageData }>> {
+): Promise<ApiResponse<RepairAcceptImageData[]>> {
   return request({
-    url: '/take/getImg',
+    url: '/client/repair/getAcceptImg',
     method: 'get',
     params: { id },
   })
 }
 
+// 删除照片
 export async function deleteRepairImageApi(id: number): Promise<ApiResponse<void>> {
   return request({
-    url: '/take/deleteImg',
-    method: 'put',
+    url: '/client/repair/deleteImg',
+    method: 'delete',
     params: { id },
   })
 }
 
-// File -> 纯 base64 字符串（去掉 data:image/...;base64, 前缀）。
-// 接口为 application/x-www-form-urlencoded，无法承载二进制，故图片以 base64 文本传输；
-// 后端按纯 base64 解码（若后端期望带前缀的完整 dataURL，去掉下面的 slice 即可）。
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      const commaIdx = result.indexOf(',')
-      resolve(commaIdx >= 0 ? result.slice(commaIdx + 1) : result)
-    }
-    reader.onerror = () => reject(new Error('读取文件失败'))
-    reader.readAsDataURL(file)
-  })
-}
-
-// === 上传修复实拍照片（POST /client/repair/uploadBefore，form-urlencoded: file=base64&id）===
+// === 上传修复实拍照片===
 export async function uploadBeforeApi(file: File, id: number): Promise<ApiResponse<void>> {
-  const base64 = await fileToBase64(file)
-  const params = new URLSearchParams()
-  params.append('file', base64)
-  params.append('id', String(id))
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('id', String(id))
   return request({
     url: '/client/repair/uploadBefore',
     method: 'post',
-    data: params,
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
 
-export async function getTestImagesApi(
-  id: number,
-): Promise<ApiResponse<{ [key: string]: RepairImageData }>> {
-  return request({
-    url: '/take/getImgTest',
-    method: 'get',
-    params: { id },
-  })
-}
-
-export async function deleteTestImageApi(id: number): Promise<ApiResponse<void>> {
-  return request({
-    url: '/take/deleteImgTest',
-    method: 'put',
-    params: { id },
-  })
-}
-
-// === 上传测试实拍照片（POST /client/repair/uploadAfter，form-urlencoded: file=base64&id）===
+// === 上传测试实拍照片===
 export async function uploadAfterApi(file: File, id: number): Promise<ApiResponse<void>> {
-  const base64 = await fileToBase64(file)
-  const params = new URLSearchParams()
-  params.append('file', base64)
-  params.append('id', String(id))
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('id', String(id))
   return request({
     url: '/client/repair/uploadAfter',
     method: 'post',
-    data: params,
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
 
-// === 提交维修结果 ===
+// === 提交维修结果（POST /client/repair/updateAccept，application/json）===
+// 字段顺序与后端契约一致：description/diagnosis/dispose/result 分别对应
+// 表单的 故障描述/解决方式/修复结果/测试结果
 export interface SubmitRepairData {
   id: number
-  reason: string
-  solve: string
-  result: string
-  test: string
+  description: string // 故障描述
+  diagnosis: string // 诊断
+  dispose: string // 处置/解决方式
+  result: string // 结果
 }
 
 export async function submitRepairApi(data: SubmitRepairData): Promise<ApiResponse<void>> {
   return request({
-    url: '/take/submit',
-    method: 'put',
+    url: '/client/repair/updateAccept',
+    method: 'post',
     data,
   })
 }

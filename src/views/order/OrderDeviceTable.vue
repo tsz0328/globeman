@@ -210,7 +210,7 @@ const focusCell = (rowIndex: number, col: string) => {
   cellRefs.value[`${rowIndex}:${col}`]?.focus()
 }
 
-// 单元格键盘导航（走迷宫式：上下切行、左右切列；参考 AddOrderForm 的 OrderAddDeviceEditor）：
+// 单元格键盘导航（走迷宫式：上下切行、左右切列）：
 // - 回车：跳到下一列；最后一列（数量）回车 → 提交本行
 // - 左/右方向键：切换列
 // - 上/下方向键：切换行；页边界时向上→上一页、向下→下一页
@@ -296,7 +296,7 @@ const detailTableData = computed<DetailTableRow[]>(() => {
   return rows
 })
 
-// 确保指定页已被新增空白行填满（不足则补足），使每页都“占满”（与 AddOrderForm 一致）
+// 确保指定页已被新增空白行填满（不足则补足），使每页都“占满”
 const ensurePageFilled = (page: number) => {
   const needed = page * pageSize.value
   const existing = detailTableData.value.length
@@ -336,7 +336,7 @@ const focusFirstBlankRow = () => {
 // 此时测量高度最可靠，避免首开时过渡未结束导致测量的行数偏小、空白行铺不满
 defineExpose({ prefillFirstPage })
 
-// 分页：每页行数由「弹窗可容纳行数」动态决定（参考 AddOrderForm 的 OrderAddDeviceEditor），
+// 分页：每页行数由「弹窗可容纳行数」动态决定，
 // 但不自动补空白行铺满——仅按实际行数分页展示
 const currentPage = ref(1)
 const pageSize = ref(10)

@@ -74,7 +74,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCompany } from '@/composables/admin/useCompany'
 import type { CompanyData } from '@/api/admin/CompanyApi'
 import type { CompanyFormData } from '@/api/admin/CompanyApi'
-import CompanyForm from '@/components/admin/AddCompanyForm.vue'
+import CompanyForm from '@/views/admin/AddCompanyForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 

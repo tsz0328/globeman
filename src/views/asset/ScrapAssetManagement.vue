@@ -91,7 +91,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import AddAssetForm from '@/components/asset/AddAssetForm.vue'
+import AddAssetForm from '@/views/asset/AddAssetForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import {
   getAssetListApi,

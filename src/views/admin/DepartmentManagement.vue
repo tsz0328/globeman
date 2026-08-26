@@ -41,7 +41,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getDepartmentsApi, type DepartmentData } from '@/api/admin/DepartmentApi'
-import AddDepartmentForm from '@/components/admin/AddDepartmentForm.vue'
+import AddDepartmentForm from '@/views/admin/AddDepartmentForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 
