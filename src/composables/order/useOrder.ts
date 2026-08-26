@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import {
   createOrderApi,
   getOrdersApi,
+  getProjectOrdersApi,
   deleteOrderApi,
   submitOrderApi,
   updateOrderHeadApi,
@@ -92,10 +93,12 @@ export function useOrder() {
     }
   }
 
-  // === 获取订单列表（getOrdersApi 不带参数，返回全部订单；如需按项目筛，在拿到全量后本地过滤）===
+  // === 获取订单列表（传入 projectId 时走项目下的订单接口 /client/project/getProjectOrder，否则返回全部订单）===
   const fetchOrders = async (projectId?: string): Promise<void> => {
     try {
-      const response = await getOrdersApi()
+      const response = projectId
+        ? await getProjectOrdersApi(projectId)
+        : await getOrdersApi()
 
       if (response.code === 200) {
         const data = response.data

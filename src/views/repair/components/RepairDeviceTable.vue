@@ -33,8 +33,8 @@
             <span>{{ scope.row.sn || '—' }}</span>
           </template>
         </el-table-column>
-        <!-- 操作列：维修详情可删除（与订单详情已提交禁用区分） -->
-        <el-table-column label="操作" width="73" align="center" fixed="right">
+        <!-- 操作列：维修详情可删除（与订单详情已提交禁用区分）。打印时通过 iframe 注入样式隐藏 -->
+        <el-table-column label="操作" width="73" align="center" fixed="right" class-name="no-print">
           <template #default="scope">
             <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click.stop="handleRowDelete(scope.row)">
               删除

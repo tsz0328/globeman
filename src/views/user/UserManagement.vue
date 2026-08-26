@@ -40,8 +40,8 @@
     <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
         :row-key="getRowKey">
         <el-table-column type="selection" width="50" :selectable="isRowSelectable" />
-        <el-table-column prop="account" label="账号" />
-        <el-table-column prop="name" label="姓名" />
+        <el-table-column prop="account" label="账号" width="99"/>
+        <el-table-column prop="name" label="姓名" width="73" />
         <el-table-column v-if="!notAdminRole" prop="company" label="公司" />
         <el-table-column v-if="!notAdminRole" prop="department" label="部门" />
         <el-table-column prop="role" label="角色" :width="notAdminRole ? 'auto' : 120" />
@@ -81,8 +81,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import WorkPage from '@/components/common/WorkPage.vue'
-import UserForm from '@/views/admin/AddUserForm.vue'
-import type { UserFormData } from '@/views/admin/AddUserForm.vue'
+import UserForm from '@/views/user/components/AddUserForm.vue'
+import type { UserFormData } from '@/views/user/components/AddUserForm.vue'
 import { useUser, type User } from '@/composables/admin/useUser'
 import { useRole } from '@/composables/admin/useRole'
 import { useCompany } from '@/composables/admin/useCompany'

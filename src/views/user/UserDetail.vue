@@ -1,7 +1,7 @@
 <template>
   <div class="user-detail-page">
     <div class="page-header">
-      <el-button @click="goBack">← 返回</el-button>
+      <el-button @click="goBack" type="primary" size="large" icon="arrow-left" style="font-size: 16px;">返回</el-button>
       <h2 class="title">用户详情</h2>
     </div>
 

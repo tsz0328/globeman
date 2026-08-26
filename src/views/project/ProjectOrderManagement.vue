@@ -1,48 +1,125 @@
 <template>
-  <div class="order-management" v-loading="loading">
-    <div class="page-header">
-      <el-button @click="goBack">← 返回</el-button>
-      <h2 class="title">项目订单管理</h2>
-      <div class="action-buttons">
+  <div class="project-order-page">
+    <WorkPage :loading="loading">
+      <template #title>
+        <el-button type="primary" @click="goBack" size="large" icon="arrow-left" style="margin-right: 12px; font-size: 16px;">返回</el-button>
+        项目订单管理
+      </template>
+
+      <template #actions>
         <el-button type="primary" @click="addOrder">新建订单</el-button>
         <el-button>导入Excel</el-button>
         <el-button>导出Excel</el-button>
         <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
         <el-button @click="toggleFilter">{{ isFilterVisible ? '隐藏筛选' : '筛选' }}</el-button>
-      </div>
-    </div>
-    <!-- 筛选栏（子组件：自管理筛选 UI，查询/重置事件上抛） -->
-    <ProjectOrderFilter
-      v-if="isFilterVisible"
-      :filter-form="filterForm"
-      :managers="managers"
-      :customers="orderCustomers"
-      @reset="handleReset"
-    />
+      </template>
 
-    <div class="table-section">
-      <!-- 订单表格（子组件：行操作以事件上抛） -->
-      <ProjectOrderTable
-        :orders="paginatedData"
-        @view="goToDetail"
-        @detail="goToOrderDetailPage"
-        @submit="handleSubmitBtn"
-        @delete="handleDeleteBtn"
+      <template #filter v-if="isFilterVisible">
+        <el-form :inline="true" @submit.prevent>
+          <el-form-item label="订单名称">
+            <el-input v-model="filterForm.orderName" placeholder="请输入订单名称" style="width: 150px" />
+          </el-form-item>
+          <el-form-item label="订单类型">
+            <el-select filterable v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
+              <el-option label="全部类型" value="" />
+              <el-option label="销售订单" value="销售" />
+              <el-option label="采购订单" value="采购" />
+              <el-option label="维修订单" value="维修" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="订单状态">
+            <el-select filterable v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
+              <el-option label="全部状态" value="" />
+              <el-option label="编辑中" value="编辑中" />
+              <el-option label="已确认" value="已确认" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="负责人">
+            <el-select filterable v-model="filterForm.leaderAccount" placeholder="全部负责人" style="width: 150px">
+              <el-option label="全部负责人" value="" />
+              <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.account" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="客户">
+            <el-select filterable v-model="filterForm.customer" placeholder="全部客户" style="width: 200px">
+              <el-option label="全部客户" value="" />
+              <el-option
+                v-for="customer in orderCustomers"
+                :key="customer.name"
+                :label="customer.name"
+                :value="customer.name"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="创建时间">
+            <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </template>
+
+      <!-- 订单表格 -->
+      <el-table
+        :data="paginatedData"
+        border
+        style="width: 100%"
         @selection-change="handleSelectionChange"
-      />
+        :row-key="getRowKey"
+      >
+        <el-table-column type="selection" width="39" :selectable="isRowSelectable" />
+        <el-table-column prop="name" label="订单名称" />
+        <el-table-column prop="type" label="订单类型" width="81" />
+        <el-table-column prop="customer" label="客户" />
+        <el-table-column prop="contact" label="客户联系人" />
+        <el-table-column prop="contactPhone" label="联系人电话" width="111" />
+        <el-table-column prop="leaderAccount" label="负责人" />
+        <el-table-column label="执行地">
+          <template #default="scope">
+            {{ [scope.row.province, scope.row.city, scope.row.district].filter(Boolean).join('-') }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="address" label="送修地址" />
+        <el-table-column prop="status" label="状态" width="81">
+          <template #default="scope">
+            <el-tag :type="getStatusType(scope.row.status)">
+              {{ scope.row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="160" />
+        <el-table-column label="操作" width="193" fixed="right">
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="goToDetail(scope.row.id)">查看</el-button>
+            <el-button
+              type="success"
+              size="small"
+              @click="handleSubmitBtn(scope.row)"
+              :disabled="scope.row.status === '已确认'"
+            >提交</el-button>
+            <el-button
+              type="danger"
+              size="small"
+              @click="handleDeleteBtn(scope.row)"
+              :disabled="scope.row.status === '已确认'"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
       <div class="pagination-section">
         <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
           layout="total, prev, pager, next, jumper" :total="filteredData.length" />
       </div>
-    </div>
 
-    <OrderForm v-model:visible="orderFormVisible" :project-id="projectId" :user-list="managers"
-      :customer-list="orderCustomers" @submit="handleOrderSubmit" />
+      <AddOrderForm v-model:visible="orderFormVisible" :project-id="projectId" :user-list="managers"
+        :customer-list="orderCustomers" @submit="handleOrderSubmit" />
 
-    <!-- 订单详情弹窗 -->
-    <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder"
-      @details-changed="handleDetailsChanged" />
+      <!-- 订单详情弹窗 -->
+      <OrderDetailDialog v-model="detailDialogVisible" :order="currentOrder"
+        @details-changed="handleDetailsChanged" />
+    </WorkPage>
   </div>
 </template>
 
@@ -53,12 +130,22 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/project/useProject'
 import { useOrder, type Order } from '@/composables/order/useOrder'
 import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
-import OrderForm from '@/views/order/AddOrderForm.vue'
-import OrderDetailDialog from '@/views/order/OrderDetailDialog.vue'
+import AddOrderForm from '@/views/order/components/AddOrderForm.vue'
+import OrderDetailDialog from '@/views/order/components/OrderDetailDialog.vue'
+import WorkPage from '@/components/common/WorkPage.vue'
 import type { OrderSubmitPayload } from '@/api/order/types'
 import { useTableQuery } from '@/composables/common/useTableQuery'
-import ProjectOrderFilter from './ProjectOrderFilter.vue'
-import ProjectOrderTable from './ProjectOrderTable.vue'
+import {
+  getStatusTagType as getStatusType,
+  isOrderLocked,
+} from '@/composables/common/useOrderStatus'
+
+const getRowKey = (row: Order) => row.id
+
+// 已锁定（已确认）的订单不允许勾选
+const isRowSelectable = (row: Order) => {
+  return !isOrderLocked(row.status)
+}
 
 const route = useRoute()
 const { fetchProjects } = useProject()
@@ -157,16 +244,6 @@ const goToDetail = (orderId: string) => {
   }
   currentOrder.value = order
   detailDialogVisible.value = true
-}
-
-// 跳转到项目订单详情页（ProjectOrderDetail.vue），新标签页打开
-const goToOrderDetailPage = (row: Order) => {
-  if (!row.id) {
-    ElMessage.warning('无效的订单ID，无法跳转到订单详情页')
-    return
-  }
-  const encodedName = encodeURIComponent(row.name || '')
-  window.open(`/order-detail/${row.id}?name=${encodedName}&projectId=${projectId.value}`, '_blank')
 }
 
 const addOrder = () => {
@@ -303,41 +380,18 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.order-management {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* 独立路由页（无 WorkView 外壳）：自带品牌蓝内容场，白卡浮于其上，与工作台内页面观感一致 */
+.project-order-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-image: var(--brand-content-bg);
+  padding: 24px;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid black;
-  gap: 20px;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  margin-right: auto;
-}
-
-.action-buttons {
-  display: flex;
-}
-
-.table-section {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
+/* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

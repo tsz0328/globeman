@@ -1,7 +1,7 @@
 <template>
   <div class="equipment-repair-info-page">
     <div class="page-header">
-      <el-button @click="goBack">← 返回</el-button>
+      <el-button @click="goBack" type="primary" size="large" icon="arrow-left" style="font-size: 16px;">返回</el-button>
       <h2 class="page-title">设备维修信息详情</h2>
     </div>
 
@@ -123,7 +123,7 @@ import {
   type RepairDetailData,
   type RepairAcceptItem,
 } from '@/api/repair/RepairApi'
-import RepairImageUploader from './RepairImageUploader.vue'
+import RepairImageUploader from './components/RepairImageUploader.vue'
 
 const { submitRepair, saveRepair } = useDetail()
 

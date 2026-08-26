@@ -6,14 +6,13 @@ import { useAuthStore } from '@/stores/auth'
 // 路由级代码分割：全部视图改为动态 import，避免首屏加载全部 14k 行代码
 const IndexView = () => import('@/layouts/IndexView.vue')
 const WorkView = () => import('@/layouts/WorkView.vue')
-const Login = () => import('@/views/index/LoginPage.vue')
-const LoginSuccessComponent = () => import('@/views/index/LoginSuccess.vue')
-const UserManagementComponent = () => import('@/views/admin/UserManagement.vue')
+const Login = () => import('@/layouts/components/LoginPage.vue')
+const LoginSuccessComponent = () => import('@/layouts/components/LoginSuccess.vue')
+const UserManagementComponent = () => import('@/views/user/UserManagement.vue')
 const Home = () => import('@/views/home/HomePage.vue')
 const ProjectManagementComponent = () => import('@/views/project/ProjectManagement.vue')
-const CustomerManagementComponent = () => import('@/views/admin/CustomerManagement.vue')
-const CompanyManagementComponent = () => import('@/views/admin/CompanyManagement.vue')
-const OrderDetailComponent = () => import('@/views/project/ProjectOrderDetail.vue')
+const CustomerManagementComponent = () => import('@/views/customer/CustomerManagement.vue')
+const CompanyManagementComponent = () => import('@/views/company/CompanyManagement.vue')
 const RepairOrderDetailComponent = () => import('@/views/repair/RepairOrderDetail.vue')
 const ProjectOrderManagement = () => import('@/views/project/ProjectOrderManagement.vue')
 
@@ -27,10 +26,10 @@ const OutboundManagementComponent = () => import('@/views/inventory/OutboundMana
 const InboundManagementComponent = () => import('@/views/inventory/InboundManagement.vue')
 const InventoryManagementComponent = () => import('@/views/inventory/InventoryManagement.vue')
 const OrderManagementComponent = () => import('@/views/order/OrderManagement.vue')
-const UserDetailComponent = () => import('@/views/admin/UserDetail.vue')
+const UserDetailComponent = () => import('@/views/user/UserDetail.vue')
 const PersonalCenter = () => import('@/views/profile/PersonalCenter.vue')
-const DepartmentManagementComponent = () => import('@/views/admin/DepartmentManagement.vue')
-const CompanyDetailComponent = () => import('@/views/admin/CompanyDetail.vue')
+const DepartmentManagementComponent = () => import('@/views/department/DepartmentManagement.vue')
+const CompanyDetailComponent = () => import('@/views/company/CompanyDetail.vue')
 const FixedAssetManagement = () => import('@/views/asset/FixedAssetManagement.vue')
 const ScrapAssetManagement = () => import('@/views/asset/ScrapAssetManagement.vue')
 const CarouselManagement = () => import('@/views/platform/CarouselManagement.vue')
@@ -174,11 +173,6 @@ const router = createRouter({
       path: '/repair-order-detail/:id',
       name: 'RepairOrderDetail',
       component: RepairOrderDetailComponent,
-    },
-    {
-      path: '/order-detail/:id',
-      name: 'OrderDetail',
-      component: OrderDetailComponent,
     },
     {
       path: '/repair-device-detail/:id',

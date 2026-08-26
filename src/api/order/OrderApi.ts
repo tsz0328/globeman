@@ -45,6 +45,17 @@ export async function getOrdersApi(): Promise<ApiResponse<OrderData[]>> {
 }
 
 // =====================================================================
+// 获取指定项目下的订单列表（GET /client/project/getProjectOrder?projectId=）
+// =====================================================================
+export async function getProjectOrdersApi(projectId: string): Promise<ApiResponse<OrderData[]>> {
+  return request({
+    url: '/client/project/getProjectOrder',
+    method: 'get',
+    params: { projectId },
+  })
+}
+
+// =====================================================================
 // 创建订单（POST /client/order/addOrder）
 // =====================================================================
 /** 订单设备明细（addOrder 请求体单条结构，与 addOrderDetail 契约一致：无 price/remark） */

@@ -50,7 +50,7 @@ import { ElMessage } from 'element-plus'
 import { useDetail } from '@/composables/detail/useDetail'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 import type { DetailData } from '@/api/order/OrderDeviceApi.ts'
-import RepairDetailDialog from './RepairDetailDialog.vue'
+import RepairDetailDialog from './components/RepairDetailDialog.vue'
 
 // 设备详情路由参数
 const route = useRoute()

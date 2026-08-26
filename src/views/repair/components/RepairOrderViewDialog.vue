@@ -81,22 +81,6 @@
         :details="details"
         @changed="emit('details-changed')"
       />
-
-      <!-- 打印区域 -->
-      <div class="form-footer print-only">
-        <div class="footer-row">
-          <div class="footer-item">
-            <div><span class="label">采购单位（甲方盖章）：</span></div>
-            <div><span class="label">代表人（签名）：</span></div>
-            <div><span class="label">日期：</span></div>
-          </div>
-          <div class="footer-item">
-            <div><span class="label">供应单位（甲方盖章）：</span></div>
-            <div><span class="label">代表人（签名）：</span></div>
-            <div><span class="label">日期：</span></div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- 表单底部 -->
@@ -150,12 +134,48 @@ const printOrder = () => {
   const doc = iframe.contentWindow?.document
   if (!doc) return
   doc.open()
+
+  /* 底部盖章栏 HTML：作为 .repair-detail-form 的最后一个子元素插入，
+     这样它和表格共享同一个容器，左右边框自然对齐 */
+  const footerHtml =
+    '<div class="print-footer">' +
+    '<div class="print-footer-row">' +
+    '<div class="print-footer-item"><div><span class="label">采购单位（甲方盖章）：</span></div>' +
+    '<div><span class="label">代表人（签名）：</span></div><div><span class="label">日期：</span></div></div>' +
+    '<div class="print-footer-item"><div><span class="label">供应单位（甲方盖章）：</span></div>' +
+    '<div><span class="label">代表人（签名）：</span></div><div><span class="label">日期：</span></div></div>' +
+    '</div></div>'
+
+  // 把 footer 插进 .repair-detail-form 内部（最后一个闭合 </div> 之前），
+  // 避免 append 在 body 末尾导致 footer 与表单容器宽度不一致
+  const contentHtml = printContent.outerHTML
+  const lastClose = contentHtml.lastIndexOf('</div>')
+  const mergedHtml =
+    lastClose >= 0
+      ? contentHtml.slice(0, lastClose) + footerHtml + contentHtml.slice(lastClose)
+      : contentHtml + footerHtml
+
   doc.write(
     '<!DOCTYPE html><html><head><title>打印维修订单</title>' +
-      '<link rel="stylesheet" href="/element-plus/index.css" />' +
-      '<style>body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;}</style>' +
+      '<style>' +
+      'body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;}' +
+      /* element-plus 样式文件在此环境不存在，这里内联补齐表格的基础样式。
+         打印走 iframe，组件 scoped / @media print 均不生效，故需在此统一处理 */
+      '.repair-detail-form{box-sizing:border-box;}' +
+      '.el-table,.el-table table{width:100%;border-collapse:collapse;}' +
+      '.el-table__cell{border:1px solid #dcdfe6;padding:8px;text-align:center;}' +
+      '.repair-detail-form .el-table__fixed-right{display:none !important;}' +
+      '.no-print{display:none !important;}' +
+      '.print-footer{border:1px solid #dcdfe6;border-top:none;}' +
+      '.print-footer-row{display:flex;}' +
+      '.print-footer-item{flex:1;padding:12px;border-right:1px solid #dcdfe6;}' +
+      '.print-footer-item:last-child{border-right:none;}' +
+      '.print-footer-item div{margin-bottom:12px;min-height:20px;}' +
+      '.print-footer-item div:last-child{margin-bottom:0;}' +
+      '.print-footer-item .label{font-weight:500;}' +
+      '</style>' +
       '</head><body>' +
-      printContent.outerHTML +
+      mergedHtml +
       '</body></html>',
   )
   doc.close()
@@ -171,14 +191,13 @@ const printOrder = () => {
 }
 
 // 入库：接口待定，先放置占位处理（点击不报错，便于后续对接真实接口）。
-// TODO: 接口确认后，这里传入 props.order?.id 与当前设备明细，调用对应的入库接口。
 const handleInbound = () => {
   ElMessage.info('入库功能待对接（接口待定）')
 }
 </script>
 
 <style scoped>
-/* 付款条件 / 表单底部盖章栏：屏幕上隐藏，仅打印时显示。
+/* 付款条件 / 表单底部盖章栏：仅打印时显示。
    打印走隐藏 iframe（不含本组件 scoped 样式），所以这些元素在 iframe 中没有这个样式自动可见。
    用 .repair-detail-form 前缀提升优先级（scoped 下为 (0,3,0)），避免被后定义的 .info-row（display:flex）按相等优先级+靠后原则覆盖 */
 .repair-detail-form .print-only {
@@ -263,6 +282,7 @@ const handleInbound = () => {
   margin-bottom: 0;
 }
 
+/* 打印样式 */
 @media print {
   .repair-detail-dialog :deep(.el-dialog__header),
   .repair-detail-dialog :deep(.el-dialog__footer) {

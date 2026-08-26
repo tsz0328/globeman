@@ -63,12 +63,12 @@ const mapRecordToProject = (record: Record<string, unknown>, _index: number): Pr
           : '',
     projectName: getString(record, ['name', 'projectName']),
     projectType: getString(record, ['type', 'projectType']),
-    projectManager: getString(record, ['leader', 'leader_account', 'projectManager']),
+    projectManager: getString(record, ['leader', 'leader_account', 'manager', 'projectManager']),
     createTime: formatDateTime(getString(record, ['time', 'createTime'])),
     cooperativeUnit: getString(record, ['company', 'cooperativeUnit']),
     contactPerson: getString(record, ['contact', 'contactPerson', 'contactName', 'Contact']),
     status: getString(record, ['state', 'status']) || '编辑中',
-    creator: getString(record, ['creator', 'creatorName', 'creator_account']),
+    creator: getString(record, ['creator_account', 'account', 'creator', 'creatorName']),
     customer: getString(record, ['customer', 'customerName']),
   }
 }
@@ -135,9 +135,10 @@ export function useProject() {
         id: projectId,
         name: data.name,
         type: data.type,
-        leaderAccount: data.leaderAccount,
         customer: data.customer,
         contact: data.contact,
+        // 后端 create 接口用 manager 表示负责人账号（前端表单仍称 leaderAccount）
+        manager: data.leaderAccount,
       })
       if (res.code === 200) {
         // 直接用后端返回的新建记录，避免再请求 /project/get 全量刷新

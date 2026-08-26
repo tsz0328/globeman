@@ -127,9 +127,10 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="136" />
-      <el-table-column label="操作" width="193" fixed="right">
+      <el-table-column label="操作" width="253" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewOrder(scope.row)">查看</el-button>
+          <el-button type="success" size="small" :disabled="scope.row.status == SUBMITTED_STATUS" @click="openAssociateDialog(scope.row)">关联</el-button>
           <el-button
             type="primary"
             size="small"
@@ -167,11 +168,41 @@
       :order="currentOrder"
       @details-changed="handleOrderSubmitted"
     />
+
+    <!-- 订单关联项目弹窗 -->
+    <el-dialog v-model="associateDialogVisible" title="关联项目" width="480px" @open="resetAssociateForm">
+      <el-form label-width="80px">
+        <el-form-item label="订单名称">
+          <el-input :model-value="associateOrder?.name" disabled />
+        </el-form-item>
+        <el-form-item label="关联项目" required>
+          <el-select
+            v-model="associateProjectId"
+            filterable
+            placeholder="请选择要关联的项目"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="p in projectOptions"
+              :key="p.id"
+              :label="p.projectName"
+              :value="p.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="associateDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="associating" :disabled="!associateProjectId" @click="confirmAssociate">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </WorkPage>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject } from '@/composables/project/useProject'
@@ -183,10 +214,22 @@ import {
   type OrderManager,
   type OrderCustomer,
 } from '@/api/order/OrderApi'
-import OrderForm from '@/views/order/AddOrderForm.vue'
-import OrderDetailDialog from '@/views/order/OrderDetailDialog.vue'
+import OrderForm from '@/views/order/components/AddOrderForm.vue'
+import OrderDetailDialog from '@/views/order/components/OrderDetailDialog.vue'
 import type { OrderSubmitPayload } from '@/api/order/types'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { associateOrderToProjectApi } from '@/api/project/ProjectApi'
+
+// 关联弹窗：当前订单项目下拉选项（来自 /client/project/getProject 的 projectList）
+const { projectList } = useProject()
+const projectOptions = ref<{ id: string; projectName: string }[]>([])
+watch(
+  projectList,
+  (list) => {
+    projectOptions.value = list.map((p) => ({ id: p.id, projectName: p.projectName }))
+  },
+  { immediate: true },
+)
 
 // 订单客户列表（从 /client/order/getInfoCustomer 获取，用于筛选栏下拉和表单自动补全）
 const orderCustomers = ref<OrderCustomer[]>([])
@@ -303,6 +346,42 @@ const handleOrderSubmit = async (data: OrderSubmitPayload) => {
 const viewOrder = (row: Order) => {
   currentOrder.value = row
   detailDialogVisible.value = true
+}
+
+// === 订单关联项目 ===
+const associateDialogVisible = ref(false)
+const associateOrder = ref<Order | null>(null)
+const associateProjectId = ref('')
+const associating = ref(false)
+
+const openAssociateDialog = (row: Order) => {
+  associateOrder.value = row
+  associateProjectId.value = ''
+  associateDialogVisible.value = true
+}
+
+const resetAssociateForm = () => {
+  associateProjectId.value = ''
+}
+
+// 确认关联：POST /client/project/orderProject?projectId=&orderId=
+const confirmAssociate = async () => {
+  if (!associateOrder.value || !associateProjectId.value) return
+  associating.value = true
+  try {
+    const res = await associateOrderToProjectApi(associateProjectId.value, associateOrder.value.id)
+    if (res.code === 200) {
+      ElMessage.success('关联成功')
+      associateDialogVisible.value = false
+    } else {
+      ElMessage.error(res.msg || '关联失败')
+    }
+  } catch (error) {
+    console.error('关联订单到项目失败:', error)
+    ElMessage.error('关联失败')
+  } finally {
+    associating.value = false
+  }
 }
 
 // 操作列提交订单（仅编辑中订单显示按钮）：成功后回拉列表刷新状态

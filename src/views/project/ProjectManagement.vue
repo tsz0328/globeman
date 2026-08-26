@@ -63,7 +63,6 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column prop="cooperativeUnit" label="归属公司" />
       <el-table-column label="操作" width="133" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="viewProject(scope.row)">查看</el-button>
@@ -78,7 +77,7 @@
     </div>
 
     <!-- 新建项目弹窗 -->
-    <ProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="managers"
+    <AddProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="managers"
       :customer-list="orderCustomers" />
   </WorkPage>
 </template>
@@ -86,8 +85,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ProjectForm from '@/views/project/AddProjectForm.vue'
-import type { ProjectFormData } from '@/views/project/AddProjectForm.vue'
+import AddProjectForm from '@/views/project/components/AddProjectForm.vue'
+import type { ProjectFormData } from '@/views/project/components/AddProjectForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { useTableQuery } from '@/composables/common/useTableQuery'
