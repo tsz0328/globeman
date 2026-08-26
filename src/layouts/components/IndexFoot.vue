@@ -57,21 +57,21 @@ import { Phone, Message } from '@element-plus/icons-vue'
           <!-- TODO: 替换为实际二维码图片 -->
           <div class="code-item">
             <div class="qr-placeholder"></div>
-            <p>铁塔官方微信公众号</p>
+            <p>全球人官方微信公众号</p>
             <p>扫一扫随时掌握最新动态</p>
           </div>
           <div class="code-item">
             <div class="qr-placeholder"></div>
-            <p>铁塔MOA</p>
+            <p>全球人MOA</p>
           </div>
         </div>
       </div>
       <div class="bottom">
         <div class="bottom-box">
           <!-- TODO: 版权信息需替换为湖南全球人 -->
-          <p class="text">版权所有 © 中国铁塔股份有限公司</p>
-          <p class="text jump">铁塔官网：www.china-tower.com</p>
-          <p class="text">京ICP备14039488号</p>
+          <p class="text">版权所有 © 湖南全球人信息技术有限公司</p>
+          <p class="text jump">全球人官网：www.globeman.cn</p>
+          <p class="text">湘ICP备2025106866号</p>
         </div>
       </div>
     </div>
