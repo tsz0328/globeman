@@ -27,7 +27,7 @@
       </el-descriptions>
     </el-card>
 
-    <el-card>
+    <el-card v-loading="loading">
       <template #header>
         <span class="section-title">故障与维修记录</span>
       </template>
@@ -201,7 +201,15 @@ const fetchAcceptInfo = async () => {
   try {
     const res = await getAllAcceptInfoApi()
     if (res.code === 200 && Array.isArray(res.data)) {
-      acceptInfo.value = res.data.find((item) => item.id === repairId.value) ?? null
+      const item = res.data.find((item) => item.id === repairId.value) ?? null
+      acceptInfo.value = item
+      // 回填故障与维修记录：接口已返回这四个字段，需写入 form 才能显示
+      if (item) {
+        form.description = item.description ?? ''
+        form.diagnosis = item.diagnosis ?? ''
+        form.dispose = item.dispose ?? ''
+        form.result = item.result ?? ''
+      }
     }
   } catch (error) {
     console.error('获取接单信息失败:', error)
@@ -213,15 +221,13 @@ onMounted(async () => {
   if (typeof id === 'string') {
     repairId.value = parseInt(id, 10)
   }
-  // 工单基础信息卡片的加载圈：仅跟随接单信息拉取
+  // 工单基础信息 + 故障与维修记录 两张卡片共用同一加载圈：接单信息与前后图都拉完才关闭
   loading.value = true
   try {
-    await fetchAcceptInfo()
+    await Promise.all([fetchAcceptInfo(), fetchImages()])
   } finally {
     loading.value = false
   }
-  // 维修前后图片独立拉取，各自在 RepairImageUploader 内带占位加载圈，不阻塞整页
-  fetchImages()
 })
 
 // 保存修改

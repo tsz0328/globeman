@@ -60,6 +60,7 @@ export interface RepairAcceptItem {
   account: string // 接单人
   brand: string // 品牌
   description: string | null // 故障描述
+  diagnosis: string | null // 解决方式
   name: string | null // 设备名称
   dispose: string | null // 处置
   headName: string // 工单 / 订单名称

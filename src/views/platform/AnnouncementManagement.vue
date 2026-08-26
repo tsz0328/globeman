@@ -43,47 +43,57 @@
           </el-form-item>
         </el-form>
 
-        <el-table :data="pagedData" border style="width: 100%">
-          <el-table-column label="类型" width="110">
-            <template #default="scope">
-              <el-tag :type="scope.row.type === 'latest' ? 'danger' : 'primary'">
-                {{ scope.row.type === 'latest' ? '最新公告' : '平台公告' }}
+        <div class="announcement-list">
+          <el-card
+            v-for="item in pagedData"
+            :key="item.id"
+            class="announcement-card"
+            shadow="never"
+          >
+            <div class="card-head">
+              <div class="head-left">
+                <el-tag :type="item.type === 'latest' ? 'danger' : 'primary'" size="small">
+                  {{ item.type === 'latest' ? '最新公告' : '平台公告' }}
+                </el-tag>
+                <span class="card-title">{{ item.title }}</span>
+              </div>
+              <el-tag :type="item.enabled ? 'success' : 'info'" size="small">
+                {{ item.enabled ? '已发布' : '草稿' }}
               </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="title" label="标题" min-width="160" />
-          <el-table-column label="正文预览" min-width="220" show-overflow-tooltip>
-            <template #default="scope">{{ scope.row.content.join(' / ') }}</template>
-          </el-table-column>
-          <el-table-column prop="publishTime" label="发布时间" width="180" />
-          <el-table-column label="状态" width="90">
-            <template #default="scope">
-              <el-tag :type="scope.row.enabled ? 'success' : 'info'">
-                {{ scope.row.enabled ? '已发布' : '草稿' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="160" fixed="right" class-name="action-column">
-            <template #default="scope">
-              <el-button
-                type="primary"
-                size="small"
-                :loading="editLoadingId === scope.row.id"
-                @click="openEdit(scope.row)"
-              >
-                编辑
-              </el-button>
-              <el-button
-                type="danger"
-                size="small"
-                :loading="deleteLoadingId === scope.row.id"
-                @click="handleDelete(scope.row)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+            </div>
+
+            <div class="card-body" :class="{ clamped: isLong(item) && !expandedMap[item.id] }">
+              <p v-for="(p, idx) in item.content" :key="idx" class="para">{{ p }}</p>
+            </div>
+            <div v-if="isLong(item)" class="expand-toggle" @click="toggleExpand(item.id)">
+              {{ expandedMap[item.id] ? '收起 ▲' : '展开全文 ▼' }}
+            </div>
+
+            <div class="card-foot">
+              <span class="publish-time">发布时间：{{ item.publishTime }}</span>
+              <div class="actions">
+                <el-button
+                  type="primary"
+                  size="small"
+                  :loading="editLoadingId === item.id"
+                  @click="openEdit(item)"
+                >
+                  编辑
+                </el-button>
+                <el-button
+                  type="danger"
+                  size="small"
+                  :loading="deleteLoadingId === item.id"
+                  @click="handleDelete(item)"
+                >
+                  删除
+                </el-button>
+              </div>
+            </div>
+          </el-card>
+
+          <el-empty v-if="pagedData.length === 0" description="暂无公告" />
+        </div>
 
         <div class="pagination-section">
           <el-pagination
@@ -225,6 +235,15 @@ const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   return filteredList.value.slice(start, start + pageSize)
 })
+
+// 正文过长（多段或总字数较多）时折叠，提供「展开全文」切换
+const expandedMap = reactive<Record<string, boolean>>({})
+const toggleExpand = (id: string) => {
+  expandedMap[id] = !expandedMap[id]
+}
+const isLong = (item: AnnouncementItem): boolean => {
+  return item.content.join('').length > 60 || item.content.length > 1
+}
 
 // ---------- 删除（per-row loading）----------
 const deleteLoadingId = ref<string | null>(null)
@@ -384,7 +403,72 @@ const handleSaveIntro = async () => {
 .para-row :deep(.el-textarea) {
   flex: 1;
 }
-:deep(.action-column) {
+.announcement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.announcement-card {
+  border-radius: 8px;
+}
+.announcement-card :deep(.el-card__body) {
+  padding: 16px 18px;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-body {
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.card-body.clamped {
+  max-height: 5.1em;
+  overflow: hidden;
+}
+.card-body .para {
+  margin: 0 0 6px;
+}
+.card-body .para:last-child {
+  margin-bottom: 0;
+}
+.expand-toggle {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--el-color-primary);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.publish-time {
+  font-size: 13px;
+  color: #909399;
+}
+.actions {
+  display: flex;
+  gap: 8px;
 }
 </style>
