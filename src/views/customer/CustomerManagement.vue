@@ -35,15 +35,23 @@
       <el-table-column prop="contact" label="联系人" />
       <el-table-column prop="phone" label="联系电话" />
       <el-table-column prop="createTime" label="创建时间" />
-      <el-table-column label="操作" width="193" fixed="right">
+      <el-table-column label="操作" width="157" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small">查看</el-button>
-          <el-button type="warning" size="small" @click="editCustomer(scope.row)"
-            >编辑</el-button
-          >
-          <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)"
-            >删除</el-button
-          >
+          <el-tooltip content="查看" placement="top">
+            <el-button type="primary" size="small" icon="View" />
+          </el-tooltip>
+          <el-tooltip content="编辑" placement="top">
+            <el-button type="warning" size="small" icon="Edit" @click="editCustomer(scope.row)" />
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+            <el-button
+              type="danger"
+              size="small"
+              icon="Delete"
+              :loading="deleteLoadingId === scope.row.id"
+              @click="handleDeleteBtn(scope.row)"
+            />
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -77,8 +85,14 @@ import { useCustomer, type Customer } from '@/composables/admin/useCustomer'
 import { useCompany } from '@/composables/admin/useCompany'
 import { useTableQuery } from '@/composables/common/useTableQuery'
 
-const { customerList, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, batchDeleteCustomers } =
-  useCustomer()
+const {
+  customerList,
+  fetchCustomers,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+  batchDeleteCustomers,
+} = useCustomer()
 const { companyNames, fetchCompanyNames } = useCompany()
 
 const customerFormVisible = ref(false)

@@ -33,9 +33,11 @@
       <el-table-column prop="customer" label="客户" />
       <el-table-column prop="manager" label="负责人" width="120" />
       <el-table-column prop="time" label="出库时间" width="180" />
-      <el-table-column label="操作" width="73" fixed="right">
+      <el-table-column label="操作" width="61" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="viewDetail(scope.row)">查看</el-button>
+          <el-tooltip content="查看/修改" placement="top">
+          <el-button type="primary" size="small" icon="Edit" @click="viewDetail(scope.row)" />
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>

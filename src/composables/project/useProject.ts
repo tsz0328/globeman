@@ -141,10 +141,17 @@ export function useProject() {
         manager: data.leaderAccount,
       })
       if (res.code === 200) {
-        // 直接用后端返回的新建记录，避免再请求 /project/get 全量刷新
-        const newProject = mapRecordToProject(res.data as unknown as Record<string, unknown>, -1)
-        // 插入到列表头部，并按创建时间降序保持时间顺序（最新在前）
-        projectList.value = sortByCreateTimeDesc([newProject, ...projectList.value])
+        // 若后端返回了完整新建记录，则乐观插入列表头部（即时反馈）；
+        // 否则跳过，交由调用方 fetchProjects 全量刷新兜底
+        if (res.data && typeof res.data === 'object') {
+          try {
+            const newProject = mapRecordToProject(res.data as unknown as Record<string, unknown>, -1)
+            // 插入到列表头部，并按创建时间降序保持时间顺序（最新在前）
+            projectList.value = sortByCreateTimeDesc([newProject, ...projectList.value])
+          } catch {
+            // 构造失败不影响创建结果，靠下方 fetchProjects 兜底
+          }
+        }
         return true
       }
       return false

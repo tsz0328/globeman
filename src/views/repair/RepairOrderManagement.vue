@@ -82,15 +82,17 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="73" fixed="right">
+        <el-table-column label="操作" width="61" fixed="right">
           <template #default="scope">
+            <el-tooltip content="查看/修改" placement="top">
             <el-button
               type="primary"
               size="small"
+              icon="Edit"
               :disabled="scope.row.status === '编辑中'"
               @click="goToRepairOrderDetail(scope.row.id, scope.row.name)"
-              >查看</el-button
-            >
+              />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>

@@ -52,15 +52,22 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" :width="notAdminRole ? 'auto' : 180" />
-        <el-table-column label="操作" width="193" fixed="right">
+        <el-table-column label="操作" width="161" fixed="right" class-name="action-column">
           <template #default="scope">
-            <el-button type="primary" size="small" @click="viewUser(scope.row)">查看</el-button>
-            <el-button :type="scope.row.status === 0 ? 'success' : 'warning'" size="small"
-              :loading="statusLoadingId === scope.row.id" @click="handleToggleStatus(scope.row)" :disabled="scope.row.role === 'admin'">
-              {{ scope.row.status === 0 ? '启用' : '禁用' }}
-            </el-button>
-            <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)"
-              :disabled="scope.row.role === 'admin'">删除</el-button>
+            <el-tooltip content="查看/编辑" placement="top">
+              <el-button type="primary" size="small" icon="Edit" @click="viewUser(scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="启用/禁用" placement="top">
+              <el-switch
+                :model-value="scope.row.status !== 0"
+                :disabled="scope.row.role === 'admin' || statusLoadingId === scope.row.id"
+                @change="() => handleToggleStatus(scope.row)"
+              />
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button type="danger" size="small" icon="Delete" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)"
+                :disabled="scope.row.role === 'admin'" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -273,6 +280,13 @@ const paginatedData = pagedList
 </script>
 
 <style scoped>
+/* 操作列控件统一间距：查看 / 启用禁用 / 删除 之间 12px，与 Element Plus 按钮默认间距一致
+   el-table 单元格实际结构为 td.action-column > .cell > 控件，需作用在 .cell 上才生效 */
+:deep(.action-column .cell) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 /* 分页：右对齐，与上方表格留出间距（外层白卡已提供内边距） */
 .pagination-section {
   display: flex;

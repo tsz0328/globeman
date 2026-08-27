@@ -8,30 +8,39 @@ const IndexView = () => import('@/layouts/IndexView.vue')
 const WorkView = () => import('@/layouts/WorkView.vue')
 const Login = () => import('@/layouts/components/LoginPage.vue')
 const LoginSuccessComponent = () => import('@/layouts/components/LoginSuccess.vue')
-const UserManagementComponent = () => import('@/views/user/UserManagement.vue')
+
 const Home = () => import('@/views/home/HomePage.vue')
-const ProjectManagementComponent = () => import('@/views/project/ProjectManagement.vue')
+
+const UserDetailComponent = () => import('@/views/user/UserDetail.vue')
+const UserManagementComponent = () => import('@/views/user/UserManagement.vue')
+
+const PersonalCenter = () => import('@/views/profile/PersonalCenter.vue')
+
 const CustomerManagementComponent = () => import('@/views/customer/CustomerManagement.vue')
+
 const CompanyManagementComponent = () => import('@/views/company/CompanyManagement.vue')
-const RepairOrderDetailComponent = () => import('@/views/repair/RepairOrderDetail.vue')
+const CompanyDetailComponent = () => import('@/views/company/CompanyDetail.vue')
+
+const DepartmentManagementComponent = () => import('@/views/department/DepartmentManagement.vue')
+
+const ProjectManagementComponent = () => import('@/views/project/ProjectManagement.vue')
 const ProjectOrderManagement = () => import('@/views/project/ProjectOrderManagement.vue')
+
+const OrderManagementComponent = () => import('@/views/order/OrderManagement.vue')
 
 const RepairWarehousing = () => import('@/views/repair/RepairWarehousing.vue')
 const RepairList = () => import('@/views/repair/RepairList.vue')
 const RepairWarehouseOut = () => import('@/views/repair/RepairWarehouseOut.vue')
 const RepairAccept = () => import('@/views/repair/RepairAccept.vue')
-
 const RepairDeviceDetail = () => import('@/views/repair/RepairDeviceDetail.vue')
+
 const OutboundManagementComponent = () => import('@/views/inventory/OutboundManagement.vue')
 const InboundManagementComponent = () => import('@/views/inventory/InboundManagement.vue')
 const InventoryManagementComponent = () => import('@/views/inventory/InventoryManagement.vue')
-const OrderManagementComponent = () => import('@/views/order/OrderManagement.vue')
-const UserDetailComponent = () => import('@/views/user/UserDetail.vue')
-const PersonalCenter = () => import('@/views/profile/PersonalCenter.vue')
-const DepartmentManagementComponent = () => import('@/views/department/DepartmentManagement.vue')
-const CompanyDetailComponent = () => import('@/views/company/CompanyDetail.vue')
+
 const FixedAssetManagement = () => import('@/views/asset/FixedAssetManagement.vue')
 const ScrapAssetManagement = () => import('@/views/asset/ScrapAssetManagement.vue')
+
 const CarouselManagement = () => import('@/views/platform/CarouselManagement.vue')
 const AnnouncementManagement = () => import('@/views/platform/AnnouncementManagement.vue')
 
@@ -168,11 +177,6 @@ const router = createRouter({
       path: '/project-order/:id',
       name: 'ProjectOrderManagement',
       component: ProjectOrderManagement,
-    },
-    {
-      path: '/repair-order-detail/:id',
-      name: 'RepairOrderDetail',
-      component: RepairOrderDetailComponent,
     },
     {
       path: '/repair-device-detail/:id',

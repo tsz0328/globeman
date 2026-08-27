@@ -20,10 +20,14 @@
       :row-key="getRowKey">
       <el-table-column type="selection" width="50" />
       <el-table-column prop="name" label="部门名称" />
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="109" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
+          <el-tooltip content="编辑" placement="top">
+          <el-button type="primary" size="small" icon="Edit" @click="handleEdit(scope.row)"/>
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+          <el-button type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)"/>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>

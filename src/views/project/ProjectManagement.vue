@@ -49,7 +49,7 @@
     <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
       @row-dblclick="handleRowDblclick" :row-key="getRowKey">
       <el-table-column type="selection" width="50" />
-      <el-table-column prop="projectName" label="项目名称" />
+      <el-table-column prop="projectName" label="项目名称" show-overflow-tooltip />
       <el-table-column prop="customer" label="客户" width="120" />
       <el-table-column prop="contactPerson" label="客户联系人" width="100" />
       <el-table-column prop="projectManager" label="负责人" width="100" />
@@ -63,10 +63,14 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column label="操作" width="133" fixed="right">
+      <el-table-column label="操作" width="109" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="viewProject(scope.row)">查看</el-button>
-          <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)">删除</el-button>
+          <el-tooltip content="查看" placement="top">
+          <el-button type="primary" size="small" icon="View" @click="viewProject(scope.row)" />
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+          <el-button type="danger" size="small" icon="Delete" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)" />
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -129,7 +133,6 @@ const loadData = async () => {
   try {
     // 先拉项目列表 /client/project/getProject
     await fetchProjects()
-    // 项目列表返回后，逐个拉取筛选用下拉数据，避免一次性并发过多请求
     await fetchOrderCustomers() // /client/order/getInfoCustomer
     await fetchOrderManagers()  // /client/order/getInfoManager
   } finally {
@@ -159,7 +162,9 @@ const handleProjectSubmit = async (data: ProjectFormData) => {
     const success = await createProject(data)
     if (success) {
       projectFormVisible.value = false
-      // 清空筛选并回到首页，确保新建项目（已置顶）立即可见
+      // 重新拉取全量列表，确保新建项目在服务端落库后立即可见
+      // （与订单页 handleOrderSubmit → fetchOrders 范式一致，不依赖新增接口返回值）
+      await fetchProjects()
       handleReset()
       ElMessage.success('创建成功')
     }

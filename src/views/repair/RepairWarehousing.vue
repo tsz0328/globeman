@@ -80,10 +80,14 @@
       <el-table-column prop="contact" label="客户联系人" width="120" />
       <el-table-column prop="manager" label="负责人" width="120" />
       <el-table-column prop="time" label="创建时间" width="180" />
-      <el-table-column label="操作" width="133" fixed="right">
+      <el-table-column label="操作" width="109" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="viewRepair(scope.row)">查看</el-button>
-          <el-button type="success" size="small" @click="handleInbound(scope.row)">入库</el-button>
+          <el-tooltip content="查看/修改" placement="top">
+          <el-button type="primary" size="small" icon="Edit" @click="viewRepair(scope.row)" />
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+          <el-button type="success" size="small" icon="Delete" @click="handleInbound(scope.row)" />
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>

@@ -108,17 +108,17 @@
       :row-key="getRowKey"
     >
       <el-table-column type="selection" width="39"></el-table-column>
-      <el-table-column prop="name" label="订单名称" />
+      <el-table-column prop="name" label="订单名称" show-overflow-tooltip />
       <el-table-column prop="type" label="订单类型" width="80" />
       <el-table-column prop="customer" label="客户" />
       <el-table-column prop="contact" label="客户联系人" />
       <el-table-column prop="leaderAccount" label="负责人" />
-      <el-table-column label="执行地">
+      <el-table-column label="执行地" show-overflow-tooltip>
         <template #default="scope">
           {{ [scope.row.province, scope.row.city, scope.row.district].filter(Boolean).join('-') }}
         </template>
       </el-table-column>
-      <el-table-column prop="address" label="送修地址" />
+      <el-table-column prop="address" label="送修地址" show-overflow-tooltip />
       <el-table-column prop="status" label="状态" width="81">
         <template #default="scope">
           <el-tag :type="getStatusType(scope.row.status)">
@@ -127,19 +127,40 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="136" />
-      <el-table-column label="操作" width="253" fixed="right">
+      <el-table-column label="操作" width="205" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="viewOrder(scope.row)">查看</el-button>
-          <el-button type="success" size="small" :disabled="scope.row.status == SUBMITTED_STATUS" @click="openAssociateDialog(scope.row)">关联</el-button>
-          <el-button
-            type="primary"
-            size="small"
-            :loading="submitLoadingId === scope.row.id"
+          <el-tooltip content="查看/编辑" placement="top">
+            <el-button type="primary" size="small" icon="Edit" @click="viewOrder(scope.row)" />
+          </el-tooltip>
+          <el-tooltip content="关联项目" placement="top">
+            <el-button
+              type="success"
+              size="small"
+            icon="Link"
             :disabled="scope.row.status == SUBMITTED_STATUS"
+            @click="openAssociateDialog(scope.row)"
+          />
+          </el-tooltip>
+          <el-tooltip content="提交订单" placement="top">
+            <el-button
+              type="primary"
+              size="small"
+              icon="Upload"
+              :loading="submitLoadingId === scope.row.id"
+              :disabled="scope.row.status == SUBMITTED_STATUS"
             @click="handleSubmitBtn(scope.row)"
-            >提交</el-button
-          >
-          <el-button type="danger" size="small" :loading="deleteLoadingId === scope.row.id" :disabled="scope.row.status == SUBMITTED_STATUS" @click="handleDeleteBtn(scope.row)">删除</el-button>
+          />
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+            <el-button
+              type="danger"
+              size="small"
+              icon="Delete"
+              :loading="deleteLoadingId === scope.row.id"
+              :disabled="scope.row.status == SUBMITTED_STATUS"
+              @click="handleDeleteBtn(scope.row)"
+            />
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -170,7 +191,12 @@
     />
 
     <!-- 订单关联项目弹窗 -->
-    <el-dialog v-model="associateDialogVisible" title="关联项目" width="480px" @open="resetAssociateForm">
+    <el-dialog
+      v-model="associateDialogVisible"
+      title="关联项目"
+      width="480px"
+      @open="resetAssociateForm"
+    >
       <el-form label-width="80px">
         <el-form-item label="订单名称">
           <el-input :model-value="associateOrder?.name" disabled />
@@ -193,7 +219,12 @@
       </el-form>
       <template #footer>
         <el-button @click="associateDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="associating" :disabled="!associateProjectId" @click="confirmAssociate">
+        <el-button
+          type="primary"
+          :loading="associating"
+          :disabled="!associateProjectId"
+          @click="confirmAssociate"
+        >
           确定
         </el-button>
       </template>
@@ -270,34 +301,33 @@ const deleteLoadingId = ref<string | number | null>(null)
 const submitLoadingId = ref<string | number | null>(null)
 
 // 筛选 + 前端切片分页（统一 useTableQuery）
-const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } =
-  useTableQuery(
-    orderList,
-    (item: Order, form) => {
-      if (form.status && item.status !== form.status) return false
-      if (form.type && item.type !== form.type) return false
-      if (form.orderName && !item.name.includes(form.orderName)) return false
-      if (form.leaderAccount && item.leaderAccount !== form.leaderAccount) return false
-      if (form.customer && item.customer !== form.customer) return false
-      if (form.company && item.company !== form.company) return false
-      if (form.createTime) {
-        const filterDate = new Date(form.createTime)
-        const itemDate = new Date(item.createTime)
-        if (filterDate.toDateString() !== itemDate.toDateString()) return false
-      }
-      return true
-    },
-    {
-      status: '',
-      type: '',
-      orderName: '',
-      leaderAccount: '',
-      customer: '',
-      company: '',
-      createTime: null,
-    },
-    8,
-  )
+const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset } = useTableQuery(
+  orderList,
+  (item: Order, form) => {
+    if (form.status && item.status !== form.status) return false
+    if (form.type && item.type !== form.type) return false
+    if (form.orderName && !item.name.includes(form.orderName)) return false
+    if (form.leaderAccount && item.leaderAccount !== form.leaderAccount) return false
+    if (form.customer && item.customer !== form.customer) return false
+    if (form.company && item.company !== form.company) return false
+    if (form.createTime) {
+      const filterDate = new Date(form.createTime)
+      const itemDate = new Date(item.createTime)
+      if (filterDate.toDateString() !== itemDate.toDateString()) return false
+    }
+    return true
+  },
+  {
+    status: '',
+    type: '',
+    orderName: '',
+    leaderAccount: '',
+    customer: '',
+    company: '',
+    createTime: null,
+  },
+  8,
+)
 
 // 兼容原模板绑定名
 const filteredData = filteredList
@@ -410,7 +440,6 @@ const handleSubmitBtn = async (row: Order) => {
 }
 
 // 弹窗内提交订单成功后：回拉订单列表最新状态，并把 currentOrder 指向更新后的订单对象
-// （currentOrder 持有的是打开时的旧引用，fetchOrders 只刷新 orderList，需手动同步 status）
 const handleOrderSubmitted = async () => {
   await fetchOrders()
   if (currentOrder.value) {
