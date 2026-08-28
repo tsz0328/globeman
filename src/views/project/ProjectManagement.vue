@@ -4,13 +4,20 @@
       <el-button type="primary" @click="addProject">新建项目</el-button>
       <el-button>导入Excel</el-button>
       <el-button>导出Excel</el-button>
-      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0">批量删除</el-button>
+      <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
+        >批量删除</el-button
+      >
     </template>
 
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="项目类型">
-          <el-select filterable v-model="filterForm.projectType" placeholder="全部类型" style="width: 150px">
+          <el-select
+            filterable
+            v-model="filterForm.projectType"
+            placeholder="全部类型"
+            style="width: 150px"
+          >
             <el-option label="全部类型" value="" />
             <el-option label="维修项目" value="维修" />
             <el-option label="销售项目" value="销售" />
@@ -18,27 +25,55 @@
           </el-select>
         </el-form-item>
         <el-form-item label="客户">
-          <el-select filterable v-model="filterForm.customer" placeholder="全部客户" style="width: 150px">
+          <el-select
+            filterable
+            v-model="filterForm.customer"
+            placeholder="全部客户"
+            style="width: 150px"
+          >
             <el-option label="全部客户" value="" />
-            <el-option v-for="customer in orderCustomers" :key="customer.name" :label="customer.name"
-              :value="customer.name" />
+            <el-option
+              v-for="customer in orderCustomers"
+              :key="customer.name"
+              :label="customer.name"
+              :value="customer.name"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="客户联系人">
-          <el-select filterable v-model="filterForm.contactPerson" placeholder="全部联系人" style="width: 150px">
+          <el-select
+            filterable
+            v-model="filterForm.contactPerson"
+            placeholder="全部联系人"
+            style="width: 150px"
+          >
             <el-option label="全部联系人" value="" />
-            <el-option v-for="customer in orderCustomers" :key="customer.contact" :label="customer.contact"
-              :value="customer.contact" />
+            <el-option
+              v-for="customer in orderCustomers"
+              :key="customer.contact"
+              :label="customer.contact"
+              :value="customer.contact"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="项目负责人">
-          <el-select filterable v-model="filterForm.projectManager" placeholder="全部负责人" style="width: 150px">
+          <el-select
+            filterable
+            v-model="filterForm.projectManager"
+            placeholder="全部负责人"
+            style="width: 150px"
+          >
             <el-option label="全部负责人" value="" />
             <el-option v-for="m in managers" :key="m.account" :label="m.name" :value="m.name" />
           </el-select>
         </el-form-item>
         <el-form-item label="创建时间">
-          <el-date-picker v-model="filterForm.createTime" type="date" placeholder="选择日期" style="width: 150px" />
+          <el-date-picker
+            v-model="filterForm.createTime"
+            type="date"
+            placeholder="选择日期"
+            style="width: 150px"
+          />
         </el-form-item>
         <el-form-item>
           <el-button @click="handleReset">重置</el-button>
@@ -46,8 +81,14 @@
       </el-form>
     </template>
 
-    <el-table :data="paginatedData" border style="width: 100%" @selection-change="handleSelectionChange"
-      @row-dblclick="handleRowDblclick" :row-key="getRowKey">
+    <el-table
+      :data="paginatedData"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+      @row-dblclick="handleRowDblclick"
+      :row-key="getRowKey"
+    >
       <el-table-column type="selection" width="50" />
       <el-table-column prop="projectName" label="项目名称" show-overflow-tooltip />
       <el-table-column prop="customer" label="客户" width="120" />
@@ -66,23 +107,37 @@
       <el-table-column label="操作" width="109" fixed="right">
         <template #default="scope">
           <el-tooltip content="查看" placement="top">
-          <el-button type="primary" size="small" icon="View" @click="viewProject(scope.row)" />
+            <el-button type="primary" size="small" icon="View" @click="viewProject(scope.row)" />
           </el-tooltip>
           <el-tooltip content="删除" placement="top">
-          <el-button type="danger" size="small" icon="Delete" :loading="deleteLoadingId === scope.row.id" @click="handleDeleteBtn(scope.row)" />
+            <el-button
+              type="danger"
+              size="small"
+              icon="Delete"
+              :loading="deleteLoadingId === scope.row.id"
+              @click="handleDeleteBtn(scope.row)"
+            />
           </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
 
     <div class="pagination-section">
-      <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
-        layout="total, prev, pager, next, jumper" :total="filteredData.length" />
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="filteredData.length"
+      />
     </div>
 
     <!-- 新建项目弹窗 -->
-    <AddProjectForm v-model:visible="projectFormVisible" @submit="handleProjectSubmit" :user-list="managers"
-      :customer-list="orderCustomers" />
+    <AddProjectForm
+      v-model:visible="projectFormVisible"
+      @submit="handleProjectSubmit"
+      :user-list="managers"
+      :customer-list="orderCustomers"
+    />
   </WorkPage>
 </template>
 
@@ -94,7 +149,12 @@ import type { ProjectFormData } from '@/views/project/components/AddProjectForm.
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { useTableQuery } from '@/composables/common/useTableQuery'
-import { getOrderManagersApi, getOrderCustomersApi, type OrderManager, type OrderCustomer } from '@/api/order/OrderApi'
+import {
+  getOrderManagersApi,
+  getOrderCustomersApi,
+  type OrderManager,
+  type OrderCustomer,
+} from '@/api/order/OrderApi'
 
 const { projectList, fetchProjects, createProject, deleteProject, batchDeleteProjects } =
   useProject()
@@ -134,7 +194,7 @@ const loadData = async () => {
     // 先拉项目列表 /client/project/getProject
     await fetchProjects()
     await fetchOrderCustomers() // /client/order/getInfoCustomer
-    await fetchOrderManagers()  // /client/order/getInfoManager
+    await fetchOrderManagers() // /client/order/getInfoManager
   } finally {
     loading.value = false
   }
@@ -265,7 +325,14 @@ const { filterForm, currentPage, pageSize, filteredList, pagedList, handleReset 
     }
     return true
   },
-  { projectType: '', status: '', customer: '', contactPerson: '', projectManager: '', createTime: null },
+  {
+    projectType: '',
+    status: '',
+    customer: '',
+    contactPerson: '',
+    projectManager: '',
+    createTime: null,
+  },
   8,
 )
 
