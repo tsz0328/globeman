@@ -85,8 +85,8 @@
           <el-tooltip content="查看/修改" placement="top">
           <el-button type="primary" size="small" icon="Edit" @click="viewRepair(scope.row)" />
           </el-tooltip>
-          <el-tooltip content="删除" placement="top">
-          <el-button type="success" size="small" icon="Delete" @click="handleInbound(scope.row)" />
+          <el-tooltip content="添加SN码" placement="top">
+          <el-button type="success" size="small" icon="CirclePlus" @click="handleInbound(scope.row)" />
           </el-tooltip>
         </template>
       </el-table-column>

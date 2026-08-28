@@ -17,6 +17,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'https://www.globeman.cn',
+        //target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
