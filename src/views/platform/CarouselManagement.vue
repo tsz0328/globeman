@@ -133,7 +133,7 @@ const loading = ref(false)
 const errorMsg = ref('')
 const keyword = ref('')
 const currentPage = ref(1)
-const pageSize = 10
+const pageSize = 6
 
 const fetchList = async () => {
   loading.value = true
