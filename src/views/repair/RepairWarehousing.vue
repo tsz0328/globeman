@@ -2,7 +2,23 @@
   <WorkPage :loading="loading">
     <template #actions>
       <el-button>导入Excel</el-button>
-      <el-button>导出Excel</el-button>
+      <!-- 导出范围与表格勾选一致：未勾选时置灰禁用 -->
+      <el-dropdown
+        trigger="click"
+        :disabled="selectedRows.length === 0"
+        @command="handleExportCommand"
+      >
+        <el-button :loading="exportLoading" :disabled="selectedRows.length === 0">
+          导出Excel<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="single">整合为单个文件</el-dropdown-item>
+            <el-dropdown-item command="separate">多个文件（逐个下载）</el-dropdown-item>
+            <el-dropdown-item command="zip">多个文件（打包 zip）</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </template>
 
     <!-- 筛选条件 -->
@@ -74,7 +90,8 @@
       @row-dblclick="handleRowDblclick"
       :row-key="getRowKey"
     >
-      <el-table-column type="selection" width="50" />
+      <!-- reserve-selection：配合 row-key 跨页保留勾选，否则翻页会清空已选订单导致导出不全 -->
+      <el-table-column type="selection" width="50" :reserve-selection="true" />
       <el-table-column prop="name" label="订单名称" />
       <el-table-column prop="customer" label="客户" />
       <el-table-column prop="contact" label="客户联系人" width="120" />
@@ -83,10 +100,15 @@
       <el-table-column label="操作" width="109" fixed="right">
         <template #default="scope">
           <el-tooltip content="查看/修改" placement="top">
-          <el-button type="primary" size="small" icon="Edit" @click="viewRepair(scope.row)" />
+            <el-button type="primary" size="small" icon="Edit" @click="viewRepair(scope.row)" />
           </el-tooltip>
           <el-tooltip content="添加SN码" placement="top">
-          <el-button type="success" size="small" icon="CirclePlus" @click="handleInbound(scope.row)" />
+            <el-button
+              type="success"
+              size="small"
+              icon="CirclePlus"
+              @click="handleInbound(scope.row)"
+            />
           </el-tooltip>
         </template>
       </el-table-column>
@@ -101,13 +123,13 @@
       />
     </div>
 
-    <RepairOrderViewDialog
+    <RepairOrderDetailDialog
       v-model="dialogVisible"
       :order="selectedOrder"
       :details="selectedOrderDetails"
       @details-changed="handleDetailsChanged"
     />
-    <RepairInboundDialog
+    <RepairWarehouseInOrderDeviceDialog
       v-model="inboundDialogVisible"
       :order-name="inboundOrderName"
       :order-id="inboundOrderId"
@@ -130,11 +152,18 @@ import {
   type RepairOrderData,
   type RepairOrderDetail,
 } from '@/api/repair/RepairApi'
-import RepairOrderViewDialog from '@/views/repair/components/RepairOrderViewDialog.vue'
-import RepairInboundDialog from '@/views/repair/components/RepairInboundDialog.vue'
+import RepairOrderDetailDialog from '@/views/repair/components/RepairOrderDetailDialog.vue'
+import RepairWarehouseInOrderDeviceDialog from '@/views/repair/components/RepairWarehouseInOrderDeviceDialog.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import type { Order } from '@/composables/order/useOrder'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { ArrowDown } from '@element-plus/icons-vue'
+import { notify } from '@/utils/message'
+import {
+  exportRepairOrdersToExcel,
+  exportRepairOrdersToSeparateFiles,
+  exportRepairOrdersToZip,
+} from '@/views/repair/utils/repairExcel'
 
 const orderCustomers = ref<OrderCustomer[]>([])
 const fetchOrderCustomers = async () => {
@@ -265,6 +294,46 @@ const getRowKey = (row: RepairOrderData) => row.id
 
 const handleSelectionChange = (val: RepairOrderData[]) => {
   selectedRows.value = val
+}
+
+// === 导出 Excel：订单头 + 设备明细（含 SN 码）===
+// 导出范围 = 表格勾选的订单（selection 列开了 reserve-selection，跨页勾选会累积）。
+// 未勾选任何订单时按钮已置灰，这里再兜一层防御。
+const exportLoading = ref(false)
+
+type ExportMode = 'single' | 'separate' | 'zip'
+
+// el-dropdown 的 command 回调签名是 (command: string | number | object) => void，
+// 这里按宽类型接收后再收窄，避免与组件声明的 handler 类型冲突
+const handleExportCommand = async (command: string | number | object) => {
+  const mode = command as ExportMode
+  const rows = selectedRows.value
+  if (rows.length === 0) return
+
+  exportLoading.value = true
+  try {
+    const now = new Date()
+    const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+
+    if (mode === 'single') {
+      const count = await exportRepairOrdersToExcel(rows, `维修订单_${stamp}`)
+      notify({ type: 'success', message: `已导出 ${count} 个订单到单个文件` })
+    } else if (mode === 'separate') {
+      const count = await exportRepairOrdersToSeparateFiles(rows)
+      notify({
+        type: 'success',
+        message: `已导出 ${count} 个订单，共 ${count} 个文件；若浏览器拦截连续下载，请改用打包 zip`,
+      })
+    } else {
+      const count = await exportRepairOrdersToZip(rows, `维修订单_${stamp}`)
+      notify({ type: 'success', message: `已导出 ${count} 个订单，打包为 zip` })
+    }
+  } catch (error) {
+    console.error('导出维修订单失败:', error)
+    notify({ type: 'error', message: '导出失败，请重试' })
+  } finally {
+    exportLoading.value = false
+  }
 }
 
 // 筛选 + 前端切片分页（统一 useTableQuery）

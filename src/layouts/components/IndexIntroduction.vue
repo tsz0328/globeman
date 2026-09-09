@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import logoPng from '@/assets/logo.png'
 import contentBg from '@/assets/contentBg.png'
-import { intro } from '@/api/platform/Announcement'
+import { intro } from '@/api/platform/AnnouncementApi'
 
 // 公司介绍：默认 logo，标题/正文取 store（可在「公告管理 - 公司介绍」维护）
 const introTitle = computed(() => intro.value.title || '湖南全球人信息技术有限公司')

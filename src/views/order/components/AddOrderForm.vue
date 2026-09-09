@@ -24,7 +24,8 @@
           </div>
           <div class="info-item">
             <span class="label">订单类型（必填）：</span>
-            <el-select filterable
+            <el-select
+              filterable
               v-model="form.type"
               class="info-input"
               placeholder="请选择订单类型"
@@ -32,9 +33,12 @@
               @keydown.up.prevent="handleKeydown($event)"
               @keydown.down.prevent="handleKeydown($event)"
             >
-              <el-option label="销售订单" value="销售订单" />
-              <el-option label="采购订单" value="采购订单" />
-              <el-option label="维修订单" value="维修订单" />
+              <el-option
+                v-for="t in ORDER_TYPES"
+                :key="t.value"
+                :label="t.label"
+                :value="t.value"
+              />
             </el-select>
           </div>
         </div>
@@ -42,7 +46,8 @@
         <div class="info-row">
           <div class="info-item">
             <span class="label">负责人（必填）：</span>
-            <el-select filterable
+            <el-select
+              filterable
               v-model="leaderName"
               class="info-input"
               placeholder="请选择负责人"
@@ -135,7 +140,7 @@
     </el-form>
 
     <!-- 设备表格（子组件：本地录入 + 键盘导航） -->
-    <OrderAddDeviceEditor ref="detailEditorRef" v-model:rows="detailRows" />
+    <AddOrderDeviceTable ref="detailEditorRef" v-model:rows="detailRows" />
 
     <!-- 弹窗底部 -->
     <template #footer>
@@ -151,7 +156,8 @@ import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
 import type { OrderManager, OrderCustomer } from '@/api/order/OrderApi'
-import OrderAddDeviceEditor, { type DetailTableRow, createBlankRow } from './OrderAddDeviceEditor.vue'
+import { ORDER_TYPES } from '@/constants/orderEnums'
+import AddOrderDeviceTable, { type DetailTableRow, createBlankRow } from './AddOrderDeviceTable.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -169,11 +175,15 @@ const emit = defineEmits<{
 const detailRows = ref<DetailTableRow[]>([createBlankRow()])
 
 // 子组件引用：弹窗打开动画结束（@opened，布局就绪）后触发「按表单高度预填空白行」
-const detailEditorRef = ref<InstanceType<typeof OrderAddDeviceEditor>>()
+const detailEditorRef = ref<InstanceType<typeof AddOrderDeviceTable>>()
 
 // 弹窗打开过渡完全结束、布局稳定后再预填：避免首开时过渡未结束导致测量高度偏差
 const onDialogOpened = () => {
-  nextTick(() => detailEditorRef.value?.prefillFirstPage())
+  nextTick(() => {
+    detailEditorRef.value?.prefillFirstPage()
+    // 挂载“容器尺寸 + window resize”双监听，窗口缩放时每页行数实时重算
+    detailEditorRef.value?.startAutoPageSize()
+  })
 }
 
 // 级联选择器每次打开重新挂载的 key：清除其内部“展开路径”缓存（与 v-model 解耦）
@@ -271,6 +281,52 @@ watch(
 const handleClose = () => {
   emit('update:visible', false)
 }
+
+// 外部预填：用于「导入设备清单」场景——先把文件里能识别的订单头与设备明细填进来，
+// 识别不到的（客户 / 联系人 / 地址 / 类型等）由用户手补。
+// 约定在弹窗打开前调用：打开时 watch(visible) 不会重置表单，@opened 的 prefillFirstPage
+// 也只会在已有行之后补足空白行，不会覆盖预填的设备明细。
+const prefill = (data: {
+  name?: string
+  type?: string
+  managerName?: string
+  customer?: string
+  contact?: string
+  contactPhone?: string
+  province?: string
+  city?: string
+  district?: string
+  address?: string
+  devices?: DetailTableRow[]
+}) => {
+  if (data.name) form.value.name = data.name
+  if (data.type) form.value.type = data.type
+
+  // 负责人下拉以姓名展示，需反查账号后写入 form.manager
+  if (data.managerName) {
+    leaderName.value = data.managerName
+    form.value.manager = props.userList.find((u) => u.name === data.managerName)?.account ?? ''
+  }
+  if (data.customer) {
+    customerName.value = data.customer
+    form.value.customer = data.customer
+  }
+  if (data.contact) {
+    contactName.value = data.contact
+    form.value.contact = data.contact
+  }
+  if (data.contactPhone) form.value.contactPhone = data.contactPhone
+
+  if (data.province || data.city || data.district) {
+    selectedRegion.value = [data.province, data.city, data.district].filter(Boolean) as string[]
+    cascaderMountKey.value++ // 强制级联重新挂载，刷新展开路径缓存
+  }
+  if (data.address) form.value.address = data.address
+
+  if (data.devices && data.devices.length > 0) detailRows.value = [...data.devices]
+}
+
+defineExpose({ prefill })
 
 const focusNextField = (currentInput: HTMLInputElement, direction: 'next' | 'prev') => {
   const formElement = currentInput.closest('.el-form')
@@ -495,12 +551,7 @@ const handleSubmit = () => {
 }
 </script>
 <script lang="ts">
-import type {
-  CreateOrderDetailInput,
-  OrderFormData,
-  OrderSubmitPayload,
-} from '@/api/order/types'
-
+import type { CreateOrderDetailInput, OrderFormData, OrderSubmitPayload } from '@/api/order/types'
 </script>
 
 <style scoped>

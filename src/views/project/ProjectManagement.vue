@@ -19,9 +19,7 @@
             style="width: 150px"
           >
             <el-option label="全部类型" value="" />
-            <el-option label="维修项目" value="维修" />
-            <el-option label="销售项目" value="销售" />
-            <el-option label="采购项目" value="采购" />
+            <el-option v-for="t in PROJECT_TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="客户">
@@ -149,6 +147,7 @@ import type { ProjectFormData } from '@/views/project/components/AddProjectForm.
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject, type Project } from '@/composables/project/useProject'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { PROJECT_TYPES } from '@/constants/orderEnums'
 import {
   getOrderManagersApi,
   getOrderCustomersApi,

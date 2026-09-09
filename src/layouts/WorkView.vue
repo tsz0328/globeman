@@ -175,6 +175,7 @@ function handleProfile() {
 .avatar {
   width: 48px;
   height: 48px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -188,6 +189,7 @@ function handleProfile() {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
 .work-content {

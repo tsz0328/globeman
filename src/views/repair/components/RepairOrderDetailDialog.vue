@@ -60,21 +60,10 @@
             ><span class="value">{{ order.createTime || '' }}</span>
           </div>
         </div>
-        <!-- 打印专用行：合同编号 / 付款条件（屏幕上隐藏，打印时显示） -->
-        <div class="info-row print-only">
-          <div class="info-item full">
-            <span class="label">合同编号：</span><span class="value"></span>
-          </div>
-        </div>
-        <div class="info-row print-only">
-          <div class="info-item full">
-            <span class="label">付款条件（盖章后有效）：</span><span class="value"></span>
-          </div>
-        </div>
       </div>
 
       <!-- 设备表格（维修专用：SN 展示 + 可删除 + 分页） -->
-      <RepairDeviceTable
+      <RepairOrderDeviceTable
         ref="deviceTableRef"
         :model-value="modelValue"
         :order="order"
@@ -97,9 +86,15 @@ import { ref, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { type Order } from '@/composables/order/useOrder'
 import type { RepairOrderDetail } from '@/api/repair/RepairApi'
-import RepairDeviceTable from './RepairDeviceTable.vue'
+import RepairOrderDeviceTable from './RepairOrderDeviceTable.vue'
+// 打印模板：结构 + 内嵌排版样式都在同一个文件里维护，渲染成完整文档后写入 iframe
+import {
+  renderRepairOrderPrintDocument,
+  type PrintableRepairOrder,
+  type PrintableRepairDetail,
+} from '@/views/repair/utils/RepairOrderPrintTemplate.ts'
 
-defineProps<{
+const props = defineProps<{
   modelValue: boolean
   order: Order | null
   // 维修单明细：已随列表接口内联返回，传入后弹窗直接用
@@ -112,17 +107,47 @@ const emit = defineEmits<{
 }>()
 
 // 设备表格引用：弹窗 @opened（布局就绪）时触发其映射明细 + 测量每页行数
-const deviceTableRef = ref<InstanceType<typeof RepairDeviceTable>>()
+const deviceTableRef = ref<InstanceType<typeof RepairOrderDeviceTable>>()
 
 // 弹窗打开动画结束、布局就绪后再加载，避免首开过渡未结束导致测量行数偏小
 const onDialogOpened = () => {
   nextTick(() => deviceTableRef.value?.reload())
 }
 
-// 打印订单：用隐藏 iframe 承载打印内容，避免操作 document.body.innerHTML 导致页面状态丢失
+// 打印维修单：用隐藏 iframe 承载打印内容。内容使用独立模板按当前数据生成，
+// 不复用弹窗 DOM（el-table / scoped 样式 / fixed 列在 iframe 里有一连串兼容问题）。
+// 明细按 SN 展开为多行（每条 SN 一行，空 SN 不展示），与屏幕表格口径一致。
 const printOrder = () => {
-  const printContent = document.querySelector('.repair-detail-form') as HTMLElement | null
-  if (!printContent) return
+  if (!props.order) return
+  const printableDetails: PrintableRepairDetail[] = []
+  for (const d of props.details) {
+    const snList = (d.SN || []).map((s) => (s || '').trim()).filter((s) => s)
+    for (const sn of snList) {
+      printableDetails.push({
+        name: d.name,
+        model: d.model,
+        type: d.type || '',
+        brand: d.brand || '',
+        spec: d.spec || '',
+        sn,
+      })
+    }
+  }
+  const printableOrder: PrintableRepairOrder = {
+    id: props.order.id,
+    name: props.order.name || '',
+    type: props.order.type || '',
+    manager: props.order.leaderAccount || '',
+    customer: props.order.customer || '',
+    contact: props.order.contact || '',
+    contactPhone: props.order.contactPhone || '',
+    province: props.order.province || '',
+    city: props.order.city || '',
+    district: props.order.district || '',
+    address: props.order.address || '',
+    createTime: props.order.createTime,
+    details: printableDetails,
+  }
   const iframe = document.createElement('iframe')
   iframe.style.position = 'fixed'
   iframe.style.right = '0'
@@ -134,60 +159,15 @@ const printOrder = () => {
   const doc = iframe.contentWindow?.document
   if (!doc) return
   doc.open()
-
-  /* 底部盖章栏 HTML：作为 .repair-detail-form 的最后一个子元素插入，
-     这样它和表格共享同一个容器，左右边框自然对齐 */
-  const footerHtml =
-    '<div class="print-footer">' +
-    '<div class="print-footer-row">' +
-    '<div class="print-footer-item"><div><span class="label">采购单位（甲方盖章）：</span></div>' +
-    '<div><span class="label">代表人（签名）：</span></div><div><span class="label">日期：</span></div></div>' +
-    '<div class="print-footer-item"><div><span class="label">供应单位（甲方盖章）：</span></div>' +
-    '<div><span class="label">代表人（签名）：</span></div><div><span class="label">日期：</span></div></div>' +
-    '</div></div>'
-
-  // 把 footer 插进 .repair-detail-form 内部（最后一个闭合 </div> 之前），
-  // 避免 append 在 body 末尾导致 footer 与表单容器宽度不一致
-  const contentHtml = printContent.outerHTML
-  const lastClose = contentHtml.lastIndexOf('</div>')
-  const mergedHtml =
-    lastClose >= 0
-      ? contentHtml.slice(0, lastClose) + footerHtml + contentHtml.slice(lastClose)
-      : contentHtml + footerHtml
-
-  doc.write(
-    '<!DOCTYPE html><html><head><title>打印维修订单</title>' +
-      '<style>' +
-      'body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;}' +
-      /* element-plus 样式文件在此环境不存在，这里内联补齐表格的基础样式。
-         打印走 iframe，组件 scoped / @media print 均不生效，故需在此统一处理 */
-      '.repair-detail-form{box-sizing:border-box;}' +
-      '.el-table,.el-table table{width:100%;border-collapse:collapse;}' +
-      '.el-table__cell{border:1px solid #dcdfe6;padding:8px;text-align:center;}' +
-      '.repair-detail-form .el-table__fixed-right{display:none !important;}' +
-      '.no-print{display:none !important;}' +
-      '.print-footer{border:1px solid #dcdfe6;border-top:none;}' +
-      '.print-footer-row{display:flex;}' +
-      '.print-footer-item{flex:1;padding:12px;border-right:1px solid #dcdfe6;}' +
-      '.print-footer-item:last-child{border-right:none;}' +
-      '.print-footer-item div{margin-bottom:12px;min-height:20px;}' +
-      '.print-footer-item div:last-child{margin-bottom:0;}' +
-      '.print-footer-item .label{font-weight:500;}' +
-      '</style>' +
-      '</head><body>' +
-      mergedHtml +
-      '</body></html>',
-  )
+  doc.write(renderRepairOrderPrintDocument(printableOrder))
   doc.close()
-  // 等待样式与图片加载后再打印
   iframe.contentWindow?.focus()
   setTimeout(() => {
     iframe.contentWindow?.print()
-    // 打印（或取消）后移除 iframe，不刷新页面
     setTimeout(() => {
       if (iframe.parentNode) iframe.parentNode.removeChild(iframe)
     }, 300)
-  }, 250)
+  }, 150)
 }
 
 // 入库：接口待定，先放置占位处理（点击不报错，便于后续对接真实接口）。

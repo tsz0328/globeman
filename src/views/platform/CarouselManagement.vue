@@ -118,7 +118,7 @@ import {
   getClientBannerListApi,
   updateBannerStatusApi,
   type ClientBannerItem,
-} from '@/api/platform/Carousel'
+} from '@/api/platform/CarouselApi'
 import { checkImageSize } from '@/utils/imageUpload'
 
 // 与项目约定一致：后端图片为相对路径时拼 /api 前缀，完整 http(s) 地址则原样使用

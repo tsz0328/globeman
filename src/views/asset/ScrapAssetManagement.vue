@@ -8,7 +8,12 @@
     <template #filter>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="名称">
-          <el-input v-model="filterForm.name" placeholder="资产名称" clearable style="width: 150px" />
+          <el-input
+            v-model="filterForm.name"
+            placeholder="资产名称"
+            clearable
+            style="width: 150px"
+          />
         </el-form-item>
         <el-form-item label="型号">
           <el-input v-model="filterForm.model" placeholder="型号" clearable style="width: 150px" />
@@ -17,9 +22,20 @@
           <el-input v-model="filterForm.sn" placeholder="SN码" clearable style="width: 150px" />
         </el-form-item>
         <el-form-item label="使用人">
-          <el-select filterable v-model="filterForm.account" placeholder="全部使用人" clearable style="width: 150px">
+          <el-select
+            filterable
+            v-model="filterForm.account"
+            placeholder="全部使用人"
+            clearable
+            style="width: 150px"
+          >
             <el-option label="全部使用人" value="" />
-            <el-option v-for="m in managerOptions" :key="m.account" :label="m.name" :value="m.account" />
+            <el-option
+              v-for="m in managerOptions"
+              :key="m.account"
+              :label="m.name"
+              :value="m.account"
+            />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -32,66 +48,74 @@
 
     <!-- 表格 -->
     <!-- 统计信息行：资产总数 + 资产总价值 -->
-      <div class="summary-row">
-        <span class="summary-item">资产总数：<b>{{ totalCount }}</b> 条</span>
-        <span class="summary-item">资产总价值：<b>{{ formatPrice(totalAmount) }}</b></span>
-      </div>
-      <el-table :data="pagedList" style="width: 100%" :row-key="getRowKey" border>
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="name" label="名称" min-width="120" />
-        <el-table-column prop="model" label="型号" min-width="120" />
-        <el-table-column prop="type" label="类型" min-width="100" />
-        <el-table-column prop="price" label="价格" min-width="110">
-          <template #default="scope">
-            {{ formatPrice(scope.row.price) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="sn" label="SN码" min-width="140" />
-        <el-table-column prop="location" label="放置位置" min-width="130" />
-        <el-table-column prop="register" label="登记人" min-width="100" />
-        <el-table-column prop="reason" label="报废原因" min-width="120" show-overflow-tooltip>
-          <template #default="scope">
-            {{ scope.row.reason || '-' }}
-          </template>
-        </el-table-column>
-                <el-table-column label="创建时间" width="136">
-          <template #default="scope">
-            {{ formatTime(scope.row.time) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="报废时间" min-width="136">
-          <template #default="scope">
-            {{ formatTime(scope.row.scrapTime) }}
-          </template>
-        </el-table-column>
-                <el-table-column prop="status" label="状态" min-width="90" align="center">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === '报废' ? 'danger' : 'success'" disable-transitions>
-              {{ scope.row.status || '正常' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="213" fixed="right">
-          <template #default="scope">
-            <el-button size="small" type="success" @click="handleEnable(scope.row)">启用</el-button>
-            <el-button size="small" type="primary" @click="handleEdit(scope.row)">修改</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="summary-row">
+      <span class="summary-item"
+        >资产总数：<b>{{ totalCount }}</b> 条</span
+      >
+      <span class="summary-item"
+        >资产总价值：<b>{{ formatPrice(totalAmount) }}</b></span
+      >
+    </div>
+    <el-table :data="pagedList" style="width: 100%" :row-key="getRowKey" border>
+      <el-table-column type="index" label="序号" width="60" align="center" />
+      <el-table-column prop="name" label="名称" min-width="120" />
+      <el-table-column prop="model" label="型号" min-width="120" />
+      <el-table-column prop="type" label="类型" min-width="100" />
+      <el-table-column prop="price" label="价格" min-width="110">
+        <template #default="scope">
+          {{ formatPrice(scope.row.price) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="sn" label="SN码" min-width="140" />
+      <el-table-column prop="location" label="放置位置" min-width="130" />
+      <el-table-column prop="register" label="登记人" min-width="100" />
+      <el-table-column prop="reason" label="报废原因" min-width="120" show-overflow-tooltip>
+        <template #default="scope">
+          {{ scope.row.reason || '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" width="136">
+        <template #default="scope">
+          {{ formatTime(scope.row.time) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="报废时间" min-width="136">
+        <template #default="scope">
+          {{ formatTime(scope.row.scrapTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="status" label="状态" min-width="90" align="center">
+        <template #default="scope">
+          <el-tag :type="scope.row.status === '报废' ? 'danger' : 'success'" disable-transitions>
+            {{ scope.row.status || '正常' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="213" fixed="right">
+        <template #default="scope">
+          <el-button size="small" type="success" @click="handleEnable(scope.row)">启用</el-button>
+          <el-button size="small" type="primary" @click="handleEdit(scope.row)">修改</el-button>
+          <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <!-- 分页 -->
-      <div class="pagination-section">
-        <el-pagination v-model:current-page="currentPage" :page-size="pageSize"
-          layout="total, prev, pager, next, jumper" :total="totalCount" />
-      </div>
+    <!-- 分页 -->
+    <div class="pagination-section">
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="totalCount"
+      />
+    </div>
   </WorkPage>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import AddAssetForm from '@/views/asset/AddAssetForm.vue'
+import AddAssetForm from '@/views/asset/components/AddAssetForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import {
   getAssetListApi,
@@ -115,7 +139,15 @@ const fetchManagerOptions = async () => {
 }
 
 // 筛选 + 前端切片分页（统一 useTableQuery）：本视图仅展示「报废」资产
-const { filterForm, currentPage, pageSize, filteredList, pagedList, total: totalCount, handleReset } = useTableQuery(
+const {
+  filterForm,
+  currentPage,
+  pageSize,
+  filteredList,
+  pagedList,
+  total: totalCount,
+  handleReset,
+} = useTableQuery(
   assetList,
   (item: AssetItem, form) => {
     const kw = (s: string) => (s ?? '').trim().toLowerCase()
@@ -126,9 +158,18 @@ const { filterForm, currentPage, pageSize, filteredList, pagedList, total: total
     return (
       // 本视图仅展示「报废」资产
       (item.status ?? '正常') === '报废' &&
-      (!name || String(item.name ?? '').toLowerCase().includes(name)) &&
-      (!model || String(item.model ?? '').toLowerCase().includes(model)) &&
-      (!sn || String(item.sn ?? '').toLowerCase().includes(sn)) &&
+      (!name ||
+        String(item.name ?? '')
+          .toLowerCase()
+          .includes(name)) &&
+      (!model ||
+        String(item.model ?? '')
+          .toLowerCase()
+          .includes(model)) &&
+      (!sn ||
+        String(item.sn ?? '')
+          .toLowerCase()
+          .includes(sn)) &&
       (!account || String(item.account ?? '').toLowerCase() === account)
     )
   },
@@ -149,15 +190,14 @@ const totalAmount = computed(() =>
   filteredList.value.reduce((sum, item) => sum + Number(item.price ?? 0), 0),
 )
 
-
 // 删除（二次确认）
 const handleDelete = async (row: AssetItem) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除资产「${row.name}」（SN: ${row.sn}）吗？`,
-      '删除确认',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' },
-    )
+    await ElMessageBox.confirm(`确定要删除资产「${row.name}」（SN: ${row.sn}）吗？`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
     const res = await deleteAssetsApi(String(row.id ?? ''))
     if (res.code === 200) {
       ElMessage.success('删除成功')

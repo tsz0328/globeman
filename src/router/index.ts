@@ -32,7 +32,7 @@ const RepairWarehousing = () => import('@/views/repair/RepairWarehousing.vue')
 const RepairList = () => import('@/views/repair/RepairList.vue')
 const RepairWarehouseOut = () => import('@/views/repair/RepairWarehouseOut.vue')
 const RepairAccept = () => import('@/views/repair/RepairAccept.vue')
-const RepairDeviceDetail = () => import('@/views/repair/RepairDeviceDetail.vue')
+const RepairAcceptDeviceDetail = () => import('@/views/repair/RepairAcceptDeviceDetail.vue')
 
 const OutboundManagementComponent = () => import('@/views/inventory/OutboundManagement.vue')
 const InboundManagementComponent = () => import('@/views/inventory/InboundManagement.vue')
@@ -180,8 +180,8 @@ const router = createRouter({
     },
     {
       path: '/repair-device-detail/:id',
-      name: 'RepairDeviceDetail',
-      component: RepairDeviceDetail,
+      name: 'RepairAcceptDeviceDetail',
+      component: RepairAcceptDeviceDetail,
     },
     {
       path: '/user-detail/:id',

@@ -5,6 +5,7 @@ import {
   deleteProjectApi,
 } from '@/api/project/ProjectApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
+import { toRecords, pickString } from '@/utils/recordMapper'
 import { generateTypedId } from '@/utils/idGenerator'
 
 // === 导出类型 ===
@@ -36,20 +37,7 @@ const projectList = ref<Project[]>([])
 const loading = ref(false)
 
 // === 模块级辅助（记录 → 前端 Project 映射，兼容多种字段命名）===
-// 从记录中按候选 key 顺序读取字符串（兼容字符串/数字）
-const getString = (record: Record<string, unknown>, keys: string[]): string => {
-  for (const key of keys) {
-    const value = record[key]
-    if (typeof value === 'string') {
-      return value
-    }
-    if (typeof value === 'number') {
-      return String(value)
-    }
-  }
-  return ''
-}
-
+// 取值用共享的 pickString(record, keys)：按候选 key 顺序取第一个字符串/数字。
 // 将后端记录（/project/get 列表项或 /project/create 返回值）映射为前端 Project
 // 字段名兼容多种命名：name/projectName、type/projectType、leader/leader_account、
 // company/cooperativeUnit、contact、creator/creator_account、customer、time/createTime、status/state
@@ -61,15 +49,15 @@ const mapRecordToProject = (record: Record<string, unknown>, _index: number): Pr
         : typeof record.id === 'number'
           ? String(record.id)
           : '',
-    projectName: getString(record, ['name', 'projectName']),
-    projectType: getString(record, ['type', 'projectType']),
-    projectManager: getString(record, ['leader', 'leader_account', 'manager', 'projectManager']),
-    createTime: formatDateTime(getString(record, ['time', 'createTime'])),
-    cooperativeUnit: getString(record, ['company', 'cooperativeUnit']),
-    contactPerson: getString(record, ['contact', 'contactPerson', 'contactName', 'Contact']),
-    status: getString(record, ['state', 'status']) || '编辑中',
-    creator: getString(record, ['creator_account', 'account', 'creator', 'creatorName']),
-    customer: getString(record, ['customer', 'customerName']),
+    projectName: pickString(record, ['name', 'projectName']),
+    projectType: pickString(record, ['type', 'projectType']),
+    projectManager: pickString(record, ['leader', 'leader_account', 'manager', 'projectManager']),
+    createTime: formatDateTime(pickString(record, ['time', 'createTime'])),
+    cooperativeUnit: pickString(record, ['company', 'cooperativeUnit']),
+    contactPerson: pickString(record, ['contact', 'contactPerson', 'contactName', 'Contact']),
+    status: pickString(record, ['state', 'status']) || '编辑中',
+    creator: pickString(record, ['creator_account', 'account', 'creator', 'creatorName']),
+    customer: pickString(record, ['customer', 'customerName']),
   }
 }
 
@@ -81,39 +69,9 @@ export function useProject() {
     try {
       const res = await getProjectsApi()
       if (res.code === 200) {
-        const isProjectRecord = (value: unknown): value is Record<string, unknown> => {
-          return typeof value === 'object' && value !== null && 'id' in value && 'name' in value
-        }
-
-        // 归一化数据，处理嵌套对象和数组
-        // 支持直接返回数组、对象、单个对象或 null
-        const normalizeRecords = (data: unknown): Record<string, unknown>[] => {
-          if (Array.isArray(data)) {
-            return data as Record<string, unknown>[]
-          }
-          if (!data || typeof data !== 'object') {
-            return []
-          }
-          const record = data as Record<string, unknown>
-          const objectValues = Object.values(record).filter(isProjectRecord)
-          if (objectValues.length > 0) {
-            return objectValues
-          }
-          if (isProjectRecord(record)) {
-            return [record]
-          }
-          return []
-        }
-
-        // 归一化项目记录数组
-        const projectArray = normalizeRecords(res.data)
-
-        // 映射项目记录为 Project 类型（复用共享映射，兼容多种字段命名）
-        // 支持嵌套对象和数组
+        // 归一化后端返回为记录数组，再逐条映射为前端 Project（兼容嵌套/数组/单对象）
         projectList.value = sortByCreateTimeDesc(
-          projectArray.map((item, index) =>
-            mapRecordToProject(item as Record<string, unknown>, index),
-          ),
+          toRecords(res.data).map((record, index) => mapRecordToProject(record, index)),
         )
       } else {
         console.warn('获取项目列表返回异常:', res.msg)
@@ -148,8 +106,9 @@ export function useProject() {
             const newProject = mapRecordToProject(res.data as unknown as Record<string, unknown>, -1)
             // 插入到列表头部，并按创建时间降序保持时间顺序（最新在前）
             projectList.value = sortByCreateTimeDesc([newProject, ...projectList.value])
-          } catch {
-            // 构造失败不影响创建结果，靠下方 fetchProjects 兜底
+          } catch (e) {
+            // 乐观插入失败不影响创建结果（后端已成功），记录日志便于排查，靠调用方 fetchProjects 全量刷新兜底
+            console.warn('乐观插入新项目到列表失败（将靠刷新兜底）:', e)
           }
         }
         return true

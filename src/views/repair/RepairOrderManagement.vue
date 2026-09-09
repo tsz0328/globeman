@@ -15,16 +15,18 @@
         <el-form-item label="订单状态">
           <el-select filterable v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
             <el-option label="全部状态" value="" />
-            <el-option label="编辑中" value="编辑中" />
-            <el-option label="已确认" value="已确认" />
+            <el-option
+              v-for="s in ORDER_STATUS_OPTIONS"
+              :key="s.value"
+              :label="s.label"
+              :value="s.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="订单类型">
           <el-select filterable v-model="filterForm.type" placeholder="全部类型" style="width: 150px">
             <el-option label="全部类型" value="" />
-            <el-option label="销售订单" value="销售" />
-            <el-option label="采购订单" value="采购" />
-            <el-option label="维修订单" value="维修" />
+            <el-option v-for="t in ORDER_TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="订单名称">
@@ -126,6 +128,7 @@ import OrderForm from '@/views/order/components/AddOrderForm.vue'
 import WorkPage from '@/components/common/WorkPage.vue'
 import type { OrderFormData } from '@/api/order/types'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { ORDER_TYPES, ORDER_STATUS_OPTIONS } from '@/constants/orderEnums'
 
 const route = useRoute()
 const { fetchProjects } = useProject()

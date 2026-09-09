@@ -40,9 +40,12 @@
               style="width: 150px"
             >
               <el-option label="全部类型" value="" />
-              <el-option label="销售订单" value="销售" />
-              <el-option label="采购订单" value="采购" />
-              <el-option label="维修订单" value="维修" />
+              <el-option
+                v-for="t in ORDER_TYPES"
+                :key="t.value"
+                :label="t.label"
+                :value="t.value"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="订单状态">
@@ -53,8 +56,12 @@
               style="width: 150px"
             >
               <el-option label="全部状态" value="" />
-              <el-option label="编辑中" value="编辑中" />
-              <el-option label="已确认" value="已确认" />
+              <el-option
+                v-for="s in ORDER_STATUS_OPTIONS"
+                :key="s.value"
+                :label="s.label"
+                :value="s.value"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="负责人">
@@ -148,7 +155,7 @@
                 size="small"
                 icon="Upload"
                 @click="handleSubmitBtn(scope.row)"
-                :disabled="scope.row.status === '已确认'"
+                :disabled="scope.row.status === ORDER_STATUS.CONFIRMED"
               />
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
@@ -157,7 +164,7 @@
                 size="small"
                 icon="Delete"
                 @click="handleDeleteBtn(scope.row)"
-                :disabled="scope.row.status === '已确认'"
+                :disabled="scope.row.status === ORDER_STATUS.CONFIRMED"
               />
             </el-tooltip>
           </template>
@@ -212,6 +219,7 @@ import {
   getStatusTagType as getStatusType,
   isOrderLocked,
 } from '@/composables/common/useOrderStatus'
+import { ORDER_TYPES, ORDER_STATUS_OPTIONS, ORDER_STATUS } from '@/constants/orderEnums'
 
 const getRowKey = (row: Order) => row.id
 

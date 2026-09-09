@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { Carousel, Navigation, Pagination, Slide } from 'vue3-carousel'
 import 'vue3-carousel/dist/carousel.css'
-import { getCarouselListApi, type CarouselItem } from '@/api/platform/Carousel'
+import { getCarouselListApi, type CarouselItem } from '@/api/platform/CarouselApi'
 
 const carouselConfig = {
   itemsToShow: 1,

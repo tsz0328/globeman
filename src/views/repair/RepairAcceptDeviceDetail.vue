@@ -124,6 +124,7 @@ import {
   type RepairAcceptItem,
 } from '@/api/repair/RepairApi'
 import RepairImageUploader from './components/RepairImageUploader.vue'
+import { REPAIR_STATUS } from '@/constants/orderEnums'
 
 const { submitRepair, saveRepair } = useDetail()
 
@@ -194,7 +195,7 @@ const goBack = () => {
   window.close()
 }
 
-const isReadOnly = computed(() => repairDetail.status === '已完成')
+const isReadOnly = computed(() => repairDetail.status === REPAIR_STATUS.COMPLETED)
 
 // 接单列表信息（GET /client/repair/getAllAcceptInfo），按 id 找到本维修项，用于工单基础信息补充展示
 const fetchAcceptInfo = async () => {

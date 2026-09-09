@@ -25,8 +25,12 @@
             style="width: 150px"
           >
             <el-option label="全部状态" value="" />
-            <el-option label="维修中" value="维修中" />
-            <el-option label="已完成" value="已完成" />
+            <el-option
+              v-for="s in REPAIR_STATUS_OPTIONS"
+              :key="s.value"
+              :label="s.label"
+              :value="s.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="工单名称">
@@ -117,6 +121,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getAllAcceptInfoApi, repairTakeApi, type RepairAcceptItem } from '@/api/repair/RepairApi'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { REPAIR_STATUS_OPTIONS } from '@/constants/orderEnums'
 import WorkPage from '@/components/common/WorkPage.vue'
 
 type TakenDetail = RepairAcceptItem

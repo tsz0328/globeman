@@ -18,9 +18,7 @@
           @keydown.up.prevent="handleKeydown($event)"
           @keydown.down.prevent="handleKeydown($event)"
         >
-          <el-option label="维修项目" value="维修" />
-          <el-option label="销售项目" value="销售" />
-          <el-option label="采购项目" value="采购" />
+          <el-option v-for="t in PROJECT_TYPES" :key="t.value" :label="t.label" :value="t.value" />
         </el-select>
       </el-form-item>
       <el-form-item prop="leaderAccount" label="负责人">
@@ -79,6 +77,7 @@ import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessageBox } from 'element-plus'
 import type { OrderManager, OrderCustomer } from '@/api/order/OrderApi'
+import { PROJECT_TYPES } from '@/constants/orderEnums'
 
 // 项目表单属性接口
 const props = defineProps<{

@@ -2,8 +2,24 @@
   <WorkPage :loading="loading">
     <template #actions>
       <el-button type="primary" @click="openCreateForm">创建订单</el-button>
-      <el-button>导入Excel</el-button>
-      <el-button>导出Excel</el-button>
+      <el-button :loading="importLoading" @click="triggerFileSelect">导入Excel</el-button>
+      <!-- 导出范围与表格勾选一致：未勾选时置灰禁用 -->
+      <el-dropdown
+        trigger="click"
+        :disabled="selectedRows.length === 0"
+        @command="handleExportCommand"
+      >
+        <el-button :loading="exportLoading" :disabled="selectedRows.length === 0">
+          导出Excel<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="single">整合为单个文件</el-dropdown-item>
+            <el-dropdown-item command="separate">多个文件（逐个下载）</el-dropdown-item>
+            <el-dropdown-item command="zip">多个文件（打包 zip）</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <el-button type="danger" @click="handleBatchDelete" :disabled="selectedRows.length === 0"
         >批量删除</el-button
       >
@@ -20,8 +36,12 @@
             style="width: 150px"
           >
             <el-option label="全部状态" value="" />
-            <el-option label="编辑中" value="编辑中" />
-            <el-option label="已确认" value="已确认" />
+            <el-option
+              v-for="s in ORDER_STATUS_OPTIONS"
+              :key="s.value"
+              :label="s.label"
+              :value="s.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="订单类型">
@@ -32,9 +52,7 @@
             style="width: 150px"
           >
             <el-option label="全部类型" value="" />
-            <el-option label="销售订单" value="销售" />
-            <el-option label="采购订单" value="采购" />
-            <el-option label="维修订单" value="维修" />
+            <el-option v-for="t in ORDER_TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="订单名称">
@@ -107,7 +125,8 @@
       @selection-change="handleSelectionChange"
       :row-key="getRowKey"
     >
-      <el-table-column type="selection" width="39"></el-table-column>
+      <!-- reserve-selection：配合 row-key 跨页保留勾选，否则翻页会清空已选订单导致导出不全 -->
+      <el-table-column type="selection" width="39" :reserve-selection="true"></el-table-column>
       <el-table-column prop="name" label="订单名称" show-overflow-tooltip />
       <el-table-column prop="type" label="订单类型" width="80" />
       <el-table-column prop="customer" label="客户" />
@@ -175,8 +194,18 @@
       ></el-pagination>
     </div>
 
+    <!-- 隐藏文件选择框：点「导入Excel」时触发，用于选择设备清单 -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept=".xlsx,.xls"
+      style="display: none"
+      @change="onFilePicked"
+    />
+
     <!-- 新建订单弹窗（独立订单管理，不传 projectId，直接创建订单） -->
     <OrderForm
+      ref="orderFormRef"
       v-model:visible="orderFormVisible"
       :user-list="managers"
       :customer-list="orderCustomers"
@@ -233,8 +262,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, watch, onMounted, nextTick } from 'vue'
+import { ElMessageBox } from 'element-plus'
+import { notify } from '@/utils/message'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useProject } from '@/composables/project/useProject'
 import { useCompany } from '@/composables/admin/useCompany'
@@ -249,7 +279,14 @@ import OrderForm from '@/views/order/components/AddOrderForm.vue'
 import OrderDetailDialog from '@/views/order/components/OrderDetailDialog.vue'
 import type { OrderSubmitPayload } from '@/api/order/types'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { ORDER_TYPES, ORDER_STATUS_OPTIONS } from '@/constants/orderEnums'
 import { associateOrderToProjectApi } from '@/api/project/ProjectApi'
+import { parseDeviceSheet } from '@/utils/excel'
+import {
+  exportOrdersToExcel,
+  exportOrdersToSeparateFiles,
+  exportOrdersToZip,
+} from '@/views/order/utils/orderExcel'
 
 // 关联弹窗：当前订单项目下拉选项（来自 /client/project/getProject 的 projectList）
 const { projectList } = useProject()
@@ -361,15 +398,15 @@ const handleOrderSubmit = async (data: OrderSubmitPayload) => {
     const success = await createOrder(orderData, details)
     if (success) {
       orderFormVisible.value = false
-      ElMessage.success('创建订单成功')
+      notify({ type: 'success', message: '创建订单成功' })
       await fetchOrders()
       currentPage.value = 1
     } else {
-      ElMessage.error('创建订单失败')
+      notify({ type: 'error', message: '创建订单失败' })
     }
   } catch (error) {
     console.error('提交订单失败:', error)
-    ElMessage.error('创建订单失败')
+    notify({ type: 'error', message: '创建订单失败' })
   }
 }
 
@@ -401,14 +438,14 @@ const confirmAssociate = async () => {
   try {
     const res = await associateOrderToProjectApi(associateProjectId.value, associateOrder.value.id)
     if (res.code === 200) {
-      ElMessage.success('关联成功')
+      notify({ type: 'success', message: '关联成功' })
       associateDialogVisible.value = false
     } else {
-      ElMessage.error(res.msg || '关联失败')
+      notify({ type: 'error', message: res.msg || '关联失败' })
     }
   } catch (error) {
     console.error('关联订单到项目失败:', error)
-    ElMessage.error('关联失败')
+    notify({ type: 'error', message: '关联失败' })
   } finally {
     associating.value = false
   }
@@ -425,14 +462,14 @@ const handleSubmitBtn = async (row: Order) => {
     submitLoadingId.value = row.id
     const success = await submitOrder(row.id)
     if (success) {
-      ElMessage.success('提交成功')
+      notify({ type: 'success', message: '提交成功' })
       await fetchOrders()
     } else {
-      ElMessage.error('提交失败')
+      notify({ type: 'error', message: '提交失败' })
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('提交失败')
+      notify({ type: 'error', message: '提交失败' })
     }
   } finally {
     submitLoadingId.value = null
@@ -458,13 +495,13 @@ const handleDelete = async (row: Order) => {
     deleteLoadingId.value = row.id
     const success = await deleteOrder(row.id)
     if (success) {
-      ElMessage.success('删除成功')
+      notify({ type: 'success', message: '删除成功' })
     } else {
-      ElMessage.error('删除失败')
+      notify({ type: 'error', message: '删除失败' })
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      notify({ type: 'error', message: '删除失败' })
     }
   } finally {
     deleteLoadingId.value = null
@@ -477,7 +514,7 @@ const handleDeleteBtn = (row: unknown) => {
 
 const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning('请先选择要删除的订单')
+    notify({ type: 'warning', message: '请先选择要删除的订单' })
     return
   }
   try {
@@ -495,12 +532,140 @@ const handleBatchDelete = async () => {
       const success = await deleteOrder(row.id)
       if (success) successCount++
     }
-    ElMessage.success(`成功删除 ${successCount} 个订单`)
+    notify({ type: 'success', message: `成功删除 ${successCount} 个订单` })
     selectedRows.value = []
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('批量删除失败')
+      notify({ type: 'error', message: '批量删除失败' })
     }
+  }
+}
+
+// === 导出 Excel：订单头 + 设备明细 ===
+// 导出范围 = 表格勾选的订单（selection 列开了 reserve-selection，跨页勾选会累积）。
+// 未勾选任何订单时按钮已置灰，这里再兜一层防御。
+const exportLoading = ref(false)
+
+type ExportMode = 'single' | 'separate' | 'zip'
+
+// el-dropdown 的 command 回调签名是 (command: string | number | object) => void，
+// 这里按宽类型接收后再收窄，避免与组件声明的 handler 类型冲突
+const handleExportCommand = async (command: string | number | object) => {
+  const mode = command as ExportMode
+  const rows = selectedRows.value
+  if (rows.length === 0) return
+
+  exportLoading.value = true
+  try {
+    const now = new Date()
+    const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+
+    if (mode === 'single') {
+      const count = await exportOrdersToExcel(rows, `订单明细_${stamp}`)
+      notify({ type: 'success', message: `已导出 ${count} 个订单到单个文件` })
+    } else if (mode === 'separate') {
+      const count = await exportOrdersToSeparateFiles(rows)
+      notify({
+        type: 'success',
+        message: `已导出 ${count} 个订单，共 ${count} 个文件；若浏览器拦截连续下载，请改用打包 zip`,
+      })
+    } else {
+      const count = await exportOrdersToZip(rows, `订单明细_${stamp}`)
+      notify({ type: 'success', message: `已导出 ${count} 个订单，打包为 zip` })
+    }
+  } catch (error) {
+    console.error('导出订单失败:', error)
+    notify({ type: 'error', message: '导出失败，请重试' })
+  } finally {
+    exportLoading.value = false
+  }
+}
+
+// === 导入 Excel：解析设备清单 → 预填创建订单弹窗 → 一次 addOrder 提交「1 个订单 + N 台设备」===
+// 业务形态：清单文件里只有设备（型号 / 品牌 / 参数 / 数量），订单头信息（客户、联系人、
+// 地址、负责人、订单类型）不在文件内，故解析后预填能识别的部分，其余由用户手补。
+const importLoading = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const orderFormRef = ref<InstanceType<typeof OrderForm> | null>(null)
+
+const triggerFileSelect = () => {
+  fileInputRef.value?.click()
+}
+
+const onFilePicked = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  // 清空 value，保证同一个文件可以再次被选中并触发 change
+  input.value = ''
+  if (file) void handleImportFile(file)
+}
+
+const handleImportFile = async (file: File) => {
+  if (!/\.(xlsx|xls)$/i.test(file.name)) {
+    notify({ type: 'error', message: '仅支持 .xlsx / .xls 文件' })
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    notify({ type: 'error', message: '文件大小不能超过 5MB' })
+    return
+  }
+
+  importLoading.value = true
+  try {
+    const parsed = await parseDeviceSheet(file)
+    if (parsed.rows.length === 0) {
+      notify({ type: 'warning', message: '未解析到设备行，请检查清单格式' })
+      return
+    }
+
+    // 订单名称优先取文件名（信息量通常大于清单标题，如「2026-08-26常德维修3台」）
+    const suggestedName =
+      file.name.replace(/\.(xlsx|xls)$/i, '').replace(/\+/g, ' ').trim() || parsed.title
+
+    // 清单里的「采购人 / 发货人」是姓名，按姓名回填负责人（账号由 AddOrderForm 内部反查）
+    const personName = parsed.meta['采购人'] ?? parsed.meta['发货人'] ?? ''
+
+    // 先预填再打开弹窗：@opened 的 prefillFirstPage 只会在已有行后补空白行，不会覆盖明细
+    orderFormRef.value?.prefill({
+      name: suggestedName,
+      managerName: personName,
+      devices: parsed.rows.map((d) => ({ ...d })),
+    })
+    orderFormVisible.value = true
+
+    // 反馈拆成两条：① 识别结果 + 待补全必填项 ② 忽略列 / S/N 归属提示。
+    // 合并成一条时信息量太大，读不完。
+    const orderCount = 1 // 当前形态：一个清单文件 = 一个订单（多订单识别后续再完善）
+    const deviceCount = parsed.rows.length
+
+    // 与 AddOrderForm 的校验保持一致：订单名称、订单类型、负责人、客户、客户联系人
+    const missing: string[] = []
+    if (!suggestedName) missing.push('订单名称')
+    if (!personName) missing.push('负责人')
+    missing.push('订单类型', '客户', '客户联系人') // 清单文件里不存在，只能手填
+
+    const summaryMsg =
+      missing.length > 0
+        ? `已识别 ${orderCount} 个订单、${deviceCount} 台设备，请补全以下必填项：${missing.join('、')}`
+        : `已识别 ${orderCount} 个订单、${deviceCount} 台设备`
+    notify({ type: 'success', message: summaryMsg, duration: 20000, showClose: true })
+
+    // 第二条：忽略列 + S/N 归属提示（都没内容时不弹）
+    const notices: string[] = []
+    if (parsed.ignoredColumns.length > 0) {
+      notices.push(`已忽略列：${parsed.ignoredColumns.join('、')}`)
+    }
+    if (parsed.hasSnColumn) notices.push('检测到 S/N 列，序列号需在维修入库环节录入')
+    if (notices.length > 0) {
+      // 等第一条完成挂载再弹，否则两条的 offset 会按同一基准计算导致重叠
+      await nextTick()
+      notify({ type: 'warning', message: notices.join('；'), duration: 20000, showClose: true })
+    }
+  } catch (error) {
+    console.error('解析设备清单失败:', error)
+    notify({ type: 'error', message: error instanceof Error ? error.message : '解析失败，请检查文件格式' })
+  } finally {
+    importLoading.value = false
   }
 }
 

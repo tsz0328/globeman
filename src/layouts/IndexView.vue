@@ -10,7 +10,7 @@ import Cookies from 'js-cookie'
 import router from '@/router'
 import { Promotion } from '@element-plus/icons-vue'
 import logoPng from '@/assets/logo.png'
-import { announcements, type AnnouncementItem } from '@/api/platform/Announcement'
+import { announcements, type AnnouncementItem } from '@/api/platform/AnnouncementApi'
 
 // 首页「最新公告」区：取 type=latest 且已发布的最新一条
 const latestAnnouncement = computed<AnnouncementItem | null>(() => {

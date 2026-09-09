@@ -7,6 +7,7 @@ import {
   type CustomerData,
 } from '@/api/admin/CustomerApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
+import { toRecords, pickString } from '@/utils/recordMapper'
 
 // === 导出类型 ===
 export interface Customer {
@@ -33,56 +34,15 @@ export function useCustomer() {
     try {
       const res = await getCustomersApi()
       if (res.code === 200) {
-        const isCustomerRecord = (value: unknown): value is Record<string, unknown> => {
-          return typeof value === 'object' && value !== null && 'id' in value && 'name' in value
-        }
-
-        // 归一化数据，处理嵌套对象和数组
-        const normalizeRecords = (data: unknown): Record<string, unknown>[] => {
-          if (Array.isArray(data)) {
-            return data as Record<string, unknown>[]
-          }
-          if (!data || typeof data !== 'object') {
-            return []
-          }
-          const record = data as Record<string, unknown>
-          const objectValues = Object.values(record).filter(isCustomerRecord)
-          if (objectValues.length > 0) {
-            return objectValues
-          }
-          if (isCustomerRecord(record)) {
-            return [record]
-          }
-          return []
-        }
-
-        // 归一化客户记录
-        const customerArray = normalizeRecords(res.data)
-
-        // 映射客户记录为客户接口
-        customerList.value = customerArray.map((item, index) => {
-          const record = item as Record<string, unknown>
-          const getString = (keys: string[]) => {
-            for (const key of keys) {
-              const value = record[key]
-              if (typeof value === 'string') {
-                return value
-              }
-              if (typeof value === 'number') {
-                return String(value)
-              }
-            }
-            return ''
-          }
-
-          // 映射客户记录为客户接口
+        // 归一化后端返回为记录数组，再逐条映射为前端 Customer
+        customerList.value = toRecords(res.data).map((record, index) => {
           const customer: Customer = {
             id: typeof record.id === 'number' ? record.id : index + 1,
-            name: getString(['name']),
-            company: getString(['company']),
-            contact: getString(['contact']),
-            phone: getString(['phone']),
-            createTime: formatDateTime(getString(['time'])),
+            name: pickString(record, ['name']),
+            company: pickString(record, ['company']),
+            contact: pickString(record, ['contact']),
+            phone: pickString(record, ['phone']),
+            createTime: formatDateTime(pickString(record, ['time'])),
           }
           return customer
         })
@@ -105,26 +65,14 @@ export function useCustomer() {
       const res = await createCustomerApi(data)
       if (res.code === 200) {
         const dataRecord = (res.data as unknown as Record<string, unknown>) || {}
-        const getString = (keys: string[]) => {
-          for (const key of keys) {
-            const value = dataRecord[key]
-            if (typeof value === 'string') {
-              return value
-            }
-            if (typeof value === 'number') {
-              return String(value)
-            }
-          }
-          return ''
-        }
 
         const newCustomer: Customer = {
           id: typeof dataRecord.id === 'number' ? dataRecord.id : Date.now(),
-          name: getString(['name']) || data.name,
-          company: getString(['company']) || data.company,
-          contact: getString(['contact']) || data.contact,
-          phone: getString(['phone']) || data.phone,
-          createTime: formatDateTime(getString(['time']) || new Date()),
+          name: pickString(dataRecord, ['name']) || data.name,
+          company: pickString(dataRecord, ['company']) || data.company,
+          contact: pickString(dataRecord, ['contact']) || data.contact,
+          phone: pickString(dataRecord, ['phone']) || data.phone,
+          createTime: formatDateTime(pickString(dataRecord, ['time']) || new Date()),
         }
         customerList.value.unshift(newCustomer)
         return true
@@ -145,18 +93,6 @@ export function useCustomer() {
       const res = await updateCustomerApi(data)
       if (res.code === 200) {
         const dataRecord = (res.data as unknown as Record<string, unknown>) || {}
-        const getString = (keys: string[]) => {
-          for (const key of keys) {
-            const value = dataRecord[key]
-            if (typeof value === 'string') {
-              return value
-            }
-            if (typeof value === 'number') {
-              return String(value)
-            }
-          }
-          return ''
-        }
 
         const id = typeof dataRecord.id === 'number' ? dataRecord.id : data.id
         if (id == null) {
@@ -165,11 +101,11 @@ export function useCustomer() {
         const existing = customerList.value.find((c) => c.id === id)
         const updated: Customer = {
           id,
-          name: getString(['name']) || data.name,
-          company: getString(['company']) || data.company,
-          contact: getString(['contact']) || data.contact,
-          phone: getString(['phone']) || data.phone,
-          createTime: formatDateTime(getString(['time'])) || existing?.createTime || '',
+          name: pickString(dataRecord, ['name']) || data.name,
+          company: pickString(dataRecord, ['company']) || data.company,
+          contact: pickString(dataRecord, ['contact']) || data.contact,
+          phone: pickString(dataRecord, ['phone']) || data.phone,
+          createTime: formatDateTime(pickString(dataRecord, ['time'])) || existing?.createTime || '',
         }
         const idx = customerList.value.findIndex((c) => c.id === id)
         if (idx !== -1) {

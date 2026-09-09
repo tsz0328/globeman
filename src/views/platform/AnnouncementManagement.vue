@@ -212,7 +212,7 @@ import {
   type AnnouncementItem,
   type AnnouncementType,
   type IntroContent,
-} from '@/api/platform/Announcement'
+} from '@/api/platform/AnnouncementApi'
 
 const activeTab = ref<'announcement' | 'intro'>('announcement')
 

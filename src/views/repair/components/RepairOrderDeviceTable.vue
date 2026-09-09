@@ -1,34 +1,34 @@
 <template>
-  <div class="repair-detail-editor">
-    <div class="repair-detail-table-region" ref="tableRegionRef">
+  <div class="repair-detail-editor" ref="rootRef">
+    <div class="repair-detail-table-region" ref="tableRegionRef" :style="regionStyle">
       <el-table :data="pageRows" border class="repair-detail-table" row-key="rowKey">
-        <el-table-column type="index" label="序号" width="60" align="center" :index="indexMethod" />
-        <el-table-column label="品名" min-width="120">
+        <el-table-column type="index" label="序号" width="50" align="center" :index="indexMethod" />
+        <el-table-column label="品名" min-width="100" align="center">
           <template #default="scope">
             <span>{{ scope.row.equipmentName }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="型号" min-width="120">
+        <el-table-column label="型号" min-width="100" align="center">
           <template #default="scope">
             <span>{{ scope.row.equipmentModel }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="类型" min-width="100">
+        <el-table-column label="类型" min-width="100" align="center">
           <template #default="scope">
             <span>{{ scope.row.type }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="品牌" min-width="100">
+        <el-table-column label="品牌" min-width="100" align="center">
           <template #default="scope">
             <span>{{ scope.row.manufacturer }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="参数" min-width="120">
+        <el-table-column label="参数" min-width="120" align="center">
           <template #default="scope">
             <span>{{ scope.row.spec }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="SN码" min-width="160">
+        <el-table-column label="SN码" min-width="100" align="center">
           <template #default="scope">
             <span>{{ scope.row.sn || '—' }}</span>
           </template>
@@ -44,12 +44,11 @@
       </el-table>
     </div>
 
-    <div class="repair-detail-editor__footer">
+    <div class="repair-detail-editor__footer" ref="footerRef">
       <el-pagination
-        v-if="detailList.length > pageSize"
+        v-if="detailList.length > 0"
         class="repair-detail-pagination"
         background
-        size="small"
         layout="total, prev, pager, next"
         :total="detailList.length"
         :page-size="pageSize"
@@ -127,43 +126,90 @@ const pageRows = computed(() => {
 // 序号列连续编号（跨页不断号）
 const indexMethod = (i: number) => (currentPage.value - 1) * pageSize.value + i + 1
 
-// 动态测量：表格区域高度 + 实测行高/表头高 → 计算每页行数
+// 动态测量：根容器可用高度 + 实测行高/表头高 → 计算每页行数，并反推表格区精确高度
+// 基准说明：不能用表格区自身高度做基准——它按内容收缩（余量沉到分页下方），
+// 否则会变成「高度决定行数、行数又决定高度」的自激循环。故统一读根容器
+// （高度由父弹窗 80vh 给定，稳定），减去底部分页栏后才是表格可用高度。
+// 与 AddOrderDeviceTable / OrderDetailDeviceTable 保持一致。
+const rootRef = ref<HTMLElement>()
+const footerRef = ref<HTMLElement>()
 const tableRegionRef = ref<HTMLElement>()
+// 只读表不铺空白行：表格区高度按「当前页实际行数」而非 fit 容量，
+// 数据不满一页时分页紧贴表格、不留大段空白（与 RepairWarehouseInOrderDeviceDialog 一致）
+const regionH = computed<number | null>(() => {
+  const n = pageRows.value.length
+  if (n === 0) return null
+  return HEADER_H.value + n * ROW_H.value
+})
 const ROW_H = ref(40) // el-table small 行高（兜底值，渲染后实测覆盖）
 const HEADER_H = ref(41) // 表头高度（兜底值）
 
+// 含 margin 的外框高度：分页栏带 margin-top，只取 rect.height 会少算
+const outerH = (el: HTMLElement | undefined) => {
+  if (!el) return 0
+  const cs = getComputedStyle(el)
+  return (
+    el.getBoundingClientRect().height +
+    parseFloat(cs.marginTop || '0') +
+    parseFloat(cs.marginBottom || '0')
+  )
+}
+
 const measure = () => {
+  const root = rootRef.value
   const region = tableRegionRef.value
-  if (!region) return
-  const h = region.clientHeight
-  if (h <= 0) return // 弹窗隐藏时区域高度为 0，跳过
+  if (!root || !region) return
+  const h = root.clientHeight
+  if (h <= 0) return // 弹窗隐藏时根容器高度为 0，跳过
 
   const tableEl = region.querySelector('.el-table') as HTMLElement | null
   if (tableEl) {
     const headerEl = tableEl.querySelector('.el-table__header-wrapper') as HTMLElement | null
     const firstRow = tableEl.querySelector('.el-table__row') as HTMLElement | null
-    if (headerEl) HEADER_H.value = headerEl.offsetHeight
-    if (firstRow) ROW_H.value = firstRow.offsetHeight
+    // 用 getBoundingClientRect 取亚像素值（offsetHeight 会取整，累积误差让高度算不准）
+    if (headerEl) HEADER_H.value = headerEl.getBoundingClientRect().height
+    if (firstRow) ROW_H.value = firstRow.getBoundingClientRect().height
   }
+  const avail = h - outerH(footerRef.value)
   // 按可容纳行数（floor）决定每页行数
-  const fit = Math.floor((h - HEADER_H.value) / ROW_H.value)
-  pageSize.value = Math.max(1, fit)
+  const fit = Math.floor((avail - HEADER_H.value) / ROW_H.value)
+  const size = Math.max(1, fit)
+  pageSize.value = size
 }
 
+// 表格区高度样式：未测出前保持自适应
+const regionStyle = computed(() =>
+  regionH.value == null ? undefined : { height: `${regionH.value}px` },
+)
+
 let ro: ResizeObserver | null = null
-onMounted(() => {
+// 挂载 ResizeObserver + 窗口 resize 兜底（与 AddOrderDeviceTable、RepairWarehouseInOrderDeviceDialog 同构）。
+// RO 观察表格区域：父弹窗固定 80vh，区域高度随视口变化即触发重算；
+// window 兜底是第二重保险，防止 observer 漏挂时缩放完全失效。
+// 注：本组件是内嵌子组件、onMounted 时 ref 已就绪，故 RO 在 onMounted 挂载即可（父组件 destroy-on-close 会重新 mount）；
+// 但重新打开时仍由父组件 @opened → reload() 再调一次，保证 observer 一定挂在当前 DOM 上。重复调用幂等。
+const ensureResizeWatch = () => {
+  measure()
+  ro?.disconnect()
   ro = new ResizeObserver(() => {
     measure()
   })
-  if (tableRegionRef.value) ro.observe(tableRegionRef.value)
+  // 观察根容器而非表格区：表格区高度由 measure 反推写入，观察它会自激
+  if (rootRef.value) ro.observe(rootRef.value)
+  window.removeEventListener('resize', measure)
+  window.addEventListener('resize', measure)
+}
+onMounted(ensureResizeWatch)
+onUnmounted(() => {
+  ro?.disconnect()
+  window.removeEventListener('resize', measure)
 })
-onUnmounted(() => ro?.disconnect())
 
-// 打开弹窗：映射明细后（布局就绪）测量每页行数
+// 打开弹窗：映射明细后（布局就绪）重挂监听并测量每页行数
 const reload = () => {
   if (props.order) mapRepairDetails(props.details)
   currentPage.value = 1
-  measure()
+  ensureResizeWatch()
 }
 
 // 暴露给父组件：父组件在 el-dialog 的 @opened（布局就绪）时调用
@@ -234,12 +280,14 @@ watch(
 .repair-detail-editor {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   height: 100%;
 }
 
+/* 表格区不再撑满（flex:1）：高度由 measure() 按「表头 + fit 行」精确回写，
+   使表格底边与分页紧贴，装不下整行的余量沉到底部分页栏下方 */
 .repair-detail-table-region {
-  flex: 1;
-  min-height: 0;
+  flex: none;
 }
 
 .repair-detail-table {
@@ -267,7 +315,6 @@ watch(
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  margin-top: 8px;
 }
 
 .repair-detail-pagination {

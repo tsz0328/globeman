@@ -6,6 +6,7 @@ import {
   updateUserStatusApi,
 } from '@/api/admin/UserApi'
 import { sortByCreateTimeDesc, formatDateTime } from '@/utils/sort'
+import { toRecords, pickString } from '@/utils/recordMapper'
 
 // === 导出类型 ===
 export interface User {
@@ -43,51 +44,8 @@ export function useUser() {
     try {
       const res = await getUsersApi()
       if (res.code === 200) {
-        const isUserRecord = (value: unknown): value is Record<string, unknown> => {
-          return typeof value === 'object' && value !== null && 'id' in value && 'name' in value
-        }
-
-        // 归一化数据，处理嵌套对象和数组
-        // 支持直接返回数组、对象、单个对象或 null
-        const normalizeRecords = (data: unknown): Record<string, unknown>[] => {
-          if (Array.isArray(data)) {
-            return data as Record<string, unknown>[]
-          }
-          if (!data || typeof data !== 'object') {
-            return []
-          }
-          const record = data as Record<string, unknown>
-          const objectValues = Object.values(record).filter(isUserRecord)
-          if (objectValues.length > 0) {
-            return objectValues
-          }
-          if (isUserRecord(record)) {
-            return [record]
-          }
-          return []
-        }
-
-        // 归一化用户记录数组
-        const userArray = normalizeRecords(res.data)
-
-        // 映射用户记录为 User 类型
-        // 处理 id、userId、account、name、company、role、createTime 等字段
-        // 支持嵌套对象和数组
-        userList.value = userArray.map((item, index) => {
-          const record = item as Record<string, unknown>
-          const getString = (keys: string[]) => {
-            for (const key of keys) {
-              const value = record[key]
-              if (typeof value === 'string') {
-                return value
-              }
-              if (typeof value === 'number') {
-                return String(value)
-              }
-            }
-            return ''
-          }
-
+        // 归一化后端返回为记录数组，再逐条映射为前端 User
+        userList.value = toRecords(res.data).map((record, index) => {
           const user: User = {
             id:
               typeof record.id === 'number'
@@ -95,11 +53,11 @@ export function useUser() {
                 : typeof record.userId === 'number'
                   ? record.userId
                   : index + 1,
-            account: getString(['account', 'username', 'loginName']),
-            name: getString(['name', 'fullName']),
-            company: getString(['company', 'companyName', 'organization', 'org']),
-            department: getString(['department', 'dept', 'deptName']),
-            role: getString(['role', 'userRole']),
+            account: pickString(record, ['account', 'username', 'loginName']),
+            name: pickString(record, ['name', 'fullName']),
+            company: pickString(record, ['company', 'companyName', 'organization', 'org']),
+            department: pickString(record, ['department', 'dept', 'deptName']),
+            role: pickString(record, ['role', 'userRole']),
             status:
               typeof record.status === 'number'
                 ? record.status
@@ -107,7 +65,7 @@ export function useUser() {
                   ? Number(record.status)
                   : 1,
             createTime: formatDateTime(
-              getString(['createTime', 'create_time', 'createdAt', 'created_at', 'time']),
+              pickString(record, ['createTime', 'create_time', 'createdAt', 'created_at', 'time']),
             ),
           }
           return user

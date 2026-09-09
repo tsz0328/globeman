@@ -9,8 +9,12 @@
         <el-form-item label="状态">
           <el-select filterable v-model="filterForm.status" placeholder="全部状态" style="width: 150px">
             <el-option label="全部状态" value="" />
-            <el-option label="维修中" value="维修中" />
-            <el-option label="已完成" value="已完成" />
+            <el-option
+              v-for="s in REPAIR_STATUS_OPTIONS"
+              :key="s.value"
+              :label="s.label"
+              :value="s.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="客户">
@@ -50,6 +54,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import WorkPage from '@/components/common/WorkPage.vue'
 import { useTableQuery } from '@/composables/common/useTableQuery'
+import { REPAIR_STATUS_OPTIONS } from '@/constants/orderEnums'
 
 // 维修列表（框架）：数据待接后端接口，字段按业务预留，接入时调整即可
 interface RepairListItem {

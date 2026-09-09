@@ -110,21 +110,10 @@
             ><span class="value">{{ order.createTime || '' }}</span>
           </div>
         </div>
-        <!-- 打印专用行：合同编号 / 付款条件（屏幕上隐藏，打印时显示） -->
-        <div class="info-row print-only">
-          <div class="info-item full">
-            <span class="label">合同编号：</span><span class="value"></span>
-          </div>
-        </div>
-        <div class="info-row print-only">
-          <div class="info-item full">
-            <span class="label">付款条件（盖章后有效）：</span><span class="value"></span>
-          </div>
-        </div>
       </div>
 
       <!-- 设备表格（抽出为独立子组件，内含新设备行键盘录入） -->
-      <OrderDeviceTable
+      <OrderDetailDeviceTable
         ref="deviceTableRef"
         :model-value="modelValue"
         :order="order"
@@ -132,21 +121,6 @@
         @changed="emit('details-changed')"
       />
 
-      <!-- 打印区域 -->
-      <div class="form-footer print-only">
-        <div class="footer-row">
-          <div class="footer-item">
-            <div><span class="label">采购单位（甲方盖章）：</span></div>
-            <div><span class="label">代表人（签名）：</span></div>
-            <div><span class="label">日期：</span></div>
-          </div>
-          <div class="footer-item">
-            <div><span class="label">供应单位（甲方盖章）：</span></div>
-            <div><span class="label">代表人（签名）：</span></div>
-            <div><span class="label">日期：</span></div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- 表单底部 -->
@@ -166,7 +140,9 @@ import { ElMessage } from 'element-plus'
 import { regionData } from '@/data/chinaArea'
 import { useOrder, type Order } from '@/composables/order/useOrder'
 import type { UpdateOrderHeadData } from '@/api/order/OrderApi'
-import OrderDeviceTable from './OrderDeviceTable.vue'
+import OrderDetailDeviceTable from './OrderDetailDeviceTable.vue'
+// 打印模板：结构 + 内嵌排版样式都在同一个文件里维护，渲染成完整文档后写入 iframe
+import { renderOrderPrintDocument, type PrintableOrder } from '@/views/order/utils/OrderPrintTemplate.ts'
 
 const props = defineProps<{
   modelValue: boolean
@@ -179,7 +155,7 @@ const emit = defineEmits<{
 }>()
 
 // 设备表格引用：弹窗 @opened（布局就绪）时触发其按表单高度铺满空白行
-const deviceTableRef = ref<InstanceType<typeof OrderDeviceTable>>()
+const deviceTableRef = ref<InstanceType<typeof OrderDetailDeviceTable>>()
 
 // 弹窗打开动画结束、布局就绪后再铺满，避免首开过渡未结束导致测量行数偏小
 const onDialogOpened = () => {
@@ -279,10 +255,33 @@ const handleSaveHead = async () => {
   }
 }
 
-// 打印订单：用隐藏 iframe 承载打印内容，避免操作 document.body.innerHTML 导致页面状态丢失
+// 打印订单：用隐藏 iframe 承载打印内容，避免操作 document.body.innerHTML 导致页面状态丢失。
+// 内容使用独立模板 renderOrderPrintHtml 按当前订单数据生成，不直接复用弹窗 DOM，
+// 从而避免 el-table / scoped 样式 / fixed 列等在 iframe 里的兼容问题。
 const printOrder = () => {
-  const printContent = document.querySelector('.order-detail-form') as HTMLElement | null
-  if (!printContent) return
+  if (!props.order) return
+  const printableOrder: PrintableOrder = {
+    id: props.order.id,
+    name: editForm.value.name || props.order.name || '',
+    type: props.order.type || '',
+    manager: editForm.value.manager || props.order.leaderAccount || '',
+    customer: editForm.value.customer || props.order.customer || '',
+    contact: editForm.value.contact || props.order.contact || '',
+    contactPhone: editForm.value.contactPhone || props.order.contactPhone || '',
+    province: editForm.value.province || props.order.province || '',
+    city: editForm.value.city || props.order.city || '',
+    district: editForm.value.district || props.order.district || '',
+    address: editForm.value.address || props.order.address || '',
+    createTime: props.order.createTime,
+    details: props.order.details.map((d) => ({
+      name: d.name,
+      model: d.model,
+      type: d.type || '',
+      brand: d.brand || '',
+      spec: d.spec || '',
+      number: d.number ?? '',
+    })),
+  }
   const iframe = document.createElement('iframe')
   iframe.style.position = 'fixed'
   iframe.style.right = '0'
@@ -294,31 +293,22 @@ const printOrder = () => {
   const doc = iframe.contentWindow?.document
   if (!doc) return
   doc.open()
-  doc.write(
-    '<!DOCTYPE html><html><head><title>打印订单</title>' +
-      '<link rel="stylesheet" href="/element-plus/index.css" />' +
-      '<style>body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;}</style>' +
-      '</head><body>' +
-      printContent.outerHTML +
-      '</body></html>',
-  )
+  doc.write(renderOrderPrintDocument(printableOrder))
   doc.close()
-  // 等待样式与图片加载后再打印
   iframe.contentWindow?.focus()
   setTimeout(() => {
     iframe.contentWindow?.print()
-    // 打印（或取消）后移除 iframe，不刷新页面
     setTimeout(() => {
       if (iframe.parentNode) iframe.parentNode.removeChild(iframe)
     }, 300)
-  }, 250)
+  }, 150)
 }
 </script>
 
 <style scoped>
-/* 付款条件 / 表单底部盖章栏：屏幕上隐藏，仅打印时显示。
-   打印走隐藏 iframe（不含本组件 scoped 样式），所以这些元素在 iframe 中没有这个样式自动可见。
-   用 .order-detail-form 前缀提升优先级（scoped 下为 (0,3,0)），避免被后定义的 .info-row（display:flex）按相等优先级+靠后原则覆盖 */
+/* 打印专用元素：屏幕上隐藏，仅打印时显示。
+   打印走独立模板 + 隐藏 iframe（不含本组件 scoped 样式），
+   保留 .print-only 工具类，供未来需要在屏幕上隐藏、仅打印显示的元素使用。 */
 .order-detail-form .print-only {
   display: none;
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import IndexCardHeader from './IndexCardHeader.vue'
-import { announcements } from '@/api/platform/Announcement'
+import { announcements } from '@/api/platform/AnnouncementApi'
 
 // 平台公告：取 type=platform 且已发布的列表，按发布时间倒序
 const notices = computed(() =>
