@@ -28,6 +28,10 @@ public class LoginController {
         if(register == null){
             return Return.error("数据为空");
         }
+        //校验名称长度（最多7个字，超长直接拦截并返回明确原因，避免落到数据库抛500）
+        if(register.getName() != null && register.getName().length() > 7){
+            return Return.error("名称超过7个字长度限制");
+        }
         //查询账号是否存在
         boolean result = loginService.existsByAccount(register.getAccount());
         if (result) {
