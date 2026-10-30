@@ -38,22 +38,24 @@ public class WebInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        /*
-         * 原子加载：并发多个相同token请求，只会执行一次JWT校验解析
-         * 缓存命中直接读取；缓存缺失才执行验签
-         */
-        Map<String, String> map = TOKEN_CACHE.get(token, key -> {
-            boolean result = JwtUtil.validateToken(key);
-            // token校验失败返回null，不会存入缓存
-            if (!result) {
-                return null;
-            }
-            return JwtUtil.extractUserRole(key);
-        });
-
-        // token非法、过期，清除缓存并拦截
-        if (map == null) {
+        // 先校验 token，避免 Caffeine loader 返回 null 抛 NullPointerException
+        boolean valid;
+        try {
+            valid = JwtUtil.validateToken(token);
+        } catch (Exception e) {
+            valid = false;
+        }
+        if (!valid) {
             TOKEN_CACHE.invalidate(token);
+            response.setStatus(401);
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().write("{\"code\":401,\"msg\":\"token已过期\"}");
+            return false;
+        }
+
+        // 校验通过再走缓存（原子解析一次，命中复用；loader 永不返回 null）
+        Map<String, String> map = TOKEN_CACHE.get(token, JwtUtil::extractUserRole);
+        if (map == null) {
             response.setStatus(401);
             response.setContentType("application/json;charset=utf-8");
             response.getWriter().write("{\"code\":401,\"msg\":\"token已过期\"}");
