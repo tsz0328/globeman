@@ -1,0 +1,11 @@
+/*
+ * 工作台统一页头规范
+ * 各管理页的 .page-header 原本各自用 border-bottom: 1px solid black（生硬、且彼此不统一），
+ * 这里统一柔化为浅灰分隔线，保证所有页面头部样式一致。
+ * 用 !important 覆盖各业务页 scoped 样式里的普通优先级 border / padding 声明。
+ */
+
+.page-header {
+  border-bottom: 1px solid #e4e7ed !important;
+  padding-bottom: 14px !important;
+}

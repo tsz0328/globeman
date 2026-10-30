@@ -1,0 +1,323 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import 'vue3-carousel/carousel.css'
+import PlatformNoticeComponent from './components/IndexPlatformNotice.vue'
+import Introduction from './components/IndexIntroduction.vue'
+import Message from './components/IndexMessage.vue'
+import Foot from './components/IndexFoot.vue'
+import Carousel from './components/IndexCarousel.vue'
+import { Promotion } from '@element-plus/icons-vue'
+import logoPng from '@/assets/logo.png'
+import { announcements, type AnnouncementItem } from '@/api/platform/AnnouncementApi'
+
+// 首页「最新公告」区：取 type=latest 且已发布的最新一条
+const latestAnnouncement = computed<AnnouncementItem | null>(() => {
+  const list = announcements.value
+    .filter((i) => i.type === 'latest' && i.enabled)
+    .sort((a, b) => b.publishTime.localeCompare(a.publishTime))
+  return list[0] ?? null
+})
+
+const time = ref('')
+const pad = (n: number):string => n.toString().padStart(2, '0')
+const week:string[] = ['日', '一', '二', '三', '四', '五', '六']
+
+const update = (): void => {
+  const d = new Date()
+  time.value = `${d.getFullYear()}年${pad(d.getMonth() + 1)}月${pad(d.getDate())}日 星期${week[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
+// 登录态跳转已由路由级 redirect 完成（见 router/index.ts /index 的 redirect），
+// 这里只负责页头时钟。
+let timer: ReturnType<typeof setInterval> | undefined
+onMounted(() => {
+  update()
+  timer = setInterval(update, 1000)
+})
+onUnmounted(() => clearInterval(timer))
+</script>
+
+<template>
+  <div class="main">
+    <div class="head idx-base">
+      <div class="logo">
+        <div class="logo_left">
+          <img :src="logoPng" alt="logo" />
+        </div>
+        <div class="logo_right">
+          <div class="company_name">湖南全球人信息技术有限公司</div>
+          <p class="company_n">Hunan Global Person Information Technology Company Limited</p>
+        </div>
+      </div>
+      <div class="time">
+        {{ time }}
+      </div>
+      <!-- TODO: 搜索栏暂无功能，待接入公告搜索接口 -->
+      <div class="search">
+        <div class="search-icon">
+          <input
+            id="announcementSearch"
+            name="announcementSearch"
+            type="text"
+            class="search-input"
+            aria-label="公告标题搜索"
+            placeholder="请输入公告标题包含的关键字"
+          />
+          <button type="button" class="search-button">搜索</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="body">
+      <!--轮播图-->
+      <div class="carousel">
+        <Carousel />
+      </div>
+
+      <!-- 公告 -->
+      <div class="notice idx-base">
+        <div class="new">
+            <el-icon class="notice-bell">
+              <Promotion />
+            </el-icon>
+            最新公告
+        </div>
+        <!-- 公告内容 -->
+        <div class="notice-content">
+          <template v-if="latestAnnouncement">
+            <div class="notice-title">{{ latestAnnouncement.title }}</div>
+            <div class="notice-text">{{ latestAnnouncement.content.join(' ') }}</div>
+          </template>
+          <div v-else class="notice-empty">暂无最新公告</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="announcement">
+          <Message />
+        </div>
+        <!-- 侧边栏 -->
+        <div class="side">
+          <div class="login">
+            <router-view></router-view>
+          </div>
+          <div class="platform-notice">
+            <PlatformNoticeComponent />
+          </div>
+          <div class="introduction">
+            <Introduction />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <Foot />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.main {
+  width: 100%;
+  display: flex;
+  flex-direction: column; /*让 flex 容器里的子元素，从上往下竖着排列*/
+  align-items: center;
+}
+
+.head {
+  max-width: 1440px;
+  width: 100%;
+  height: 80px;
+  display: flex;
+  background-color: white;
+}
+
+.logo {
+  width: 480px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.logo_left {
+  width: 80px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo_left img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo_right {
+  width: 360px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+}
+
+.company_name {
+  cursor: pointer;
+  padding: 0;
+  font-size: 24px;
+  font-weight: 350;
+  line-height: 31px;
+}
+
+.company_n {
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 300;
+  color: #000;
+  height: 12px;
+}
+
+.time {
+  width: 36%;
+  min-width: 0;
+  height: 100%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search {
+  width: 33%;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+}
+
+.search-icon {
+  width: 90%;
+  height: 54%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ccc;
+}
+
+.search-input {
+  flex: 1;
+  height: 60%;
+  border: none;
+  outline: none;
+  padding: 0 15px;
+  font-size: 16px;
+}
+
+/* 输入框内的提示文字样式 */
+.search-input::placeholder {
+  color: #999; /* 提示文字颜色：浅灰色 */
+  font-size: 16px; /* 提示文字大小 */
+}
+
+.search-button {
+  width: 16%;
+  height: 100%;
+}
+
+.body {
+  max-width: 1440px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel {
+  width: 100%;
+  height: 450px;
+}
+
+.notice {
+  width: 100%;
+  height: 40px;
+  opacity: 0.95;
+  backdrop-filter: blur(7px);
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  padding: 10px 0 10px 28px;
+}
+
+.new {
+  width: 105px;
+  font-size: 14px;
+  color: #0C1390;
+  font-weight: 500;
+}
+
+.new .notice-bell {
+  font-size: 17px;
+  color: #0C1390;
+  font-weight: 500;
+  vertical-align: -3px;
+  margin-right: 2px;
+}
+
+.notice-content {
+  padding: 0;
+  font-size: 12px;
+  color: #333;
+  font-style: normal;
+  height: 40px;
+  width: 100%;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+}
+
+.content {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.announcement {
+  width: 70%;
+  background-color: #f6f6f6;
+}
+
+.side{
+  width: 30%;
+  background-color: #f6f6f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.login {
+  width: 100%;
+  min-height: 300px;
+}
+
+.platform-notice{
+  width: 100%;
+  min-height: 555px;
+}
+
+.introduction{
+  width: 100%;
+  min-height: 420px;
+}
+
+.foot{
+  width: 100%;
+  height: 320px;
+  background-color: #e8e8e8;
+}
+</style>
