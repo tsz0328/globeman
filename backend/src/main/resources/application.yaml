@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: Lucifer
+  datasource:
+#    url: jdbc:mysql://111.23.252.161:3306/quanqiuren?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://111.23.252.161:3306/lucifer?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai
+    username: quanqiuren
+    password: qqr13637332568.
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 50MB
+      file-size-threshold: 2MB
+server:
+  port: 8080
+  http2:
+    enabled: true
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
