@@ -39,3 +39,5 @@ static/
 
 # ===== 后端用户上传图（backend/public/picture/ 动态生成，不进版本库）=====
 backend/public/picture/
+frontend/src/assets/1.jpg
+frontend/src/assets/logo.jpg
